@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Save the environment with this ONE SIMPLE TRICK!</title>
+</head>
+
+<body>
+    <div id="menu">
+        Tree type
+        <select name="tree-type" id="treeType">
+            <option>Oak</option>
+            <option>Sakura</option>
+            <option>Palm</option>
+        </select>
+        Leaves
+        <div>
+            <input type="range" class="slider" name="leaves" min="0" max="11">
+        </div>
+    </div>
+    <span id="info"></span>
+    <canvas class="canvas" id="canvas"></canvas>
+    <canvas class="canvas" id="particleCanvas" onclick="generate()"></canvas>
+    <script src="color.js"></script>
+    <script src="renderer.js"></script>
+    <script src="canvas.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,45 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    background: #000;
+    background: linear-gradient(#3571b1 0%, #6f8eba 60%, #99a4a6);
+    width: 100vw;
+    height: 100vh;
+}
+
+.canvas {
+    image-rendering: pixelated;
+    position: absolute;
+    width: 100vw;
+    bottom: 0;
+}
+
+#menu {
+    background-color: antiquewhite;
+    display: flex;
+    flex-direction: column;
+    width: 300px;
+    padding: 20px;
+    position: absolute;
+    right: 0;
+    top: 0;
+    margin: 50px;
+    display: none;
+}
+
+.slider {
+    width: 100%;
+}
+
+#info {
+    color: white;
+    font-size: 2em;
+    position: absolute;
+    left: 10px;
+    top: 10px;
+}
