@@ -1,22 +1,31 @@
 import { status } from "./mod";
 import * as PIXI from "pixi.js"
+import { PixelDrawer } from "./pixelLayer";
 console.log(status);
-console.log(PIXI);
 let app = new PIXI.Application();
-function resize(){
-    app.renderer.resize(window.innerWidth, window.innerHeight);
+function resize() {
+  app.renderer.resize(window.innerWidth, window.innerHeight);
+  PixelDrawer.graphic.width = app.renderer.width;
+  PixelDrawer.graphic.height = app.renderer.height;
 }
+PixelDrawer.init();
+app.stage.addChild(PixelDrawer.graphic);
 resize();
-window.addEventListener("resize",resize);
+window.addEventListener("resize", resize);
 document.body.appendChild(app.view);
 
-// Create the sprite and add it to the stage
-let sprite = PIXI.Sprite.from('sample.png');
-app.stage.addChild(sprite);
+
 
 // Add a ticker callback to move the sprite back and forth
 let elapsed = 0.0;
+let s = 0;
 app.ticker.add((delta) => {
+  s += 0.001;
+  for (let i = 0; i < 512 * 256; i++) {
+    let x = i % 512;
+    let y = Math.floor(i / 512);
+    PixelDrawer.setPixel(x, y, Math.sin(x/100+s/10000)*256*256+s+y );
+  }
+  PixelDrawer.update();
   elapsed += delta;
-  sprite.x = 100.0 + Math.cos(elapsed/50.0) * 100.0;
 });
