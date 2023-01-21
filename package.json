@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "watch": "watchify src/index.ts -p [ tsify --noImplicitAny ] -o static/bundle.js",
+    "build": "browserify src/index.ts -p [ tsify --noImplicitAny ] -o static/bundle.js"
+  },
+  "dependencies": {
+    "browserify": "^17.0.0",
+    "pixi.js": "^6.4.2",
+    "tsify": "^5.0.4",
+    "typescript": "^4.9.4",
+    "watchify": "^4.0.0"
+  }
+}
