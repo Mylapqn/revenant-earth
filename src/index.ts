@@ -1,8 +1,12 @@
 import { status } from "./mod";
 import * as PIXI from "pixi.js"
-import { PixelDrawer } from "./pixelLayer";
+import { PixelDrawer } from "./pixelDrawer";
+import { PixelateFilter } from "@pixi/filter-pixelate";
+import { Terrain, TerrainPart, terrainType } from "./terrain";
+import { Camera } from "./camera";
 console.log(status);
 let app = new PIXI.Application();
+PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
 function resize() {
   app.renderer.resize(window.innerWidth, window.innerHeight);
   PixelDrawer.graphic.width = app.renderer.width;
@@ -14,18 +18,28 @@ resize();
 window.addEventListener("resize", resize);
 document.body.appendChild(app.view);
 
-
-
-// Add a ticker callback to move the sprite back and forth
-let elapsed = 0.0;
-let s = 0;
-app.ticker.add((delta) => {
-  s += 0.001;
-  for (let i = 0; i < 512 * 256; i++) {
-    let x = i % 512;
-    let y = Math.floor(i / 512);
-    PixelDrawer.setPixel(x, y, Math.sin(x/100+s/10000)*256*256+s+y );
+Terrain.init();
+let ty = 70;
+let trend = 0;
+for (let c = 0; c < Terrain.width; c++) {
+  for (let x = 0; x < 32; x++) {
+    for (let y = 0; y < ty; y++) {
+      Terrain.setPixel(x + c * 32, y, terrainType.dirt);
+    }
+    ty += trend;
+    //trend += Math.random() * 0.04 - 0.02
   }
+  for (let y = 0; y < Terrain.height; y++) {
+    Terrain.join(c * 32, y);
+  }
+}
+
+Terrain.parts.forEach(t => t.show());
+PixelDrawer.update();
+console.log("done");
+
+app.ticker.add((delta) => {
+  Camera.position.x += 1;
+  Terrain.parts.forEach(t => t.show());
   PixelDrawer.update();
-  elapsed += delta;
 });

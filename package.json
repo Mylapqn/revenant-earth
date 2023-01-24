@@ -5,6 +5,7 @@
     "no-maps": "browserify src/index.ts -p [ tsify --noImplicitAny ] -o static/bundle.js"
   },
   "dependencies": {
+    "@pixi/filter-pixelate": "^4.2.0",
     "browserify": "^17.0.0",
     "pixi.js": "^6.4.2",
     "tsify": "^5.0.4",
