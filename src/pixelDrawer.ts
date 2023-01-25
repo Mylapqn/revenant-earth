@@ -17,11 +17,8 @@ export class PixelDrawer {
     }
 
     static setPixel(x: number, y: number, color: number) {
-        const xt = x - Camera.position.x
-        const yt = y - Camera.position.y
-        let i = 4 * ((Camera.width * Camera.height - Camera.height * yt) + xt);
-        if (i >= 0 && i < this.array.buffer.byteLength)
-            this.view.setUint32(i, color);
+        let i = 4 * (x + (Camera.height - y-1) * Camera.width);
+        this.view.setUint32(i, color);
     }
 
     static update() {
