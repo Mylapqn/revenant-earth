@@ -1,3 +1,4 @@
+import { debugPrint, preferences, tick } from ".";
 import { Camera } from "./camera";
 import { PixelDrawer } from "./pixelDrawer";
 import { indexSplit } from "./utils";
@@ -36,6 +37,12 @@ export class Terrain {
         if (type == terrainType.sand || type == terrainType.water || type == terrainType.grass) this.tempToUpdate.add(i);
     }
 
+    static setAndUpdatePixel(x: number, y: number, type: terrainType) {
+        const i = x + y * this.width
+        this.view.setUint8(i, type);
+        updateSurrounding(i);
+    }
+
 
     static setPixelByIndex(i: number, type: terrainType) {
         this.view.setUint8(i, type);
@@ -47,6 +54,9 @@ export class Terrain {
                 const index = x + Camera.position.x + (y + Camera.position.y) * this.width;
                 const type = this.view.getUint8(index) as terrainType;
                 PixelDrawer.setPixel(x, y, lookup[type].colorer(index));
+                if (preferences.showUpdates && this.toUpdate.has(index)) {
+                    PixelDrawer.setPixel(x, y, 0x00ff0099);
+                }
             }
         }
     }
@@ -61,10 +71,11 @@ export class Terrain {
     }
 
     static update(tick: number) {
+        debugPrint("updates: " + this.toUpdate.size);
         for (const index of this.toUpdate) {
             const type = this.view.getUint8(index) as terrainType;
             const properties = lookup[type];
-            if (properties.update) properties.update(index, tick);
+            if (properties.update) properties.update(index);
         }
         this.toUpdate = this.tempToUpdate;
         this.tempToUpdate = new Set();
@@ -81,7 +92,7 @@ export enum terrainType {
 
 type terrainProperties = {
     colorer: (i: number) => number
-    update?: (index: number, tick: number) => void
+    update?: (index: number) => void
 }
 
 const lookup: Record<terrainType, terrainProperties> = {
@@ -99,7 +110,7 @@ const lookup: Record<terrainType, terrainProperties> = {
         colorer(i) {
             return i % 89 == 0 || i % 155 == 0 ? 0xeeee55ff : 0xffffccff;
         },
-        update(index, tick) {
+        update(index) {
             let checkIndex: number;
             checkIndex = index - Terrain.width;
             let px = Terrain.getPixelByIndex(checkIndex);
@@ -115,54 +126,71 @@ const lookup: Record<terrainType, terrainProperties> = {
                 }
             }
 
+            if (checkIndex == index) return;
             Terrain.setPixelByIndex(index, px);
-            if (px == terrainType.water) Terrain.tempToUpdate.add(index);
             Terrain.setPixelByIndex(checkIndex, terrainType.sand);
-            Terrain.tempToUpdate.add(checkIndex);
             updateSurrounding(checkIndex);
             updateSurrounding(index);
         },
     },
     [terrainType.water]: {
         colorer(i) {
-            return 0x5555ff;
+            //return (Terrain.getPixelByIndex(i + Terrain.width) == terrainType.void && Terrain.getPixelByIndex(i + Terrain.width + 1) == terrainType.void && Terrain.getPixelByIndex(i + Terrain.width - 1) == terrainType.void) ? 0 : ((-i + tick * Terrain.width) % 18512 == 0 ? 0x005555cc : 0x559999cc);
+            return ((-i + tick * Terrain.width) % 18512 == 0 ? 0x005555cc : 0x559999cc);
         },
-        update(index, tick) {
+        update(index) {
             Terrain.setPixelByIndex(index, terrainType.void);
             let checkIndex: number;
             checkIndex = index - Terrain.width;
             let px = Terrain.getPixelByIndex(checkIndex);
 
             if (px != terrainType.void) {
-                let mod = (tick * 4871 + index * 10003199) % 2;
+                let mod = (tick + index) % 2;
                 let dir = 1 - mod * 2;
                 checkIndex += Terrain.width;
                 checkIndex += dir;
                 px = Terrain.getPixelByIndex(checkIndex);
-
                 if (px != terrainType.void) {
                     checkIndex += dir;
                     px = Terrain.getPixelByIndex(checkIndex);
                     if (px != terrainType.void) {
-                        checkIndex = index;
+                        checkIndex += dir;
+                        px = Terrain.getPixelByIndex(checkIndex);
+                        if (px != terrainType.void) {
+                            checkIndex += dir;
+                            px = Terrain.getPixelByIndex(checkIndex);
+                            if (px != terrainType.void) {
+                                checkIndex += dir;
+                                px = Terrain.getPixelByIndex(checkIndex);
+                                if (px != terrainType.void) {
+                                    checkIndex += dir;
+                                    px = Terrain.getPixelByIndex(checkIndex);
+                                    if (px != terrainType.void) {
+                                        checkIndex += dir;
+                                        px = Terrain.getPixelByIndex(checkIndex);
+                                        if (px != terrainType.void) {
+                                            checkIndex = index;
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
-
             Terrain.setPixelByIndex(checkIndex, terrainType.water);
-            Terrain.tempToUpdate.add(checkIndex);
+            if (checkIndex == index) return;
             updateSurrounding(checkIndex);
             updateSurrounding(index);
-
         },
     },
     [terrainType.grass]: {
         colorer(i) {
             return 0x55aa55ff;
         },
-        update(index, tick) {
-            let mod = (tick * 4871 + index * 10003193) % 97;
-            if (mod == 0) {
+        update(index) {
+            let mod = (tick + index) % 97;
+            if (mod == 0 || true) {
                 let voidCount = 0;
                 for (const adjust in Terrain.director) {
                     const checkIndex = Terrain.director[adjust] + index;
@@ -194,7 +222,7 @@ const lookup: Record<terrainType, terrainProperties> = {
 
 
 function updateSurrounding(index: number) {
-    for (let i = 0; i <= 8; i++) {
-        Terrain.tempToUpdate.add(index + Terrain.director[index % 9]);
+    for (let i = 0; i < 9; i++) {
+        Terrain.tempToUpdate.add(index + Terrain.director[(2 * i + index) % 9]);
     }
 }
