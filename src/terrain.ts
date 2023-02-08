@@ -10,8 +10,8 @@ export class Terrain {
     static readonly height = 1024;
     static pixels: Uint8Array;
     static view: DataView;
-    static toUpdate: Set<number>
-    static tempToUpdate: Set<number>
+    static toUpdate: Set<number>;
+    static tempToUpdate: Set<number>;
     static director: Record<number, number> = {
         [0]: 0,
         [1]: 1,
@@ -190,7 +190,7 @@ const lookup: Record<terrainType, terrainProperties> = {
         },
         update(index) {
             let mod = (tick + index) % 97;
-            if (mod == 0 || true) {
+            if (mod == 0) {
                 let voidCount = 0;
                 for (const adjust in Terrain.director) {
                     const checkIndex = Terrain.director[adjust] + index;
