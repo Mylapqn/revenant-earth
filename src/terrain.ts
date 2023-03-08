@@ -6,7 +6,7 @@ import { Vector } from "./vector";
 
 
 export class Terrain {
-    static readonly width = 1024 * 100;
+    static readonly width = 1024 * 10;
     static readonly height = 1024;
     static pixels: Uint8Array;
     static view: DataView;
@@ -84,10 +84,13 @@ export class Terrain {
 
 export enum terrainType {
     void,
-    dirt,
     sand,
     water,
     grass,
+    dirt,
+    dryDirt,
+    wetDirt,
+    stone,
 }
 
 type terrainProperties = {
@@ -103,7 +106,82 @@ const lookup: Record<terrainType, terrainProperties> = {
     },
     [terrainType.dirt]: {
         colorer(i) {
-            return i % 89 == 0 || i % 155 == 0 ? 0x556655ff : 0x554411ff;
+            return 0x554411ff;
+        },
+        update(index) {
+            if (Math.random() > 0.05) {
+                Terrain.tempToUpdate.add(index);
+                return;
+            }
+
+            for (let i = 0; i < 9; i++) {
+                const adjust = (2 * i + index) % 9;
+                const checkIndex = Terrain.director[adjust] + index;
+                const px = Terrain.getPixelByIndex(checkIndex);
+                
+                if (px == terrainType.water) {
+                    Terrain.setPixelByIndex(index, terrainType.wetDirt);
+                    Terrain.setPixelByIndex(checkIndex, terrainType.void);
+                    updateSurrounding(checkIndex);
+                    updateSurrounding(index);
+                    break;
+                }
+
+                if (adjust == 2 || adjust == 4 || adjust == 3) continue;
+
+                if (px == terrainType.wetDirt) {
+                    Terrain.setPixelByIndex(index, terrainType.wetDirt);
+                    Terrain.setPixelByIndex(checkIndex, terrainType.dirt);
+                    updateSurrounding(checkIndex);
+                    updateSurrounding(index);
+                    break;
+                }
+            }
+        }
+    },
+    [terrainType.stone]: {
+        colorer(i) {
+            return 0x444445ff;
+        },
+    },
+    [terrainType.dryDirt]: {
+        colorer(i) {
+            return 0x665522ff;
+        },
+        update(index) {
+            if (Math.random() > 0.1) {
+                Terrain.tempToUpdate.add(index);
+                return;
+            }
+
+            for (let i = 0; i < 9; i++) {
+                const adjust = (2 * i + index) % 9;
+                const checkIndex = Terrain.director[adjust] + index;
+                const px = Terrain.getPixelByIndex(checkIndex);
+                
+                if (px == terrainType.water) {
+                    Terrain.setPixelByIndex(index, terrainType.dirt);
+                    Terrain.setPixelByIndex(checkIndex, terrainType.void);
+                    updateSurrounding(checkIndex);
+                    updateSurrounding(index);
+                    break;
+                }
+                
+                if (adjust == 2 || adjust == 4 || adjust == 3) continue;
+
+                if (px == terrainType.wetDirt) {
+                    Terrain.setPixelByIndex(index, terrainType.dirt);
+                    Terrain.setPixelByIndex(checkIndex, terrainType.dirt);
+                    updateSurrounding(checkIndex);
+                    updateSurrounding(index);
+                    break;
+                }
+            }
+        }
+    },
+    [terrainType.wetDirt]: {
+        colorer(i) {
+            return i % 89 == 0 || i % 155 == 0 ? 0x445544ff : 0x443300ff;
         },
     },
     [terrainType.sand]: {
@@ -189,7 +267,7 @@ const lookup: Record<terrainType, terrainProperties> = {
             return 0x55aa55ff;
         },
         update(index) {
-            let mod = (tick + index) % 97;
+            let mod = (tick + index * Terrain.width / 2) % 97;
             if (mod == 0) {
                 let voidCount = 0;
                 for (const adjust in Terrain.director) {

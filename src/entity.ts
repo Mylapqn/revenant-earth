@@ -1,5 +1,6 @@
-import { Container, Graphics, Sprite } from "pixi.js";
+import { Container, Graphics, Point, Sprite } from "pixi.js";
 import { Camera } from "./camera";
+import { Terrain } from "./terrain";
 import { Vector } from "./vector";
 
 export class Entity {
@@ -9,10 +10,9 @@ export class Entity {
     parent: Entity | undefined;
     position: Vector;
     angle: number;
-    graphics: Sprite;
-    constructor(graphics: Sprite, position: Vector, parent?: Entity, angle = 0) {
+    graphics: Container;
+    constructor(graphics: Container, position: Vector, parent?: Entity, angle = 0) {
         this.graphics = graphics;
-        this.graphics.anchor.set(0.5);
         this.position = position;
         this.angle = angle;
         if (parent) {
@@ -32,6 +32,11 @@ export class Entity {
 
     protected queueUpdate() {
         Entity.tempToUpdate.add(this);
+    }
+
+    worldCoords(localCoords: Vector) {
+        let position = this.graphics.toGlobal(new Point(localCoords.x, localCoords.y));
+        return new Vector(Camera.position.x + position.x, Camera.height + Camera.position.y - position.y);
     }
 
     update() {

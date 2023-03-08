@@ -22,6 +22,12 @@ export class PixelDrawer {
         this.view.setUint32(i, color);
     }
 
+    static resize(){
+        this.array = new Uint8Array(Camera.width * Camera.height * 4);
+        this.texture = Texture.fromBuffer(this.array, Camera.width, Camera.height);
+        this.graphic.texture = this.texture;
+    }
+
     static update() {
         this.texture.update();
     }

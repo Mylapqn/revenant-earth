@@ -7,15 +7,20 @@ import { Camera } from "./camera";
 import { Entity } from "./entity";
 import { Container, Rectangle, SCALE_MODES, Sprite } from "pixi.js";
 import { Vector } from "./vector";
-import { Seed } from "./entities/seed";
+import { Seed } from "./entities/plants/tree/seed";
+import { Robot } from "./entities/enemy/robot/robot";
 export const preferences = { showUpdates: false, selectedTerrainType: terrainType.dirt, penSize: 1 }
 console.log(status);
 let app = new PIXI.Application();
 PIXI.settings.SCALE_MODE = SCALE_MODES.NEAREST;
+
 function resize() {
     Camera.aspectRatio = window.innerWidth / window.innerHeight;
+    //Camera.width = Camera.height * Camera.aspectRatio;
+    //PixelDrawer.resize();
     app.renderer.resize(Camera.height * Camera.aspectRatio, Camera.height);
 }
+
 PixelDrawer.init();
 const bg = new PIXI.Graphics();
 for (let y = 0; y < 256; y++) {
@@ -55,7 +60,21 @@ for (let x = 0; x < Terrain.width; x++) {
     trend = trend / 2;
     if (ty < 460 || ty > 480) trend = -trend;
     for (let y = 0; y < ty; y++) {
-        Terrain.setPixel(x, y, terrainType.dirt);
+        if (y + 50 > ty) {
+
+            if (Math.random() * ty > y) {
+                Terrain.setPixel(x, y, terrainType.stone);
+            } else {
+                if (ty - 20 > y) {
+                    Terrain.setPixel(x, y, terrainType.wetDirt);
+                } else{
+                    Terrain.setPixel(x, y, terrainType.dirt);
+                }
+            }
+
+        } else {
+            Terrain.setPixel(x, y, terrainType.stone);
+        }
     }
     if (x > 450 && x < 500) Terrain.setPixel(x, Math.floor(ty), terrainType.grass);
     if (x > 450 && x < 1000 && x % 100 == 0) new Seed(new Vector(x, ty));
@@ -74,10 +93,12 @@ for (let x = 400; x < 450; x++) {
 }
 
 for (let x = 250; x < 350; x++) {
-    for (let y = 500; y < 600; y++) {
+    for (let y = 450; y < 550; y++) {
         Terrain.setPixel(x, y, terrainType.water);
     }
 }
+
+//new Robot(new Vector(900, 900), undefined, 0);
 
 Camera.position.y = 500;
 
@@ -102,15 +123,15 @@ app.ticker.add((delta) => {
     const [wx, wy] = screenToWorld(mouse).xy();
     debugPrint(screenToWorld(mouse).toString());
     if (mouse.pressed == 1) {
-        for (let x = -preferences.penSize; x < preferences.penSize; x++) {
-            for (let y = -preferences.penSize; y < preferences.penSize; y++) {
-                Terrain.setAndUpdatePixel(Math.floor(wx + x), Math.floor(wy + y), preferences.selectedTerrainType);
+        for (let x = 0; x < preferences.penSize; x++) {
+            for (let y = 0; y < preferences.penSize; y++) {
+                Terrain.setAndUpdatePixel(Math.floor(wx + x - preferences.penSize / 2), Math.floor(wy + y - preferences.penSize / 2), preferences.selectedTerrainType);
             }
         }
     } else if (mouse.pressed == 2) {
-        for (let x = -preferences.penSize; x < preferences.penSize; x++) {
-            for (let y = -preferences.penSize; y < preferences.penSize; y++) {
-                Terrain.setAndUpdatePixel(Math.floor(wx + x), Math.floor(wy + y), terrainType.void);
+        for (let x = 0; x < preferences.penSize; x++) {
+            for (let y = 0; y < preferences.penSize; y++) {
+                Terrain.setAndUpdatePixel(Math.floor(wx + x - preferences.penSize / 2), Math.floor(wy + y - preferences.penSize / 2), terrainType.void);
             }
         }
     }
@@ -123,7 +144,7 @@ app.ticker.add((delta) => {
     if (key["+"]) {
         key["+"] = false;
         preferences.penSize++;
-        if (preferences.penSize > 10) preferences.penSize = 10;
+        if (preferences.penSize > 50) preferences.penSize = 50;
     }
 
     if (key["-"]) {
