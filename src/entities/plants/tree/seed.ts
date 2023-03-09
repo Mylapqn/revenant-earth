@@ -15,24 +15,19 @@ export class Seed extends Entity {
     }
 
     update() {
-        this.energy = 100;
+        this.energy = 1000;
         this.updatePosition();
         if (this.age == 0) {
             new Root(new Vector(0, 0), this, this, Math.PI);
-            this.age++;
-        }
-
-        if (this.age == 500) {
             new Stick(new Vector(0, 0), this, this, -0.1);
-            this.age++;
         }
 
         if (this.age > 500) return;
-        this.graphics.scale.set(this.age / 500);
+        //this.graphics.scale.set(this.age / 500);
         this.queueUpdate();
         if (this.energy > 0) {
             this.age++;
-            this.energy--;
+            //this.energy--;
         }
     }
 }

@@ -100,7 +100,8 @@ for (let x = 250; x < 350; x++) {
 
 //new Robot(new Vector(900, 900), undefined, 0);
 
-Camera.position.y = 500;
+Camera.position.y = 400;
+Camera.position.x = 400;
 
 Terrain.draw();
 PixelDrawer.update();

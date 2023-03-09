@@ -4,9 +4,10 @@ export function indexSplit(index: number, width: number) {
     return [x, y]
 }
 
-export function randomColor(min: number, max: number) {
-    const diff = max - min;
-    return Math.floor(Math.random() * diff + min) * 256 * 256 * 256
-        + Math.floor(Math.random() * diff + min) * 256 * 256
-        + Math.floor(Math.random() * diff + min) * 256 + 256
+export function random(min: number, max: number) {
+    return (Math.random() * (max - min) + min);
+}
+
+export function randomInt(min: number, max: number) {
+    return Math.floor(random(min, max));
 }
