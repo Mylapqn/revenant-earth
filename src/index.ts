@@ -77,7 +77,8 @@ for (let x = 0; x < Terrain.width; x++) {
         }
     }
     if (x > 450 && x < 500) Terrain.setPixel(x, Math.floor(ty), terrainType.grass);
-    if (x > 450 && x < 1000 && x % 100 == 0) new Seed(new Vector(x, ty));
+    //if (x > 450 && x < 1000 && x % 100 == 0) new Seed(new Vector(x, ty));
+    if (x == 500) new Seed(new Vector(x, ty));
 }
 
 for (let x = 150; x < 200; x++) {

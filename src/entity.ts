@@ -26,7 +26,10 @@ export class Entity {
 
     protected updatePosition() {
         const pos = this.position.result();
-        this.graphics.position.set(pos.x, -pos.y);
+        if (this.parent)
+            this.graphics.position.set(pos.x, pos.y);
+        else
+            this.graphics.position.set(pos.x, -pos.y);
         this.graphics.rotation = this.angle;
     }
 
@@ -41,6 +44,13 @@ export class Entity {
 
     update() {
         this.updatePosition();
+    }
+
+    remove() {
+        this.parent.graphics.removeChild(this.graphics);
+        this.graphics.destroy();
+        Entity.tempToUpdate.delete(this);
+        Entity.toUpdate.delete(this);
     }
 
     static update() {

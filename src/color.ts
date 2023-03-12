@@ -1,4 +1,4 @@
-import { random, randomInt } from "./utils";
+import { lerp, random, randomInt } from "./utils";
 
 export class Color {
     r: number;
@@ -30,6 +30,10 @@ export class Color {
             100 * (s ? (l <= 0.5 ? s / (2 * l - s) : s / (2 - (2 * l - s))) : 0),
             (100 * (2 * l - s)) / 2,
         ];
+    }
+    mix(color: Color, ratio = 0.5) {
+        ratio = Math.min(1, Math.max(0, ratio));
+        return new Color(lerp(this.r, color.r, ratio), lerp(this.g, color.g, ratio), lerp(this.b, color.b, ratio))
     }
     static fromRgb(r: number, g: number, b: number) {
         return new Color(r, g, b);

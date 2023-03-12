@@ -44,7 +44,7 @@ export class Root extends Entity {
                 this.graph.lineTo(this.points[i][0], this.points[i][1]);
             }
             if (this.depth < 3 && Math.random() < .4) {
-                new Root(new Vector(this.lastPoint[0], -this.lastPoint[1]), this, this.seed, random(-1.5, 1.5), this.depth + 1)
+                new Root(new Vector(this.lastPoint[0], this.lastPoint[1]), this, this.seed, random(-1.5, 1.5), this.depth + 1)
             }
         }
         this.age++;
@@ -55,23 +55,27 @@ export class Root extends Entity {
                 this.age++;
             }
         }*/
-        if (this.seed.energy < 10000) {
+        if (this.seed.energy < 1000) {
             const coords = (() => {
                 let c = this.worldCoords(new Vector(this.lastPoint[0] + randomInt(-10, 10), this.lastPoint[1] + randomInt(-10, 10)));
                 return new Vector(Math.floor(c.x), Math.floor(c.y));
             })();
 
-            console.log(coords.x, coords.y);
+            //console.log(coords.x, coords.y);
             let px = Terrain.getPixel(coords.x, coords.y);
 
             if (px == terrainType.dirt) {
-                this.seed.energy += 5;
+                this.seed.energy += 1;
                 Terrain.setAndUpdatePixel(coords.x, coords.y, terrainType.dryDirt);
             }
 
             if (px == terrainType.wetDirt) {
-                this.seed.energy += 5;
+                this.seed.energy += 3;
                 Terrain.setAndUpdatePixel(coords.x, coords.y, terrainType.dirt);
+            }
+            if (px == terrainType.water) {
+                this.seed.energy += 50;
+                Terrain.setAndUpdatePixel(coords.x, coords.y, terrainType.void);
             }
         }
         this.queueUpdate();
