@@ -1,4 +1,4 @@
-import { Sprite } from "pixi.js";
+import { AnimatedSprite, Sprite } from "pixi.js";
 import { debugPrint } from "../..";
 import { Camera } from "../../camera";
 import { Entity } from "../../entity";
@@ -9,37 +9,56 @@ export class Player extends Entity {
     velocity = new Vector();
     input = new Vector();
     grounded = false;
-    CamTgtX = 0;
-    camTarget = new Vector();
+    camTarget = new Vector(200,400);
+    graphics: AnimatedSprite;
     constructor(position: Vector) {
-        const graph = Sprite.from("player.png")
+        //const graph = Sprite.from("player.png");
+        const graph = AnimatedSprite.fromFrames([
+            "animation/walk/walk1.png",
+            "animation/walk/walk2.png",
+            "animation/walk/walk3.png",
+            "animation/walk/walk4.png",
+            "animation/walk/walk5.png",
+            "animation/walk/walk6.png",
+            "animation/walk/walk7.png",
+            "animation/walk/walk8.png",
+        ]);
+        graph.play();
+        graph.animationSpeed = .1;
         graph.anchor.set(.5, 1);
         super(graph, position, null, 0);
     }
     update(): void {
-        let legsPixel = Terrain.getPixel(Math.floor(this.position.x), Math.floor(this.position.y));
-        if (legsPixel == terrainType.void) {
+        let legsPixels = [];
+        this.grounded = false;
+        for (let i = -4; i <= 4; i++) {
+            let t = Terrain.getPixel(Math.floor(this.position.x + i), Math.floor(this.position.y));
+            legsPixels.push(t);
+            if (t != terrainType.void) {
+                this.grounded = true;
+            }
+        }
+        if (!this.grounded) {
             this.velocity.y -= .05;
-            this.grounded = false;
         }
         else {
-            this.grounded = true;
             if (Terrain.getPixel(Math.floor(this.position.x), Math.floor(this.position.y + 1)) != terrainType.void) {
                 this.position.y += 1;
                 this.velocity.y = 0;
             }
         }
         this.velocity.x += this.input.x * .1;
-        this.velocity.x = Math.sign(this.velocity.x) * Math.min(1, Math.abs(this.velocity.x));
+        this.velocity.x = Math.sign(this.velocity.x) * Math.min(.2, Math.abs(this.velocity.x));
         if (this.velocity.x < 0) this.graphics.scale.x = -1;
         else this.graphics.scale.x = 1;
         if (this.input.x == 0) this.velocity.x *= .99;
+        this.graphics.animationSpeed = Math.abs(this.velocity.x * 1);
         if (this.grounded) {
             if (this.input.x == 0) this.velocity.x *= .85;
             if (this.input.y > 0 && this.velocity.y == 0) this.velocity.y += 2;
         }
         let pos = this.position.result().sub(new Vector(Camera.width, Camera.height).mult(.5));
-        let diff = pos.sub(this.camTarget).add(new Vector(this.velocity.result().mult(100).x, 0));
+        let diff = pos.sub(this.camTarget).add(new Vector(this.velocity.result().mult(300).x, 0));
         this.camTarget.add(diff.mult(.02))
         Camera.position.x = Math.floor(this.camTarget.x);
         Camera.position.y = Math.floor(this.camTarget.y);
