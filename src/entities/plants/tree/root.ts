@@ -17,6 +17,7 @@ export class Root extends Entity {
     points: number[][] = [];
     lastPoint = [0, 0];
     graph: Graphics;
+    growth = 0;
     constructor(position: Vector, parent: Entity, seed: Seed, angle = 0, depth = 1) {
         //const graph = Sprite.from("root.png");
         const graph = new Graphics();
@@ -35,15 +36,16 @@ export class Root extends Entity {
     }
 
     update() {
-        if (this.age < (4 - this.depth) * 100 && this.age % 40 == 0) {
+        if (this.growth < this.seed.branch.growth/10/this.depth && this.age % 40 == 0) {
             this.graph.moveTo(this.points[0][0], this.points[0][1]);
             let newPoint = [this.lastPoint[0] + randomInt(-2, 2), this.lastPoint[1] - 5];
+            this.growth++;
             this.lastPoint = newPoint;
             this.points.push(this.lastPoint)
             for (let i = 1; i < this.points.length; i++) {
                 this.graph.lineTo(this.points[i][0], this.points[i][1]);
             }
-            if (this.depth < 3 && Math.random() < .4) {
+            if (this.depth < 10 && Math.random() < .9 / this.depth) {
                 new Root(new Vector(this.lastPoint[0], this.lastPoint[1]), this, this.seed, random(-1.5, 1.5), this.depth + 1)
             }
         }

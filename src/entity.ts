@@ -39,6 +39,7 @@ export class Entity {
 
     worldCoords(localCoords: Vector) {
         let position = this.graphics.toGlobal(new Point(localCoords.x, localCoords.y));
+        //return new Vector(position.x, position.y);
         return new Vector(Camera.position.x + position.x, Camera.height + Camera.position.y - position.y);
     }
 

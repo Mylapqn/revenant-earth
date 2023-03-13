@@ -9,6 +9,7 @@ import { Container, Rectangle, SCALE_MODES, Sprite } from "pixi.js";
 import { Vector } from "./vector";
 import { Seed } from "./entities/plants/tree/seed";
 import { Robot } from "./entities/enemy/robot/robot";
+import { Player } from "./entities/player/player";
 export const preferences = { showUpdates: false, selectedTerrainType: terrainType.dirt, penSize: 1 }
 console.log(status);
 let app = new PIXI.Application();
@@ -67,7 +68,7 @@ for (let x = 0; x < Terrain.width; x++) {
             } else {
                 if (ty - 20 > y) {
                     Terrain.setPixel(x, y, terrainType.wetDirt);
-                } else{
+                } else {
                     Terrain.setPixel(x, y, terrainType.dirt);
                 }
             }
@@ -80,6 +81,8 @@ for (let x = 0; x < Terrain.width; x++) {
     //if (x > 450 && x < 1000 && x % 100 == 0) new Seed(new Vector(x, ty));
     if (x == 500) new Seed(new Vector(x, ty));
 }
+
+export const player = new Player(new Vector(400, 500));
 
 for (let x = 150; x < 200; x++) {
     for (let y = 500; y < 550; y++) {
@@ -121,6 +124,11 @@ app.ticker.add((delta) => {
     if (key["ArrowRight"]) Camera.position.x += camspeed;
     if (key["ArrowUp"]) Camera.position.y += camspeed;
     if (key["ArrowDown"]) Camera.position.y -= camspeed;
+    player.input = new Vector();
+    if (key["a"]) player.input.x -= 1;
+    if (key["d"]) player.input.x += 1;
+    if (key["w"]) player.input.y += 1;
+    if (key["s"]) player.input.y -= 1;
 
     const [wx, wy] = screenToWorld(mouse).xy();
     debugPrint(screenToWorld(mouse).toString());

@@ -4,9 +4,73 @@ import { Color } from "../../../color";
 import { Entity } from "../../../entity";
 import { random, randomBool, randomInt, rotateAngle } from "../../../utils";
 import { Vector } from "../../../vector";
+import { Falling } from "../../falling";
 import { Leaf } from "./leaf";
 import { Seed } from "./seed";
 
+
+const defaultSettings = {
+    maxGrowth: 100,
+    growSpeed: .1,
+    warping: .1,
+    rising: .04,
+    maxBranches: 7,
+    growthLeafLimit: 10,
+    growthPerSplit: 10,
+    leafAmount: 5,
+    splitOffsets: {
+        rising: -.01,
+        maxGrowthMult: 1,
+    },
+    split: {
+        angleMin: .4,
+        angleMax: .8,
+        min: 1,
+        max: 1,
+    }
+}
+
+const coniferousSettings = {
+    maxGrowth: 100,
+    growSpeed: .1,
+    warping: .0,
+    rising: .0,
+    maxBranches: 10,
+    growthLeafLimit: 40,
+    growthPerSplit: 5,
+    leafAmount: 1,
+    splitOffsets: {
+        rising: .01,
+        maxGrowthMult: .6,
+    },
+    split: {
+        angleMin: 1.4,
+        angleMax: 1.4,
+        min: 2,
+        max: 2,
+    }
+}
+
+const poplarSettings = {
+    maxGrowth: 150,
+    growSpeed: .1,
+    warping: .1,
+    rising: .05,
+    maxBranches: 12,
+    growthLeafLimit: 20,
+    growthPerSplit: 10,
+    leafAmount: 5,
+    splitOffsets: {
+        rising: 0,
+        maxGrowthMult: .5,
+    },
+    split: {
+        angleMin: .5,
+        angleMax: .9,
+        min: 1,
+        max: 2,
+    }
+};
 
 export class Branch extends Entity {
     seed: Seed;
@@ -14,15 +78,12 @@ export class Branch extends Entity {
     attachPoint: BranchPoint;
 
     energy = 10;
-    thickness = 0;
     age = 0;
     main = false;
     barkColor = Color.randomAroundHSL(30, 5, .35, .05, .35, .1);
     leafColor = Color.randomAroundHSL(95, 5, .4, .1, .45, .1);
     debugColor = Color.random().toPixi();
-    leafiness = 0;
     leafy = false;
-    permanent = false;
 
     removed = false;
 
@@ -39,18 +100,30 @@ export class Branch extends Entity {
     growAngle = -Math.PI / 2;
 
     settings = {
-        maxGrowth: 150,
+        maxGrowth: 100,
         growSpeed: .1,
         warping: .1,
         rising: .04,
+        maxBranches: 7,
+        growthLeafLimit: 10,
+        growthPerSplit: 10,
+        leafAmount: 5,
         splitOffsets: {
-            rising: -.01
+            rising: -.01,
+            maxGrowthMult: 1,
+        },
+        split: {
+            angleMin: .4,
+            angleMax: .8,
+            min: 1,
+            max: 1,
         }
-    }
+    };
 
     delay = 0;
-
-    maxBranches = 6;
+    angleSpeed = 0;
+    deltaAngle = 0;
+    baseAngle = 0;
 
     constructor(position: Vector, parent: Entity, seed: Seed, growAngle = -Math.PI / 2) {
         const graph = new Graphics();
@@ -59,9 +132,15 @@ export class Branch extends Entity {
         this.growAngle = growAngle;
         this.points.push(new BranchPoint(this.endPos.result(), this.growAngle, this));
         this.seed.b++;
+        this.baseAngle = this.angle;
     }
 
     update() {
+        this.angleSpeed += random(-1, 1) * .002;
+        this.deltaAngle += this.angleSpeed * .1 / Math.pow(this.points[0].thickness, 1.5)
+        this.angleSpeed -= this.deltaAngle * .1;
+        this.angleSpeed *= .999;
+        this.angle = this.baseAngle + this.deltaAngle;
         if (this.parent instanceof Branch) {
             if (this.parent.removed) {
                 this.remove();
@@ -82,9 +161,9 @@ export class Branch extends Entity {
             }
         }
         this.age++;
-        this.leafiness += .0001;
         //this.growSpeed *= .9995;
         if (this.main) {
+            debugPrint("rot:" + this.angleSpeed)
             debugPrint("Energy: " + this.energy);
         }
         if (this.energy > 1 || true) {
@@ -96,33 +175,28 @@ export class Branch extends Entity {
                     this.energy += energyDeficit / 2;
                 }
             }
-            //console.log(this.energy);
-            if (this.growth < this.settings.maxGrowth) {
-                this.growAngle += random(-this.settings.warping, this.settings.warping) * this.settings.growSpeed;
-                this.growAngle = rotateAngle(this.growAngle, Math.PI / -2, this.settings.rising * this.settings.growSpeed);
-                this.endPos.add(Vector.fromAngle(this.growAngle).mult(this.settings.growSpeed));
-                this.points[this.points.length - 1].position = this.endPos.result();
-                this.growthSincePush += this.settings.growSpeed;
-                this.growth += this.settings.growSpeed;
-                if (this.growthSincePush > 10) {
-                    this.points.push(new BranchPoint(this.endPos.result(), this.growAngle, this));
-                    this.growthSincePush = 0;
+            if (this.settings.growSpeed > 0) {
+                if (this.growth < this.settings.maxGrowth) {
+                    this.growAngle += random(-this.settings.warping, this.settings.warping) * this.settings.growSpeed;
+                    this.growAngle = rotateAngle(this.growAngle, Math.PI / -2, this.settings.rising * this.settings.growSpeed);
+                    this.endPos.add(Vector.fromAngle(this.growAngle).mult(this.settings.growSpeed));
+                    this.points[this.points.length - 1].position = this.endPos.result();
+                    this.growthSincePush += this.settings.growSpeed;
+                    this.growth += this.settings.growSpeed;
+                    if (this.growthSincePush > 10) {
+                        this.points.push(new BranchPoint(this.endPos.result(), this.growAngle, this));
+                        this.growthSincePush = 0;
+                    }
+                }
+                if (this.growth >= this.settings.maxGrowth) {
+                    this.finalSplit();
+                }
+                if (this.growth >= this.nextSplit) {
+                    this.split();
+                    this.nextSplit += random(1.0, 1.5) * this.settings.growthPerSplit;
                 }
             }
-            if (this.settings.growSpeed > 0 && this.growth >= this.settings.maxGrowth) {
-                this.finalSplit();
-            }
-            if (this.settings.growSpeed > 0 && this.growth >= this.nextSplit) {
-                this.split();
-                //this.thickness += .5;
-                this.nextSplit += random(10, 15);
-            }
         }
-        //if (this.age >= this.lifeTime && !this.permanent) {
-        //    this.remove();
-        //    return;
-        //}
-        if (this.settings.growSpeed == 0) return;
         this.updatePosition();
         this.draw();
         this.queueUpdate();
@@ -139,8 +213,8 @@ export class Branch extends Entity {
             const p = this.points[i];
             p.age++;
             p.drawColor = this.leafColor.mix(this.barkColor, p.age * 2 / 1000 - .1).toPixi();
-            if (p.age >= p.nextThickness) {
-                p.nextThickness *= 2;
+            if (p.age >= p.nextThickness && this.settings.growSpeed > 0) {
+                p.nextThickness *= 1.6;
                 p.thickness++;
             }
             this.graphics.lineStyle(Math.max(1, Math.floor(p.thickness)), p.drawColor);
@@ -161,12 +235,12 @@ export class Branch extends Entity {
 
         const p = this.points[this.points.length - 1];
 
-        if (this.settings.maxGrowth < 10) {
-            p.split(4, 7, 0, 1.5, true);
+        if (this.settings.maxGrowth < this.settings.growthLeafLimit) {
+            p.split(this.settings.leafAmount, this.settings.leafAmount, 0, 1.5, true);
             this.settings.growSpeed = 0;
         }
         else {
-            while (this.childBranches.length > this.maxBranches) {
+            while (this.childBranches.length > this.settings.maxBranches) {
                 for (let i = 0; i < this.points.length; i++) {
                     const p = this.points[i];
                     if (p.childBranches.length > 0) {
@@ -175,8 +249,7 @@ export class Branch extends Entity {
                     }
                 }
             }
-            this.leafiness += .2;
-            p.split(1, 1, .4, .7, false);
+            p.split(this.settings.split.min, this.settings.split.max, this.settings.split.angleMin, this.settings.split.angleMax, false);
         }
         //for (let i = 1; i <= 3; i++) {
         //    const p = this.points[this.points.length - i];
@@ -189,11 +262,17 @@ export class Branch extends Entity {
     }
     finalSplit() {
         const p = this.points[this.points.length - 1];
-        p.split(4, 7, 0, 1.5, true);
+        p.split(this.settings.leafAmount, this.settings.leafAmount, 0, 1.5, true);
         this.settings.growSpeed = 0;
 
     }
     remove() {
+        this.removed = true;
+        if (this.parent instanceof Branch && !this.parent.removed) {
+            let f = new Falling(this);
+            f.rotSpeed = (this.points[0].angle - Math.PI * 1.5) / 100;
+            console.log(f.rotSpeed);
+        }
         this.seed.b--;
         for (const b of this.childBranches) {
             b.remove();
@@ -207,15 +286,14 @@ export class Branch extends Entity {
                 this.parent.childBranches.splice(this.parent.childBranches.indexOf(this), 1);
             }
         }
-        this.removed = true;
         super.remove();
     }
 }
 
 class BranchPoint {
     drawColor = 0x000;
-    thickness = 0;
-    nextThickness = 100;
+    thickness = 1;
+    nextThickness = 200;
     age = 0;
     branch: Branch;
     position: Vector;
@@ -231,37 +309,24 @@ class BranchPoint {
         let r, angularDifference;
         r = randomInt(min, max);
         for (let i = 0; i < r; i++) {
-            angularDifference = random(angMin, angMax);
-            if (randomBool()) angularDifference *= -1;
             if (leafy) {
+                angularDifference = random(angMin, angMax);
                 this.branch.leafy = true;
                 let l = new Leaf(new Vector(random(-5, 5), random(-5, 5)), this.branch, this.branch.seed, this.branch.growAngle + angularDifference);
                 this.branch.childLeaves.push(l);
             }
             else {
-                let mg = random(.5, 1.2) * (this.branch.settings.maxGrowth - this.branch.growth);
+                if (i % 2 == 0) {
+                    angularDifference = random(angMin, angMax);
+                    if (randomBool()) angularDifference *= -1;
+                }
+                let mg = random(.5, 1.2) * (this.branch.settings.maxGrowth - this.branch.growth) * this.branch.settings.splitOffsets.maxGrowthMult;
                 if (mg < 6) continue;
                 let b = new Branch(this.position.result(), this.branch, this.branch.seed, this.branch.growAngle + angularDifference);
                 //b.energy = random(.3, .5) * this.branch.energy;
                 b.settings.maxGrowth = mg;
-                //b.lifeTime = random(.2, 1) * this.branch.lifeTime;
-                //b.thickness = Math.min(1, this.branch.thickness) - 2;
-                b.leafiness = this.branch.leafiness + .2;
                 b.settings.rising = this.branch.settings.rising + this.branch.settings.splitOffsets.rising;
                 b.settings.growSpeed = random(.8, 1.2) * this.branch.settings.growSpeed;
-                //b.leafy = randomBool(b.leafiness);
-                //if (this.branch.maxGrowth - this.branch.growth < 5) b.leafy = true;
-                //if (b.leafy) {
-                //    b.maxGrowth = 10;
-                //    b.thickness = 1;
-                //}
-                //if (randomBool(this.branch.permanentChance)) {
-                //    b.permanent = true;
-                //}
-                //else {
-                //    b.remove();
-                //    return;
-                //}
 
                 if (r == 1) {
                     this.branch.growAngle -= random(.2, .9) * angularDifference;
@@ -269,7 +334,7 @@ class BranchPoint {
                 this.branch.childBranches.push(b);
                 b.attachPoint = this;
                 this.childBranches.push(b);
-                //angularDifference *= -1;
+                angularDifference *= -1;
             }
         }
     }
