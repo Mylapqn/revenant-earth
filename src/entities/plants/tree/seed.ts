@@ -4,12 +4,15 @@ import { Vector } from "../../../vector";
 import { Root } from "./root";
 import { Branch } from "./branch";
 import { random } from "../../../utils";
+import { debugPrint } from "../../..";
 
 
 export class Seed extends Entity {
     age = 0;
     energy = 100;
     branch: Branch;
+    l = 0;
+    b = 0;
     constructor(position: Vector, parent?: Entity, angle = 0) {
         const graph = Sprite.from("seed.png")
         graph.anchor.set(0.5);
@@ -17,6 +20,8 @@ export class Seed extends Entity {
     }
 
     update() {
+        debugPrint("L: " + this.l);
+        debugPrint("B: " + this.b);
         this.energy += 1;
         this.updatePosition();
         if (this.age == 0) {

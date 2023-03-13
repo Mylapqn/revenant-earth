@@ -15,6 +15,7 @@ export class Leaf extends Entity {
     rigidity = random(.2, .5);
     posOffset = new Vector();
     constructor(position: Vector, parent: Entity, seed: Seed, angle = 0) {
+
         /* const graph = Sprite.from("leaf.png")
         graph.tint = randomColor(230, 255);
         graph.scale.set(0);*/
@@ -22,17 +23,18 @@ export class Leaf extends Entity {
         //graph.beginFill(Color.random().toPixi());
         graph.beginFill(Color.randomAroundHSL(95, 5, .4, .1, .45, .1).toPixi());
         graph.drawEllipse(2.5, -0.75, 3, 1.5);
-        //graph.anchor.set(0.5);
         super(graph, position, parent, angle);
         this.seed = seed;
         this.posOffset = position;
         if (this.parent instanceof Branch) {
             this.position = this.parent.endPos.result().add(this.posOffset);
         }
+        this.seed.l++;
     }
 
     update() {
         if (this.parent instanceof Branch) {
+            if (this.parent.removed) return;
             this.position = this.parent.endPos.result().add(this.posOffset);
             if (!this.parent.leafy)
                 this.angle = this.parent.growAngle;
@@ -41,7 +43,7 @@ export class Leaf extends Entity {
         this.phase += .04;
         this.updatePosition();
         this.graphics.scale.set(Math.max(1, Math.min(1, this.age / 100)));
-        
+
         if (this.parent instanceof Branch) {
             if (this.parent.settings.growSpeed == 0) {
                 return;
@@ -55,5 +57,9 @@ export class Leaf extends Entity {
                 this.age++;
             }
         }
+    }
+    remove(): void {
+        this.seed.l--;
+        super.remove();
     }
 }
