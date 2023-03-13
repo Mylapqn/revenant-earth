@@ -41,6 +41,12 @@ export class Leaf extends Entity {
         this.phase += .04;
         this.updatePosition();
         this.graphics.scale.set(Math.max(1, Math.min(1, this.age / 100)));
+        
+        if (this.parent instanceof Branch) {
+            if (this.parent.settings.growSpeed == 0) {
+                return;
+            }
+        }
         this.queueUpdate();
         if (this.age == 150) return;
         if (Math.random() < 10 / this.age) {
