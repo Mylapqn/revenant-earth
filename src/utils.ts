@@ -35,7 +35,8 @@ export function angleDiff(from: number, to: number) {
     let netAngle = (from - to + Math.PI * 2) % (Math.PI * 2);
     let delta = Math.min(Math.abs(netAngle - Math.PI * 2), netAngle);
     let sign = (netAngle - Math.PI) >= 0 ? 1 : -1;
-    return delta*sign;
+    return delta * sign;
+    return (delta * sign + Math.PI * 2) % (Math.PI * 2);
 }
 
 export function lerp(from: number, to: number, ratio = 0.5) {
