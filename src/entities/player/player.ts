@@ -60,8 +60,8 @@ export class Player extends Entity {
         let pos = this.position.result().sub(new Vector(Camera.width, Camera.height).mult(.5));
         let diff = pos.sub(this.camTarget).add(new Vector(this.velocity.result().mult(300).x, 0));
         this.camTarget.add(diff.mult(.02))
-        Camera.position.x = Math.floor(this.camTarget.x);
-        Camera.position.y = Math.floor(this.camTarget.y);
+        //Camera.position.x = Math.floor(this.camTarget.x);
+        //Camera.position.y = Math.floor(this.camTarget.y);
         let terrainInFront = Terrain.getPixel(Math.floor(this.position.x + this.velocity.x * 10), Math.floor(this.position.y + 20));
         if (terrainInFront != terrainType.void) this.velocity.x = 0;
 

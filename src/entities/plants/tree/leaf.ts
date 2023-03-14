@@ -25,7 +25,7 @@ export class Leaf extends Entity {
         const graph = new Graphics();
         //graph.beginFill(Color.random().toPixi());
         graph.beginFill(Color.randomAroundHSL(95, 5, .4, .1, .45, .1).toPixi());
-        graph.drawEllipse(2.5, -0.75, 3, 1.5);
+        graph.drawEllipse(-.75, -2.5, 1.5, 3);
         super(graph, posOffset, parent, angle);
         this.baseAngle = angle;
         this.seed = seed;

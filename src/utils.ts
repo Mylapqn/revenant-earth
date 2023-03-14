@@ -30,6 +30,14 @@ export function rotateAngle(from: number, to: number, amount: number) {
     return from;
 }
 
+export function angleDiff(from: number, to: number) {
+    // Get the difference between the current angle and the target angle
+    let netAngle = (from - to + Math.PI * 2) % (Math.PI * 2);
+    let delta = Math.min(Math.abs(netAngle - Math.PI * 2), netAngle);
+    let sign = (netAngle - Math.PI) >= 0 ? 1 : -1;
+    return delta*sign;
+}
+
 export function lerp(from: number, to: number, ratio = 0.5) {
     return from * (1 - ratio) + to * ratio;
 }

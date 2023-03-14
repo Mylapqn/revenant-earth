@@ -43,6 +43,11 @@ export class Entity {
         return new Vector(Camera.position.x + position.x, Camera.height + Camera.position.y - position.y);
     }
 
+    worldAngle(): number {
+        if (this.parent) return this.parent.worldAngle() + this.angle;
+        else return this.angle;
+    }
+
     update() {
         this.updatePosition();
     }
