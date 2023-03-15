@@ -15,14 +15,14 @@ export class Falling extends Entity {
         source.graphics=g;
         //source.position = new Vector();
         //source.graphics.position.set(0,0)
-        console.log(this.position);
-        this.angle = 0;
+        //console.log(this.position);
+        //this.angle = 0;
     }
     update() {
         this.velocity.x += .0005;
         this.velocity.y -= .001;
         this.graphics.alpha -=.003;
-        //this.angle+=this.rotSpeed;
+        this.angle+=this.rotSpeed;
         this.position.add(this.velocity)
         this.updatePosition();
         this.queueUpdate();

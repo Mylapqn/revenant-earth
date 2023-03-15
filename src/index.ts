@@ -57,6 +57,7 @@ app.stage.addChild(debugText);
 resize();
 window.addEventListener("resize", resize);
 document.body.appendChild(app.view);
+//app.ticker.speed=.1;
 
 
 Terrain.init();
@@ -123,21 +124,23 @@ export function debugPrint(s: string) { printText += s + "\n" };
 
 const camspeed = 3;
 app.ticker.add((delta) => {
-    const dt = delta / app.ticker.FPS;
+    const dt = Math.min(1, delta / app.ticker.FPS);
 
     if (terrainTick % 30 == 0) {
         debugText.text = printText;
     }
     printText = ""
-    if (key["ArrowLeft"]) Camera.position.x -= camspeed;
-    if (key["ArrowRight"]) Camera.position.x += camspeed;
-    if (key["ArrowUp"]) Camera.position.y += camspeed;
-    if (key["ArrowDown"]) Camera.position.y -= camspeed;
+    if (key["arrowleft"]) Camera.position.x -= camspeed;
+    if (key["arrowright"]) Camera.position.x += camspeed;
+    if (key["arrowup"]) Camera.position.y += camspeed;
+    if (key["arrowdown"]) Camera.position.y -= camspeed;
     player.input = new Vector();
     if (key["a"]) player.input.x -= 1;
     if (key["d"]) player.input.x += 1;
     if (key["w"]) player.input.y += 1;
     if (key["s"]) player.input.y -= 1;
+    if (key["shift"]) player.run = true;
+    else player.run = false;
 
     const [wx, wy] = screenToWorld(mouse).xy();
     debugPrint(screenToWorld(mouse).toString());
@@ -200,8 +203,8 @@ terrainTicker.start();
 const key: Record<string, boolean> = {};
 const mouse = { x: 0, y: 0, pressed: 0 };
 
-window.addEventListener("keydown", (e) => { key[e.key] = true });
-window.addEventListener("keyup", (e) => { key[e.key] = false });
+window.addEventListener("keydown", (e) => { key[e.key.toLowerCase()] = true });
+window.addEventListener("keyup", (e) => { key[e.key.toLowerCase()] = false });
 window.addEventListener("mousedown", (e) => { mouse.pressed = e.buttons; e.preventDefault() });
 window.addEventListener("mouseup", (e) => { mouse.pressed = e.buttons });
 window.addEventListener("mousemove", (e) => { mouse.x = e.clientX; mouse.y = e.clientY });
