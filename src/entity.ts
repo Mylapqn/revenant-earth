@@ -48,7 +48,7 @@ export class Entity {
         else return this.angle;
     }
 
-    update() {
+    update(dt: number) {
         this.updatePosition();
     }
 
@@ -59,11 +59,11 @@ export class Entity {
         Entity.toUpdate.delete(this);
     }
 
-    static update() {
+    static update(dt: number) {
         const cam = Camera.position.result();
         this.graphic.position.set(-cam.x, Camera.height + cam.y);
         for (const entity of this.toUpdate) {
-            entity.update();
+            entity.update(dt);
         }
 
         this.toUpdate = this.tempToUpdate;

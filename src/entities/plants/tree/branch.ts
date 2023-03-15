@@ -64,7 +64,7 @@ export class Branch extends Entity {
         this.nextSplit=this.settings.split.initialDelay
     }
 
-    update() {
+    update(dt: number) {
         this.angleSpeed += random(-1, 1) * .003;
         this.deltaAngle += this.angleSpeed * .1 / Math.pow(this.points[0].thickness, 1.5)
         this.angleSpeed -= this.deltaAngle * .1;
