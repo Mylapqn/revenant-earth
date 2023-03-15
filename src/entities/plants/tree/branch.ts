@@ -1,79 +1,13 @@
-import { Sprite, Graphics } from "pixi.js";
+import { Graphics } from "pixi.js";
 import { debugPrint } from "../../..";
 import { Color } from "../../../color";
 import { Entity } from "../../../entity";
-import { angleDiff, random, randomBool, randomInt, rotateAngle } from "../../../utils";
+import { angleDiff, random, randomBool, randomInt } from "../../../utils";
 import { Vector } from "../../../vector";
 import { Falling } from "../../falling";
 import { Leaf } from "./leaf";
 import { Seed } from "./seed";
-
-
-const defaultSettings = {
-    maxGrowth: 100,
-    growSpeed: .1,
-    warping: .1,
-    rising: .04,
-    maxBranches: 6,
-    growthLeafLimit: 10,
-    growthPerSplit: 10,
-    leafAmount: 5,
-    splitOffsets: {
-        rising: -.01,
-        maxGrowthMult: 1,
-    },
-    split: {
-        angleMin: .3,
-        angleMax: .4,
-        min: 1,
-        max: 1,
-    }
-}
-
-const coniferousSettings = {
-    maxGrowth: 200,
-    growSpeed: .1,
-    warping: .0,
-    rising: .02,
-    maxBranches: 30,
-    growthLeafLimit: 50,
-    growthPerSplit: 7,
-    leafAmount: 2,
-    maxGravityBend: 1.9,
-    splitOffsets: {
-        rising: .05,
-        maxGrowthMult: .2,
-        leafiness: 1,
-    },
-    split: {
-        angleMin: .2,
-        angleMax: .3,
-        min: 2,
-        max: 2,
-    }
-}
-
-const poplarSettings = {
-    maxGrowth: 150,
-    growSpeed: .1,
-    warping: .1,
-    rising: .05,
-    maxBranches: 12,
-    growthLeafLimit: 20,
-    growthPerSplit: 10,
-    leafAmount: 5,
-    maxGravityBend: .3,
-    splitOffsets: {
-        rising: 0,
-        maxGrowthMult: .5,
-    },
-    split: {
-        angleMin: .5,
-        angleMax: .9,
-        min: 1,
-        max: 2,
-    }
-};
+import { defaultTreeSettings, TreeSettings } from "./treeSettings";
 
 export class Branch extends Entity {
     seed: Seed;
@@ -97,7 +31,7 @@ export class Branch extends Entity {
 
     growthSincePush = 0;
     growth = 0;
-    nextSplit = 5;//7
+    nextSplit;
     nextThickness = 150;
 
     trueAngle = 0;
@@ -106,46 +40,28 @@ export class Branch extends Entity {
     growAngle = 0;
     angleOffset = 0;
 
-    settings = {
-        maxGrowth: 120,
-        growSpeed: .1,
-        warping: .1,
-        rising: .04,
-        maxBranches: 7,
-        growthLeafLimit: 10,
-        growthPerSplit: 10,
-        leafAmount: 4,
-        maxGravityBend: .3,
-        splitOffsets: {
-            rising: -.01,
-            maxGrowthMult: .9,
-            leafiness:0,
-        },
-        split: {
-            angleMin: .3,
-            angleMax: .4,
-            min: 1,
-            max: 1,
-        }
-    };
+    settings: TreeSettings
 
     delay = 0;
     angleSpeed = 0;
     deltaAngle = 0;
     baseAngle = 0;
 
-    constructor(position: Vector, parent: Entity, seed: Seed, growAngle = 0) {
+    constructor(position: Vector, parent: Entity, seed: Seed, angle = 0, settings: TreeSettings = defaultTreeSettings) {
         const graph = new Graphics();
         super(graph, position, parent, 0);
         this.seed = seed;
         this.growAngle = 0;
-        growAngle %= Math.PI * 2;
-        this.points.push(new BranchPoint(this.endPos.result(), growAngle, this));
+        angle %= Math.PI * 2;
+        this.points.push(new BranchPoint(this.endPos.result(), angle, this));
         this.seed.b++;
-        this.angle = growAngle;
+        this.angle = angle;
         this.baseAngle = this.angle;
         if (this.parent instanceof Branch)
             this.trueAngle = (this.angle + this.parent.trueAngle) % (Math.PI * 2);
+
+        this.settings = structuredClone(settings);
+        this.nextSplit=this.settings.split.initialDelay
     }
 
     update() {
@@ -156,7 +72,7 @@ export class Branch extends Entity {
         this.angle = this.baseAngle + this.deltaAngle + this.angleOffset;
         this.trueAngle = this.worldAngle();
         if (!this.main) {
-            this.angleOffset = Math.max(-this.settings.maxGravityBend, Math.min(this.settings.maxGravityBend, this.angleOffset + angleDiff(this.trueAngle, -Math.PI) * .0001));
+            this.angleOffset = Math.max(-this.settings.main.gravityBend.limit, Math.min(this.settings.main.gravityBend.limit, this.angleOffset + angleDiff(this.trueAngle, -Math.PI) * .0001 * this.settings.main.gravityBend.speed));
         }
         if (this.parent instanceof Branch) {
             if (this.parent.removed) {
@@ -166,7 +82,7 @@ export class Branch extends Entity {
         }
         if (this.age == 0) {
             if (this.leafy) {
-                for (let i = 0; i < this.settings.leafAmount; i++) {
+                for (let i = 0; i < this.settings.main.leafAmount; i++) {
                     let l = new Leaf(new Vector(random(-5, 5), random(-5, 5)), this, this.seed, random(-2, 2));
                     this.childLeaves.push(l);
                 }
@@ -196,15 +112,15 @@ export class Branch extends Entity {
                     this.energy += energyDeficit / 2;
                 }
             }
-            if (this.settings.growSpeed > 0) {
-                if (this.growth < this.settings.maxGrowth) {
-                    this.growAngle += random(-this.settings.warping, this.settings.warping) * this.settings.growSpeed;
-                    this.growAngle += angleDiff(this.growAngle + this.trueAngle, 0) * this.settings.rising * this.settings.growSpeed;
+            if (this.settings.main.growSpeed > 0) {
+                if (this.growth < this.settings.main.maxGrowth) {
+                    this.growAngle += random(-this.settings.main.angleWarping, this.settings.main.angleWarping) * this.settings.main.growSpeed;
+                    this.growAngle += angleDiff(this.growAngle + this.trueAngle, 0) * this.settings.main.angleRising * this.settings.main.growSpeed;
 
-                    this.endPos.add(Vector.fromAngle(this.growAngle - Math.PI / 2).mult(this.settings.growSpeed));
+                    this.endPos.add(Vector.fromAngle(this.growAngle - Math.PI / 2).mult(this.settings.main.growSpeed));
                     this.points[this.points.length - 1].position = this.endPos.result();
-                    this.growthSincePush += this.settings.growSpeed;
-                    this.growth += this.settings.growSpeed;
+                    this.growthSincePush += this.settings.main.growSpeed;
+                    this.growth += this.settings.main.growSpeed;
                     //for (const cb of this.points[this.points.length - 1].childBranches) {
                     //    cb.position = this.points[this.points.length - 1].position;
                     //}
@@ -212,26 +128,26 @@ export class Branch extends Entity {
                         this.points.push(new BranchPoint(this.endPos.result(), this.growAngle, this));
                         this.growthSincePush = 0;
                         if (this.leafy) {
-                            for (let i = 0; i < this.settings.leafAmount; i++) {
+                            for (let i = 0; i < this.settings.main.leafAmount; i++) {
                                 let l = new Leaf(Vector.fromAngle(this.growAngle - Math.PI / 2).mult(-8).add(new Vector(random(-5, 5), random(-5, 5))), this, this.seed, random(-2, 2));
                                 this.childLeaves.push(l);
                             }
                         }
                     }
                 }
-                if (this.growth >= this.settings.maxGrowth) {
+                if (this.growth >= this.settings.main.maxGrowth) {
                     this.finalSplit();
                 }
                 if (this.growth >= this.nextSplit) {
                     this.split();
-                    this.nextSplit += random(1.0, 1.5) * this.settings.growthPerSplit;
+                    this.nextSplit += random(1.0, 1.5) * this.settings.split.requiredGrowth;
                 }
             }
         }
 
         this.updatePosition();
-        if(this.growth < this.settings.maxGrowth)
-        this.draw();
+        if (this.growth < this.settings.main.maxGrowth)
+            this.draw();
         this.queueUpdate();
     }
     draw() {
@@ -248,7 +164,7 @@ export class Branch extends Entity {
             const p = this.points[i];
             p.age++;
             p.drawColor = this.leafColor.mix(this.barkColor, p.age * 2 / 1000 - .1).toPixi();
-            if (p.age >= p.nextThickness && this.settings.growSpeed > 0) {
+            if (p.age >= p.nextThickness && this.settings.main.growSpeed > 0) {
                 p.nextThickness *= 1.6;
                 p.thickness++;
             }
@@ -280,13 +196,13 @@ export class Branch extends Entity {
 
         const p = this.points[this.points.length - 1];
 
-        if (this.settings.maxGrowth < this.settings.growthLeafLimit) {
+        if (this.settings.main.maxGrowth < this.settings.main.growthLeafLimit) {
             this.leafy = true;
-            p.split(this.settings.leafAmount, this.settings.leafAmount, 0, 1.5, true);
+            p.split(this.settings.main.leafAmount, this.settings.main.leafAmount, 0, 1.5, true);
             //this.settings.growSpeed = 0;
         }
         else {
-            while (this.childBranches.length > this.settings.maxBranches) {
+            while (this.childBranches.length > this.settings.main.maxBranches) {
                 for (let i = 0; i < this.points.length; i++) {
                     const p = this.points[i];
                     if (p.childBranches.length > 0) {
@@ -295,7 +211,7 @@ export class Branch extends Entity {
                     }
                 }
             }
-            p.split(this.settings.split.min, this.settings.split.max, this.settings.split.angleMin, this.settings.split.angleMax, false);
+            p.split(this.settings.split.amount.min, this.settings.split.amount.max, this.settings.split.angle.min, this.settings.split.angle.max, false);
         }
         //for (let i = 1; i <= 3; i++) {
         //    const p = this.points[this.points.length - i];
@@ -308,8 +224,8 @@ export class Branch extends Entity {
     }
     finalSplit() {
         const p = this.points[this.points.length - 1];
-        p.split(this.settings.leafAmount, this.settings.leafAmount, 0, 1.5, true);
-        this.settings.growSpeed = 0;
+        p.split(this.settings.main.leafAmount, this.settings.main.leafAmount, 0, 1.5, true);
+        this.settings.main.growSpeed = 0;
         this.leafy = true;
 
     }
@@ -368,16 +284,17 @@ class BranchPoint {
                     angularDifference = random(angMin, angMax);
                     if (randomBool()) angularDifference *= -1;
                 }
-                let mg = random(.5, 1.2) * (this.branch.settings.maxGrowth - this.branch.growth) * this.branch.settings.splitOffsets.maxGrowthMult;
+                let mg = random(.5, 1.2) * (this.branch.settings.main.maxGrowth - this.branch.growth) * this.branch.settings.splitOffsets.maxGrowthMultiplier;
                 if (mg < 3) {
                     this.branch.leafy = true;
                     continue;
                 }
-                const b = new Branch(this.position.result(), this.branch, this.branch.seed, this.branch.growAngle + angularDifference);
+
+                const b = new Branch(this.position.result(), this.branch, this.branch.seed, this.branch.growAngle + angularDifference, this.branch.settings);
                 //b.energy = random(.3, .5) * this.branch.energy;
-                b.settings.maxGrowth = mg;
-                b.settings.rising = this.branch.settings.rising + this.branch.settings.splitOffsets.rising;
-                b.settings.growSpeed = random(.8, 1.2) * this.branch.settings.growSpeed;
+                b.settings.main.maxGrowth = mg;
+                b.settings.main.angleRising = this.branch.settings.main.angleRising + this.branch.settings.splitOffsets.angleRising;
+                b.settings.main.growSpeed = random(.8, 1.2) * this.branch.settings.main.growSpeed;
                 b.leafiness = this.branch.leafiness + this.branch.settings.splitOffsets.leafiness;
                 if (b.leafiness >= 1) b.leafy = true;
 

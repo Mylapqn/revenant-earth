@@ -51,7 +51,7 @@ export class Leaf extends Entity {
         this.graphics.scale.set(lerp(1, 1, Math.min(1, this.age / 300)));
 
         if (this.parent instanceof Branch) {
-            if (this.parent.settings.growSpeed == 0) {
+            if (this.parent.settings.main.growSpeed == 0) {
                 //return;
             }
         }

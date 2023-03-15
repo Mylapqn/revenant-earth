@@ -1,7 +1,6 @@
 import { status } from "./mod";
 import * as PIXI from "pixi.js"
 import { PixelDrawer } from "./pixelDrawer";
-import { PixelateFilter } from "@pixi/filter-pixelate";
 import { Terrain, terrainType } from "./terrain";
 import { Camera } from "./camera";
 import { Entity } from "./entity";
@@ -10,10 +9,12 @@ import { Vector } from "./vector";
 import { Seed } from "./entities/plants/tree/seed";
 import { Robot } from "./entities/enemy/robot/robot";
 import { Player } from "./entities/player/player";
+import { ParallaxDrawer } from "./parallax";
 export const preferences = { showUpdates: false, selectedTerrainType: terrainType.dirt, penSize: 1 }
 console.log(status);
-let app = new PIXI.Application();
-PIXI.settings.SCALE_MODE = SCALE_MODES.NEAREST;
+let app = new PIXI.Application<HTMLCanvasElement>();
+//PIXI.settings.SCALE_MODE = SCALE_MODES.NEAREST;
+PIXI.BaseTexture.defaultOptions.scaleMode = SCALE_MODES.NEAREST;
 
 function resize() {
     Camera.aspectRatio = window.innerWidth / window.innerHeight;
@@ -42,9 +43,14 @@ debugText.style.fontFamily = "Consolas";
 debugText.style.fontSize = "12px";
 app.stage.addChild(bg);
 app.stage.addChild(bgImg);
+pixelContainer.addChild(ParallaxDrawer.container);
 pixelContainer.addChild(PixelDrawer.graphic);
 Entity.graphic = new Container();
 pixelContainer.addChild(Entity.graphic);
+ParallaxDrawer.addLayer("BG/Test/1.png", .1);
+ParallaxDrawer.addLayer("BG/Test/2.png", .2);
+ParallaxDrawer.addLayer("BG/Test/3.png", .4);
+ParallaxDrawer.addLayer("BG/Test/4.png", .6);
 app.stage.addChild(pixelContainer);
 app.stage.addChild(debugText);
 resize();
@@ -175,6 +181,7 @@ app.ticker.add((delta) => {
     Terrain.update(tick);
     Terrain.draw();
     PixelDrawer.update();
+    ParallaxDrawer.update();
     Entity.update();
     tick++;
 });

@@ -106,7 +106,7 @@ const lookup: Record<terrainType, terrainProperties> = {
     },
     [terrainType.dirt]: {
         colorer(i) {
-            return 0x554411ff;
+            return 0x71483Aff;
         },
         update(index) {
             if (Math.random() > 0.05) {
@@ -141,12 +141,12 @@ const lookup: Record<terrainType, terrainProperties> = {
     },
     [terrainType.stone]: {
         colorer(i) {
-            return 0x444445ff;
+            return 0x594640ff;
         },
     },
     [terrainType.dryDirt]: {
         colorer(i) {
-            return 0x665522ff;
+            return 0x7E5344ff;
         },
         update(index) {
             if (Math.random() > 0.1) {
@@ -181,12 +181,12 @@ const lookup: Record<terrainType, terrainProperties> = {
     },
     [terrainType.wetDirt]: {
         colorer(i) {
-            return i % 89 == 0 || i % 155 == 0 ? 0x445544ff : 0x443300ff;
+            return i % 89 == 0 || i % 155 == 0 ? 0x445544ff : 0x593B32ff;
         },
     },
     [terrainType.sand]: {
         colorer(i) {
-            return i % 89 == 0 || i % 155 == 0 ? 0xeeee55ff : 0xffffccff;
+            return i % 89 == 0 || i % 155 == 0 ? 0xDCB9A5ff : 0xEAD1B7ff;
         },
         update(index) {
             let checkIndex: number;
@@ -214,7 +214,7 @@ const lookup: Record<terrainType, terrainProperties> = {
     [terrainType.water]: {
         colorer(i) {
             //return (Terrain.getPixelByIndex(i + Terrain.width) == terrainType.void && Terrain.getPixelByIndex(i + Terrain.width + 1) == terrainType.void && Terrain.getPixelByIndex(i + Terrain.width - 1) == terrainType.void) ? 0 : ((-i + tick * Terrain.width) % 18512 == 0 ? 0x005555cc : 0x559999cc);
-            return ((-i + tick * Terrain.width) % 18512 == 0 ? 0x005555cc : 0x559999cc);
+            return ((-i + tick * Terrain.width) % 18512 == 0 ? 0xCCEFF2DD : 0xB1C8C9cc);
         },
         update(index) {
             Terrain.setPixelByIndex(index, terrainType.void);
