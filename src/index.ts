@@ -4,7 +4,7 @@ import { PixelDrawer } from "./pixelDrawer";
 import { Terrain, terrainType } from "./terrain";
 import { Camera } from "./camera";
 import { Entity } from "./entity";
-import { Container, Rectangle, SCALE_MODES, Sprite } from "pixi.js";
+import { Container, Rectangle, SCALE_MODES, Sprite, Ticker } from "pixi.js";
 import { Vector } from "./vector";
 import { Seed } from "./entities/plants/tree/seed";
 import { Robot } from "./entities/enemy/robot/robot";
@@ -87,7 +87,7 @@ for (let x = 0; x < Terrain.width; x++) {
     if (x > 450 && x < 500) Terrain.setPixel(x, Math.floor(ty), terrainType.grass);
     //if (x > 450 && x < 1000 && x % 100 == 0) new Seed(new Vector(x, ty));
     if (x == 500) new Seed(new Vector(x, ty));
-    if (x == 700) new Seed(new Vector(x, ty),null,0,coniferousSettings);
+    if (x == 700) new Seed(new Vector(x, ty), null, 0, coniferousSettings);
 }
 
 export const player = new Player(new Vector(400, 500));
@@ -120,11 +120,12 @@ PixelDrawer.update();
 
 let printText = "";
 export function debugPrint(s: string) { printText += s + "\n" };
-export let tick = 0;
 
 const camspeed = 3;
 app.ticker.add((delta) => {
-    if (tick % 30 == 0) {
+    const dt = delta / app.ticker.FPS;
+
+    if (terrainTick % 30 == 0) {
         debugText.text = printText;
     }
     printText = ""
@@ -180,13 +181,21 @@ app.ticker.add((delta) => {
     if (Camera.position.y < 0) Camera.position.y = 0
     if (Camera.position.y + Camera.height >= Terrain.height) Camera.position.y = Terrain.height - Camera.height - 1
     debugPrint(Camera.position.toString());
-    Terrain.update(tick);
     Terrain.draw();
     PixelDrawer.update();
     ParallaxDrawer.update();
-    Entity.update();
-    tick++;
+    Entity.update(dt);
 });
+
+export let terrainTick = 0;
+let terrainTicker = new Ticker();
+terrainTicker.speed = 7;
+terrainTicker.add((dt) => {
+    Terrain.update(terrainTick);
+    terrainTick++;
+});
+
+terrainTicker.start();
 
 const key: Record<string, boolean> = {};
 const mouse = { x: 0, y: 0, pressed: 0 };

@@ -1,4 +1,4 @@
-import { debugPrint, preferences, tick } from ".";
+import { debugPrint, preferences, terrainTick } from ".";
 import { Camera } from "./camera";
 import { PixelDrawer } from "./pixelDrawer";
 import { indexSplit } from "./utils";
@@ -194,7 +194,7 @@ const lookup: Record<terrainType, terrainProperties> = {
             let px = Terrain.getPixelByIndex(checkIndex);
 
             if (px != terrainType.void && px != terrainType.water) {
-                let mod = (tick * 4871 + index * 10003193) % 2;
+                let mod = (terrainTick * 4871 + index * 10003193) % 2;
                 let dir = 1 - mod * 2;
                 checkIndex += dir;
                 px = Terrain.getPixelByIndex(checkIndex);
@@ -214,7 +214,7 @@ const lookup: Record<terrainType, terrainProperties> = {
     [terrainType.water]: {
         colorer(i) {
             //return (Terrain.getPixelByIndex(i + Terrain.width) == terrainType.void && Terrain.getPixelByIndex(i + Terrain.width + 1) == terrainType.void && Terrain.getPixelByIndex(i + Terrain.width - 1) == terrainType.void) ? 0 : ((-i + tick * Terrain.width) % 18512 == 0 ? 0x005555cc : 0x559999cc);
-            return ((-i + tick * Terrain.width) % 18512 == 0 ? 0xCCEFF2DD : 0xB1C8C9cc);
+            return ((-i + terrainTick * Terrain.width) % 18512 == 0 ? 0xCCEFF2DD : 0xB1C8C9cc);
         },
         update(index) {
             Terrain.setPixelByIndex(index, terrainType.void);
@@ -223,7 +223,7 @@ const lookup: Record<terrainType, terrainProperties> = {
             let px = Terrain.getPixelByIndex(checkIndex);
 
             if (px != terrainType.void) {
-                let mod = (tick + index) % 2;
+                let mod = (terrainTick + index) % 2;
                 let dir = 1 - mod * 2;
                 checkIndex += Terrain.width;
                 checkIndex += dir;
@@ -267,7 +267,7 @@ const lookup: Record<terrainType, terrainProperties> = {
             return 0x55aa55ff;
         },
         update(index) {
-            let mod = (tick + index * Terrain.width / 2) % 97;
+            let mod = (terrainTick + index * Terrain.width / 2) % 97;
             if (mod == 0) {
                 let voidCount = 0;
                 for (const adjust in Terrain.director) {
