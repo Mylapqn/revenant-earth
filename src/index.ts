@@ -10,6 +10,7 @@ import { Seed } from "./entities/plants/tree/seed";
 import { Robot } from "./entities/enemy/robot/robot";
 import { Player } from "./entities/player/player";
 import { ParallaxDrawer } from "./parallax";
+import { coniferousSettings } from "./entities/plants/tree/treeSettings";
 export const preferences = { showUpdates: false, selectedTerrainType: terrainType.dirt, penSize: 1 }
 console.log(status);
 let app = new PIXI.Application<HTMLCanvasElement>();
@@ -86,6 +87,7 @@ for (let x = 0; x < Terrain.width; x++) {
     if (x > 450 && x < 500) Terrain.setPixel(x, Math.floor(ty), terrainType.grass);
     //if (x > 450 && x < 1000 && x % 100 == 0) new Seed(new Vector(x, ty));
     if (x == 500) new Seed(new Vector(x, ty));
+    if (x == 700) new Seed(new Vector(x, ty),null,0,coniferousSettings);
 }
 
 export const player = new Player(new Vector(400, 500));

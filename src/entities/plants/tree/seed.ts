@@ -5,7 +5,7 @@ import { Root } from "./root";
 import { Branch } from "./branch";
 import { random } from "../../../utils";
 import { debugPrint } from "../../..";
-import { coniferousSettings } from "./treeSettings";
+import { coniferousSettings, defaultTreeSettings, TreeSettings } from "./treeSettings";
 
 
 export class Seed extends Entity {
@@ -14,11 +14,13 @@ export class Seed extends Entity {
     branch: Branch;
     l = 0;
     b = 0;
-    constructor(position: Vector, parent?: Entity, angle = 0) {
+    settings: TreeSettings;
+    constructor(position: Vector, parent?: Entity, angle = 0, settings = defaultTreeSettings) {
         const graph = Sprite.from("seed.png")
         //console.log(graph);
         graph.anchor.set(0.5);
         super(graph, position, parent, angle);
+        this.settings = settings;
     }
 
     update() {
@@ -28,7 +30,7 @@ export class Seed extends Entity {
         this.updatePosition();
         if (this.age == 0) {
             new Root(new Vector(0, 0), this, this, Math.PI);
-            this.branch = new Branch(new Vector(0, 0), this, this,0,coniferousSettings);
+            this.branch = new Branch(new Vector(0, 0), this, this, 0, this.settings);
             this.branch.main = true;
         }
         this.age++;
