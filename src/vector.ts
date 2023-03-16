@@ -71,6 +71,12 @@ export class Vector {
         return "[X: " + this.x.toFixed(3) + " Y: " + this.y.toFixed(3) + "]";
     }
 
+    round() {
+        this.x = Math.round(this.x);
+        this.y = Math.round(this.y);
+        return this;
+    }
+
     /**
      * @param {Vector} v1
      * @param {Vector} v2

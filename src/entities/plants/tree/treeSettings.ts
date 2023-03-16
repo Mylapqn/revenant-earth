@@ -18,7 +18,7 @@ export const defaultTreeSettings = {
         angleRising: .04,
         maxBranches: 6,
         growthLeafLimit: 10,
-        leafAmount: 5,
+        leafAmount: 2,
         gravityBend: {
             limit: .4,
             speed: 1

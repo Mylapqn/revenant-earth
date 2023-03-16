@@ -2,6 +2,11 @@
     box-sizing: border-box;
 }
 
+@font-face {
+    font-family: "monogram";
+    src: url(monogram-extended.ttf);
+}
+
 body {
     overflow: hidden;
     margin: 0;

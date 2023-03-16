@@ -214,7 +214,7 @@ const lookup: Record<terrainType, terrainProperties> = {
     [terrainType.water]: {
         colorer(i) {
             //return (Terrain.getPixelByIndex(i + Terrain.width) == terrainType.void && Terrain.getPixelByIndex(i + Terrain.width + 1) == terrainType.void && Terrain.getPixelByIndex(i + Terrain.width - 1) == terrainType.void) ? 0 : ((-i + tick * Terrain.width) % 18512 == 0 ? 0x005555cc : 0x559999cc);
-            return ((-i + terrainTick * Terrain.width) % 18512 == 0 ? 0xCCEFF2DD : 0xB1C8C9cc);
+            return ((-i + terrainTick * Terrain.width) % 18512 == 0 ? 0xCCEFF2DD : 0x88CAC977);
         },
         update(index) {
             Terrain.setPixelByIndex(index, terrainType.void);

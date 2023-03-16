@@ -11,10 +11,14 @@ import { Robot } from "./entities/enemy/robot/robot";
 import { Player } from "./entities/player/player";
 import { ParallaxDrawer } from "./parallax";
 import { coniferousSettings } from "./entities/plants/tree/treeSettings";
-export const preferences = { showUpdates: false, selectedTerrainType: terrainType.dirt, penSize: 1 }
+import { HighlightFilter } from "./shaders/outline/CustomFilter";
+import { Rock } from "./entities/passive/rock";
+import { random, randomInt } from "./utils";
+export const preferences = { showUpdates: false, selectedTerrainType: terrainType.dirt, penSize: 1, showDebug: false }
 console.log(status);
 let app = new PIXI.Application<HTMLCanvasElement>();
 //PIXI.settings.SCALE_MODE = SCALE_MODES.NEAREST;
+//PIXI.settings.ROUND_PIXELS = true;
 PIXI.BaseTexture.defaultOptions.scaleMode = SCALE_MODES.NEAREST;
 
 function resize() {
@@ -40,8 +44,13 @@ const bgImg = PIXI.Sprite.from("https://media.discordapp.net/attachments/7673552
 const debugText = new PIXI.Text();
 debugText.text = "text";
 debugText.tint = 0x999999;
-debugText.style.fontFamily = "Consolas";
-debugText.style.fontSize = "12px";
+debugText.style.fontFamily = "monogram";
+debugText.style.fontSize = "16px";
+debugText.style.lineHeight = 10;
+debugText.style.letterSpacing = 0;
+debugText.scale.set(1);
+debugText.position.set(4, 4);
+debugText.visible = preferences.showDebug;
 app.stage.addChild(bg);
 app.stage.addChild(bgImg);
 pixelContainer.addChild(ParallaxDrawer.container);
@@ -53,6 +62,10 @@ ParallaxDrawer.addLayer("BG/Test/2.png", .2);
 ParallaxDrawer.addLayer("BG/Test/3.png", .4);
 ParallaxDrawer.addLayer("BG/Test/4.png", .6);
 app.stage.addChild(pixelContainer);
+PixelDrawer.graphic.filters = [new HighlightFilter(3, 0xFF9955, -.7, .3, 0.2, 1)];
+PixelDrawer.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
+Entity.graphic.filters = [new HighlightFilter(2, 0xFF9955, -.7, .3, 0.1, .5)];
+Entity.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
 app.stage.addChild(debugText);
 resize();
 window.addEventListener("resize", resize);
@@ -63,6 +76,7 @@ document.body.appendChild(app.view);
 Terrain.init();
 let ty = 470;
 let trend = 0;
+let nextRock = randomInt(600,650)
 for (let x = 0; x < Terrain.width; x++) {
     ty += trend;
     trend += Math.random() * 4 - 2;
@@ -89,6 +103,11 @@ for (let x = 0; x < Terrain.width; x++) {
     //if (x > 450 && x < 1000 && x % 100 == 0) new Seed(new Vector(x, ty));
     if (x == 500) new Seed(new Vector(x, ty));
     if (x == 700) new Seed(new Vector(x, ty), null, 0, coniferousSettings);
+    if (x == nextRock){
+        let size = random(3, 8);
+        nextRock += randomInt(1,10)*Math.round(size);
+        new Rock(new Vector(x, ty), null, size, random(.3, 1.2), random(-2, 2));
+    }
 }
 
 export const player = new Player(new Vector(400, 500));
@@ -124,7 +143,7 @@ export function debugPrint(s: string) { printText += s + "\n" };
 
 const camspeed = 3;
 app.ticker.add((delta) => {
-    const dt = Math.min(1, delta / app.ticker.FPS);
+    const dt = Math.min(.1, delta / app.ticker.FPS);
 
     if (terrainTick % 30 == 0) {
         debugText.text = printText;
@@ -178,6 +197,11 @@ app.ticker.add((delta) => {
     if (key["e"]) {
         key["e"] = false;
         preferences.showUpdates = !preferences.showUpdates;
+    }
+    if (key["r"]) {
+        key["r"] = false;
+        preferences.showDebug = !preferences.showDebug;
+        debugText.visible = preferences.showDebug;
     }
     if (Camera.position.x < 0) Camera.position.x = 0
     if (Camera.position.x + Camera.width >= Terrain.width) Camera.position.x = Terrain.width - Camera.width - 1

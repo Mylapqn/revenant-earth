@@ -25,7 +25,7 @@ export class Entity {
     }
 
     protected updatePosition() {
-        const pos = this.position.result();
+        const pos = this.position.result().round();
         if (this.parent)
             this.graphics.position.set(pos.x, pos.y);
         else

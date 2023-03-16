@@ -234,7 +234,7 @@ export class Branch extends Entity {
         if (this.parent instanceof Branch && !this.parent.removed) {
             let f = new Falling(this);
             f.rotSpeed = (this.trueAngle) / 100;
-            console.log(f.rotSpeed);
+            //console.log(f.rotSpeed);
         }
         this.seed.b--;
         for (const b of this.childBranches) {

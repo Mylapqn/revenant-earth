@@ -1,4 +1,4 @@
-import { Sprite, Graphics } from "pixi.js";
+import { Sprite, Graphics, Matrix } from "pixi.js";
 import { createEmitAndSemanticDiagnosticsBuilderProgram } from "typescript";
 import { Color } from "../../../color";
 import { Entity } from "../../../entity";
@@ -17,16 +17,26 @@ export class Leaf extends Entity {
     angleDelta = 0;
     posOffset = new Vector();
     baseAngle = 0;
-    constructor(posOffset: Vector, parent: Entity, seed: Seed, angle = 0) {
+    constructor(posOffset: Vector, parent: Entity, seed: Seed, angle = 0, amount = 1, radius = 5) {
 
-        /* const graph = Sprite.from("leaf.png")
-        graph.tint = randomColor(230, 255);
-        graph.scale.set(0);*/
         const graph = new Graphics();
-        //graph.beginFill(Color.random().toPixi());
-        graph.beginFill(Color.randomAroundHSL(95, 5, .4, .1, .45, .1).toPixi());
-        graph.drawEllipse(-.75, -2.5, 1.5, 3);
         super(graph, posOffset, parent, angle);
+        //graph.beginFill(Color.random().toPixi());
+        if (amount == 1) {
+            graph.beginFill(Color.randomAroundHSL(95, 5, .4, .1, .45, .1).toPixi());
+            graph.drawEllipse(-.75, -2.5, 1.5, 3);
+        }
+        else if (amount > 1) {
+            for (let i = 0; i < amount; i++) {
+                graph.beginFill(Color.randomAroundHSL(95, 5, .4, .1, .45, .1).toPixi());
+                graph.drawEllipse(-.75, -2.5, 1.5, 3);
+
+            }
+        }
+
+        //const graph = Sprite.from("leaf.png")
+        //graph.tint = Color.random().toPixi();
+        //graph.scale.set(0);
         this.baseAngle = angle;
         this.seed = seed;
         this.posOffset = posOffset;
