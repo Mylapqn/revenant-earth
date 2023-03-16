@@ -1,18 +1,22 @@
 {
   "scripts": {
-    "watch": "watchify src/index.ts --debug -p [ tsify --noImplicitAny ] -o static/bundle.js",
-    "build": "browserify src/index.ts --debug -p [ tsify --noImplicitAny ] -o static/bundle.js",
-    "no-maps": "browserify src/index.ts -p [ tsify --noImplicitAny ] -o static/bundle.js"
+    "watch": "watchify src/index.ts -t brfs --debug -p [ tsify --noImplicitAny ] -o static/bundle.js",
+    "build": "browserify src/index.ts -t brfs --debug -p [ tsify --noImplicitAny ] -o static/bundle.js",
+    "no-maps": "browserify src/index.ts -t brfs -p [ tsify --noImplicitAny ] -o static/bundle.js"
   },
   "dependencies": {
     "@pixi/filter-godray": "^5.1.1",
     "@pixi/filter-hsl-adjustment": "^5.2.0",
     "@pixi/filter-outline": "^5.2.0",
     "@pixi/filter-reflection": "^5.1.1",
+    "brfs": "^2.0.2",
     "browserify": "^17.0.0",
     "pixi.js": "^7.2.0",
     "tsify": "^5.0.4",
     "typescript": "^4.9.4",
     "watchify": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.15.3"
   }
 }
