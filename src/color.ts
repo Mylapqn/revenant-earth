@@ -35,8 +35,8 @@ export class Color {
         ratio = Math.min(1, Math.max(0, ratio));
         return new Color(lerp(this.r, color.r, ratio), lerp(this.g, color.g, ratio), lerp(this.b, color.b, ratio))
     }
-    static fromRgb(r: number, g: number, b: number) {
-        return new Color(r, g, b);
+    copy() {
+        return new Color(this.r, this.g, this.b);
     }
     static fromHsl(h: number, s: number, l: number) {
         //H: 0 - 360; S: 0 - 1; L:0 - 1;

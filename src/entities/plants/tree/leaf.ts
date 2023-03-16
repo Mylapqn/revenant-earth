@@ -8,6 +8,16 @@ import { Falling } from "../../falling";
 import { Branch } from "./branch";
 import { Seed } from "./seed";
 
+interface LeafSettings {
+    position?: Vector,
+    sticky?: boolean,
+    angle?: number,
+    length?: number,
+    width?: number,
+    angleSpread?: number,
+    amount?: number,
+}
+
 
 export class Leaf extends Entity {
     age = 0;
@@ -17,29 +27,29 @@ export class Leaf extends Entity {
     angleDelta = 0;
     posOffset = new Vector();
     baseAngle = 0;
-    constructor(posOffset: Vector, parent: Entity, seed: Seed, angle = 0, amount = 1, radius = 5) {
-
+    constructor(parent: Entity, seed: Seed, settings: LeafSettings) {
+        const set: LeafSettings = {
+            position: settings.position || new Vector(0, 0),
+            sticky: !settings.sticky ? false : true,
+            angle: settings.angle || 0,
+            length: settings.length || 3,
+            width: settings.width || 1.5,
+            angleSpread: settings.angleSpread || 1,
+            amount: settings.amount || 1
+        }
         const graph = new Graphics();
-        super(graph, posOffset, parent, angle);
-        //graph.beginFill(Color.random().toPixi());
-        if (amount == 1) {
-            graph.beginFill(Color.randomAroundHSL(95, 5, .4, .1, .45, .1).toPixi());
-            graph.drawEllipse(-.75, -2.5, 1.5, 3);
-        }
-        else if (amount > 1) {
-            for (let i = 0; i < amount; i++) {
-                graph.beginFill(Color.randomAroundHSL(95, 5, .4, .1, .45, .1).toPixi());
-                graph.drawEllipse(-.75, -2.5, 1.5, 3);
-
-            }
-        }
+        super(graph, set.position.result(), parent, set.angle);
+        graph.beginFill(0xFFFFFF);
+        //graph.beginFill(Color.randomAroundHSL(95, 5, .4, .1, .45, .1).toNumber());
+        graph.drawEllipse(-set.width / 2, -length + .5, set.width, length);
+        //graph.cacheAsBitmap=true;
 
         //const graph = Sprite.from("leaf.png")
         //graph.tint = Color.random().toPixi();
         //graph.scale.set(0);
-        this.baseAngle = angle;
+        this.baseAngle = set.angle;
         this.seed = seed;
-        this.posOffset = posOffset;
+        this.posOffset = set.position;
         if (this.parent instanceof Branch) {
             this.position = this.parent.endPos.result().add(this.posOffset);
         }

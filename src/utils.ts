@@ -1,3 +1,6 @@
+import { Color } from "./color";
+import { Vector } from "./vector";
+
 export function indexSplit(index: number, width: number) {
     const x = index % width;
     const y = (index - x) / width
@@ -41,4 +44,35 @@ export function angleDiff(from: number, to: number) {
 
 export function lerp(from: number, to: number, ratio = 0.5) {
     return from * (1 - ratio) + to * ratio;
+}
+
+type Settings = {}
+
+export function mergeSettings(target: any, source: any) {
+    if (isObject(target) && isObject(source)) {
+        for (const k in source) {
+            const key = k as keyof (object);
+            if (source[key] as any instanceof Vector) {
+                (target[key] as Vector) = (source[key] as Vector).result();
+            }
+            else if (source[key] as any instanceof Color) {
+                (target[key] as Color) = (source[key] as Color).copy();
+            }
+            else if (isObject(source[key])) {
+                if (!target[key]) Object.assign(target, { [key]: {} });
+                mergeSettings(target[key], source[key]);
+            } else {
+                Object.assign(target, { [key]: source[key] });
+            }
+        }
+    }
+    return target;
+}
+
+export function copySettings(source: any) {
+    return mergeSettings({}, source);
+}
+
+function isObject(val: any): val is object {
+    return (typeof val === 'object')
 }

@@ -61,7 +61,7 @@ export class Branch extends Entity {
             this.trueAngle = (this.angle + this.parent.trueAngle) % (Math.PI * 2);
 
         this.settings = structuredClone(settings);
-        this.nextSplit=this.settings.split.initialDelay
+        this.nextSplit = this.settings.split.initialDelay
     }
 
     update(dt: number) {
@@ -83,12 +83,12 @@ export class Branch extends Entity {
         if (this.age == 0) {
             if (this.leafy) {
                 for (let i = 0; i < this.settings.main.leafAmount; i++) {
-                    let l = new Leaf(new Vector(random(-5, 5), random(-5, 5)), this, this.seed, random(-2, 2));
+                    let l = new Leaf(this, this.seed, { position: new Vector(random(-5, 5), random(-5, 5)), angle: random(-2, 2) });
                     this.childLeaves.push(l);
                 }
             }
             else {
-                let l = new Leaf(new Vector(0, 0), this, this.seed, this.growAngle);
+                let l = new Leaf(this, this.seed, { position: new Vector(0, 0), angle: this.growAngle });
                 this.childLeaves.push(l);
                 l.update();
             }
@@ -129,7 +129,7 @@ export class Branch extends Entity {
                         this.growthSincePush = 0;
                         if (this.leafy) {
                             for (let i = 0; i < this.settings.main.leafAmount; i++) {
-                                let l = new Leaf(Vector.fromAngle(this.growAngle - Math.PI / 2).mult(-8).add(new Vector(random(-5, 5), random(-5, 5))), this, this.seed, random(-2, 2));
+                                let l = new Leaf(this, this.seed, { position: Vector.fromAngle(this.growAngle - Math.PI / 2).mult(-8).add(new Vector(random(-5, 5), random(-5, 5))), angle: random(-2, 2) });
                                 this.childLeaves.push(l);
                             }
                         }
@@ -276,7 +276,7 @@ class BranchPoint {
                 angularDifference = random(angMin, angMax);
                 if (randomBool()) angularDifference *= -1;
                 this.branch.leafy = true;
-                let l = new Leaf(new Vector(random(-5, 5), random(-5, 5)), this.branch, this.branch.seed, this.branch.growAngle + angularDifference);
+                let l = new Leaf(this.branch, this.branch.seed, { position: new Vector(random(-5, 5), random(-5, 5)), angle: this.branch.growAngle + angularDifference });
                 this.branch.childLeaves.push(l);
             }
             else {
