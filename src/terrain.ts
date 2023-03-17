@@ -53,7 +53,7 @@ export class Terrain {
             for (let x = 0; x < Camera.width; x++) {
                 const index = x + Camera.position.x + (y + Camera.position.y) * this.width;
                 const type = this.view.getUint8(index) as terrainType;
-                PixelDrawer.setPixel(x, y, lookup[type].colorer(index));
+                PixelDrawer.setPixel(x, y, lookup[type].color);
                 if (preferences.showUpdates && this.toUpdate.has(index)) {
                     PixelDrawer.setPixel(x, y, 0x00ff0099);
                 }
@@ -94,23 +94,19 @@ export enum terrainType {
 }
 
 type terrainProperties = {
-    colorer: (i: number) => number
     update?: (index: number) => void
+    color: number
     density: number
 }
 
 export const lookup: Record<terrainType, terrainProperties> = {
     [terrainType.void]: {
         density: 0,
-        colorer(i) {
-            return 0
-        },
+        color: 0
     },
     [terrainType.dirt]: {
         density: 1,
-        colorer(i) {
-            return 0x71483Aff;
-        },
+        color: 0x71483Aff,
         update(index) {
             if (Math.random() > 0.05) {
                 Terrain.tempToUpdate.add(index);
@@ -144,15 +140,11 @@ export const lookup: Record<terrainType, terrainProperties> = {
     },
     [terrainType.stone]: {
         density: 1,
-        colorer(i) {
-            return 0x594640ff;
-        },
+        color: 0x594640ff
     },
     [terrainType.dryDirt]: {
         density: 1,
-        colorer(i) {
-            return 0x7E5344ff;
-        },
+        color: 0x7E5344ff,
         update(index) {
             if (Math.random() > 0.1) {
                 Terrain.tempToUpdate.add(index);
@@ -186,15 +178,11 @@ export const lookup: Record<terrainType, terrainProperties> = {
     },
     [terrainType.wetDirt]: {
         density: 1,
-        colorer(i) {
-            return i % 89 == 0 || i % 155 == 0 ? 0x445544ff : 0x593B32ff;
-        },
+        color: 0x593B32ff,
     },
     [terrainType.sand]: {
         density: 1,
-        colorer(i) {
-            return i % 89 == 0 || i % 155 == 0 ? 0xDCB9A5ff : 0xEAD1B7ff;
-        },
+        color: 0xEAD1B7ff,
         update(index) {
             let checkIndex: number;
             checkIndex = index - Terrain.width;
@@ -220,10 +208,7 @@ export const lookup: Record<terrainType, terrainProperties> = {
     },
     [terrainType.water]: {
         density: .9,
-        colorer(i) {
-            //return (Terrain.getPixelByIndex(i + Terrain.width) == terrainType.void && Terrain.getPixelByIndex(i + Terrain.width + 1) == terrainType.void && Terrain.getPixelByIndex(i + Terrain.width - 1) == terrainType.void) ? 0 : ((-i + tick * Terrain.width) % 18512 == 0 ? 0x005555cc : 0x559999cc);
-            return ((-i + terrainTick * Terrain.width) % 18512 == 0 ? 0xCCEFF2DD : 0x88CAC977);
-        },
+        color: 0x88CAC977,
         update(index) {
             Terrain.setPixelByIndex(index, terrainType.void);
             let checkIndex: number;
@@ -272,9 +257,7 @@ export const lookup: Record<terrainType, terrainProperties> = {
     },
     [terrainType.grass]: {
         density: 1,
-        colorer(i) {
-            return 0x55aa55ff;
-        },
+        color: 0x55aa55ff,
         update(index) {
             let mod = (terrainTick + index * Terrain.width / 2) % 97;
             if (mod == 0) {
