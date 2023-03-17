@@ -26,6 +26,9 @@ export class PixelDrawer {
         this.array = new Uint8Array(Camera.width * Camera.height * 4);
         this.texture = Texture.fromBuffer(this.array, Camera.width, Camera.height);
         this.graphic.texture = this.texture;
+        this.graphic.roundPixels = true;
+        this.array.fill(100);
+        this.view = new DataView(this.array.buffer);
     }
 
     static update() {

@@ -28,10 +28,14 @@ let app = new PIXI.Application<HTMLCanvasElement>();
 PIXI.BaseTexture.defaultOptions.scaleMode = SCALE_MODES.NEAREST;
 
 function resize() {
+    console.log(Camera.width, Camera.height);
+    
     Camera.aspectRatio = window.innerWidth / window.innerHeight;
-    //Camera.width = Camera.height * Camera.aspectRatio;
-    //PixelDrawer.resize();
-    app.renderer.resize(Camera.height * Camera.aspectRatio, Camera.height);
+    Camera.width = Math.ceil(Camera.height * Camera.aspectRatio);
+    PixelDrawer.resize();
+    Entity.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
+    PixelDrawer.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
+    app.renderer.resize(Camera.width, Camera.height);
 }
 
 PixelDrawer.init();
