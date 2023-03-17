@@ -1,4 +1,4 @@
-import { status } from "./mod";
+import { mulberry32, status } from "./mod";
 import * as PIXI from "pixi.js"
 import { PixelDrawer } from "./pixelDrawer";
 import { Terrain, terrainType } from "./terrain";
@@ -14,6 +14,9 @@ import { coniferousSettings, defaultTreeSettings } from "./entities/plants/tree/
 import { HighlightFilter } from "./shaders/outline/CustomFilter";
 import { Rock } from "./entities/passive/rock";
 import { random, randomBool, randomInt } from "./utils";
+
+Math.random = mulberry32(parseInt(window.location.toString().split('?')[1]));
+
 export const preferences = { showUpdates: false, selectedTerrainType: terrainType.dirt, penSize: 1, showDebug: false }
 console.log(status);
 let app = new PIXI.Application<HTMLCanvasElement>();
