@@ -39,9 +39,10 @@ export class Leaf extends Entity {
         }
         const graph = new Graphics();
         super(graph, set.position.result(), parent, set.angle);
-        graph.beginFill(0xFFFFFF);
-        //graph.beginFill(Color.randomAroundHSL(95, 5, .4, .1, .45, .1).toNumber());
-        graph.drawEllipse(-set.width / 2, -length + .5, set.width, length);
+        //graph.beginFill(0xFFFFFF);
+        //graph.beginFill(Color.randomAroundHSL(95, 5, .4, .1, .45, .1).toPixi());
+        graph.beginFill(Color.randomAroundHSL(85, 7, .3, .1, .45, .1).toPixi());
+        graph.drawEllipse(-set.width / 2, -set.length + .5, set.width, set.length);
         //graph.cacheAsBitmap=true;
 
         //const graph = Sprite.from("leaf.png")

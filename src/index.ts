@@ -10,10 +10,10 @@ import { Seed } from "./entities/plants/tree/seed";
 import { Robot } from "./entities/enemy/robot/robot";
 import { Player } from "./entities/player/player";
 import { ParallaxDrawer } from "./parallax";
-import { coniferousSettings } from "./entities/plants/tree/treeSettings";
+import { coniferousSettings, defaultTreeSettings } from "./entities/plants/tree/treeSettings";
 import { HighlightFilter } from "./shaders/outline/CustomFilter";
 import { Rock } from "./entities/passive/rock";
-import { random, randomInt } from "./utils";
+import { random, randomBool, randomInt } from "./utils";
 export const preferences = { showUpdates: false, selectedTerrainType: terrainType.dirt, penSize: 1, showDebug: false }
 console.log(status);
 let app = new PIXI.Application<HTMLCanvasElement>();
@@ -59,8 +59,9 @@ Entity.graphic = new Container();
 pixelContainer.addChild(Entity.graphic);
 ParallaxDrawer.addLayer("BG/Test/1.png", .1);
 ParallaxDrawer.addLayer("BG/Test/2.png", .2);
-ParallaxDrawer.addLayer("BG/Test/3.png", .4);
-ParallaxDrawer.addLayer("BG/Test/4.png", .6);
+ParallaxDrawer.addLayer("BG/Test/3.png", .3);
+ParallaxDrawer.addLayer("BG/Test/4.png", .45);
+ParallaxDrawer.addLayer("BG/Test/5.png", .65);
 app.stage.addChild(pixelContainer);
 PixelDrawer.graphic.filters = [new HighlightFilter(3, 0xFF9955, -.7, .3, 0.2, 1)];
 PixelDrawer.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
@@ -76,7 +77,7 @@ document.body.appendChild(app.view);
 Terrain.init();
 let ty = 470;
 let trend = 0;
-let nextRock = randomInt(600,650)
+let nextRock = randomInt(50,150)
 for (let x = 0; x < Terrain.width; x++) {
     ty += trend;
     trend += Math.random() * 4 - 2;
@@ -99,10 +100,10 @@ for (let x = 0; x < Terrain.width; x++) {
             Terrain.setPixel(x, y, terrainType.stone);
         }
     }
-    if (x > 450 && x < 500) Terrain.setPixel(x, Math.floor(ty), terrainType.grass);
+    //if (x > 450 && x < 500) Terrain.setPixel(x, Math.floor(ty), terrainType.grass);
     //if (x > 450 && x < 1000 && x % 100 == 0) new Seed(new Vector(x, ty));
-    if (x == 500) new Seed(new Vector(x, ty));
-    if (x == 700) new Seed(new Vector(x, ty), null, 0, coniferousSettings);
+    //if (x == 500) new Seed(new Vector(x, ty));
+    //if (x == 700) new Seed(new Vector(x, ty), null, 0, coniferousSettings);
     if (x == nextRock){
         let size = random(3, 8);
         nextRock += randomInt(1,10)*Math.round(size);
@@ -112,20 +113,25 @@ for (let x = 0; x < Terrain.width; x++) {
 
 export const player = new Player(new Vector(400, 500));
 
-for (let x = 150; x < 200; x++) {
-    for (let y = 500; y < 550; y++) {
+for (let x = 750; x < 800; x++) {
+    for (let y = 500; y < 540; y++) {
         Terrain.setPixel(x, y, terrainType.sand);
     }
 }
 
-for (let x = 400; x < 450; x++) {
-    for (let y = 500; y < 550; y++) {
+for (let x = 900; x < 950; x++) {
+    for (let y = 500; y < 540; y++) {
+        Terrain.setPixel(x, y, terrainType.sand);
+    }
+}
+for (let x = 800; x < 900; x++) {
+    for (let y = 495; y < 500; y++) {
         Terrain.setPixel(x, y, terrainType.sand);
     }
 }
 
-for (let x = 250; x < 350; x++) {
-    for (let y = 450; y < 550; y++) {
+for (let x = 800; x < 850; x++) {
+    for (let y = 500; y < 550; y++) {
         Terrain.setPixel(x, y, terrainType.water);
     }
 }
@@ -142,6 +148,7 @@ let printText = "";
 export function debugPrint(s: string) { printText += s + "\n" };
 
 const camspeed = 3;
+let seedCooldown = 0;
 app.ticker.add((delta) => {
     const dt = Math.min(.1, delta / app.ticker.FPS);
 
@@ -202,6 +209,13 @@ app.ticker.add((delta) => {
         key["r"] = false;
         preferences.showDebug = !preferences.showDebug;
         debugText.visible = preferences.showDebug;
+    }
+    seedCooldown-=dt;
+    if(key["f"] && seedCooldown <= 0){
+        seedCooldown = 1;
+        new Seed(player.position.result(),null,0,randomBool()?coniferousSettings:defaultTreeSettings);
+        console.log("ds");
+        
     }
     if (Camera.position.x < 0) Camera.position.x = 0
     if (Camera.position.x + Camera.width >= Terrain.width) Camera.position.x = Terrain.width - Camera.width - 1

@@ -17,8 +17,8 @@ export class Branch extends Entity {
     energy = 10;
     age = 0;
     main = false;
-    barkColor = Color.randomAroundHSL(30, 5, .35, .05, .35, .1);
-    leafColor = Color.randomAroundHSL(95, 5, .4, .1, .45, .1);
+    barkColor = Color.randomAroundHSL(30, 5, .3, .05, .3, .1);
+    leafColor = Color.randomAroundHSL(85, 7, .3, .1, .45, .1);
     debugColor = Color.random().toPixi();
     leafy = false;
     leafiness = 0;
@@ -91,6 +91,9 @@ export class Branch extends Entity {
                 let l = new Leaf(this, this.seed, { position: new Vector(0, 0), angle: this.growAngle });
                 this.childLeaves.push(l);
                 l.update();
+            }
+            if (this.main) {
+                this.settings.main.maxGrowth *= random(.7, 1.3);
             }
         }
         this.age++;
