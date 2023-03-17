@@ -14,8 +14,11 @@ import { coniferousSettings, defaultTreeSettings } from "./entities/plants/tree/
 import { HighlightFilter } from "./shaders/outline/CustomFilter";
 import { Rock } from "./entities/passive/rock";
 import { random, randomBool, randomInt } from "./utils";
+let seed = parseInt(window.location.toString().split('?')[1]);
+if (!seed) seed = Math.floor(Math.random() * 1000);
+Math.random = mulberry32(seed);
+console.log("seed:", seed);
 
-Math.random = mulberry32(parseInt(window.location.toString().split('?')[1]));
 
 export const preferences = { showUpdates: false, selectedTerrainType: terrainType.dirt, penSize: 1, showDebug: false }
 console.log(status);
@@ -80,7 +83,7 @@ document.body.appendChild(app.view);
 Terrain.init();
 let ty = 470;
 let trend = 0;
-let nextRock = randomInt(50,150)
+let nextRock = randomInt(50, 150)
 for (let x = 0; x < Terrain.width; x++) {
     ty += trend;
     trend += Math.random() * 4 - 2;
@@ -107,9 +110,9 @@ for (let x = 0; x < Terrain.width; x++) {
     //if (x > 450 && x < 1000 && x % 100 == 0) new Seed(new Vector(x, ty));
     //if (x == 500) new Seed(new Vector(x, ty));
     //if (x == 700) new Seed(new Vector(x, ty), null, 0, coniferousSettings);
-    if (x == nextRock){
+    if (x == nextRock) {
         let size = random(3, 8);
-        nextRock += randomInt(1,10)*Math.round(size);
+        nextRock += randomInt(1, 10) * Math.round(size);
         new Rock(new Vector(x, ty), null, size, random(.3, 1.2), random(-2, 2));
     }
 }
@@ -213,12 +216,12 @@ app.ticker.add((delta) => {
         preferences.showDebug = !preferences.showDebug;
         debugText.visible = preferences.showDebug;
     }
-    seedCooldown-=dt;
-    if(key["f"] && seedCooldown <= 0){
+    seedCooldown -= dt;
+    if (key["f"] && seedCooldown <= 0) {
         seedCooldown = 1;
-        new Seed(player.position.result(),null,0,randomBool()?coniferousSettings:defaultTreeSettings);
+        new Seed(player.position.result(), null, 0, randomBool() ? coniferousSettings : defaultTreeSettings);
         console.log("ds");
-        
+
     }
     if (Camera.position.x < 0) Camera.position.x = 0
     if (Camera.position.x + Camera.width >= Terrain.width) Camera.position.x = Terrain.width - Camera.width - 1
