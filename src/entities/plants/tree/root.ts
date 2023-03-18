@@ -1,7 +1,7 @@
 import { Graphics, Point, Sprite } from "pixi.js";
 import { Color } from "../../../color";
 import { Entity } from "../../../entity";
-import { Terrain, terrainType } from "../../../terrain";
+import { DirtManager, Terrain, terrainType } from "../../../terrain";
 import { random, randomInt } from "../../../utils";
 import { Vector } from "../../../vector";
 import { Seed } from "./seed";
@@ -36,7 +36,7 @@ export class Root extends Entity {
     }
 
     update() {
-        if (this.growth < this.seed.branch.growth/10/this.depth && this.age % 40 == 0) {
+        if (this.growth < this.seed.branch.growth / 10 / this.depth && this.age % 40 == 0) {
             this.graph.moveTo(this.points[0][0], this.points[0][1]);
             let newPoint = [this.lastPoint[0] + randomInt(-2, 2), this.lastPoint[1] - 5];
             this.growth++;
@@ -66,17 +66,15 @@ export class Root extends Entity {
             //console.log(coords.x, coords.y);
             let px = Terrain.getPixel(coords.x, coords.y);
 
-            if (px == terrainType.dirt) {
-                this.seed.energy += 1;
-                Terrain.setAndUpdatePixel(coords.x, coords.y, terrainType.dryDirt);
-            }
-
-            if (px == terrainType.wetDirt) {
-                this.seed.energy += 3;
-                Terrain.setAndUpdatePixel(coords.x, coords.y, terrainType.dirt);
+            if (DirtManager.isDirt(px)) {
+                const dirtWater = DirtManager.getDirtWater(px);
+                if (dirtWater > 0) {
+                    this.seed.energy += 4;
+                    Terrain.setAndUpdatePixel(coords.x, coords.y, DirtManager.dirtByStats(dirtWater - 1, DirtManager.getDirtMinerals(px)));
+                }
             }
             if (px == terrainType.water) {
-                this.seed.energy += 50;
+                this.seed.energy += 32;
                 Terrain.setAndUpdatePixel(coords.x, coords.y, terrainType.void);
             }
         }

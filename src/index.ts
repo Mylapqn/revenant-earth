@@ -20,7 +20,7 @@ Math.random = mulberry32(seed);
 console.log("seed:", seed);
 
 
-export const preferences = { showUpdates: false, selectedTerrainType: terrainType.dirt, penSize: 1, showDebug: false }
+export const preferences = { showUpdates: false, selectedTerrainType: terrainType.dirt00, penSize: 1, showDebug: false }
 console.log(status);
 let app = new PIXI.Application<HTMLCanvasElement>();
 //PIXI.settings.SCALE_MODE = SCALE_MODES.NEAREST;
@@ -90,9 +90,9 @@ let trend = 0;
 let nextRock = randomInt(50, 150)
 for (let x = 0; x < Terrain.width; x++) {
     ty += trend;
-    trend += Math.random() * 4 - 2;
-    trend = trend / 2;
-    if (ty < 460 || ty > 480) trend = -trend;
+    trend += Math.random() * 2 - 1;
+    trend = trend / 1.2;
+    if (ty < 360 || ty > 580) trend = -trend;
     for (let y = 0; y < ty; y++) {
         if (y + 50 > ty) {
 
@@ -100,9 +100,9 @@ for (let x = 0; x < Terrain.width; x++) {
                 Terrain.setPixel(x, y, terrainType.stone);
             } else {
                 if (ty - 20 > y) {
-                    Terrain.setPixel(x, y, terrainType.wetDirt);
+                    Terrain.setAndUpdatePixel(x, y, terrainType.dirt70);
                 } else {
-                    Terrain.setPixel(x, y, terrainType.dirt);
+                    Terrain.setAndUpdatePixel(x, y, terrainType.dirt03);
                 }
             }
 
@@ -125,18 +125,27 @@ export const player = new Player(new Vector(400, 500));
 
 for (let x = 750; x < 800; x++) {
     for (let y = 500; y < 540; y++) {
+        if(randomBool(0.9))
         Terrain.setPixel(x, y, terrainType.sand);
+        else
+        Terrain.setPixel(x, y, terrainType.sand2);
     }
 }
 
 for (let x = 900; x < 950; x++) {
     for (let y = 500; y < 540; y++) {
+        if(randomBool(0.9))
         Terrain.setPixel(x, y, terrainType.sand);
+        else
+        Terrain.setPixel(x, y, terrainType.sand2);
     }
 }
 for (let x = 800; x < 900; x++) {
     for (let y = 495; y < 500; y++) {
+        if(randomBool(0.9))
         Terrain.setPixel(x, y, terrainType.sand);
+        else
+        Terrain.setPixel(x, y, terrainType.sand2);
     }
 }
 
@@ -194,7 +203,7 @@ app.ticker.add((delta) => {
         }
     }
 
-    if (key["1"]) preferences.selectedTerrainType = terrainType.dirt;
+    if (key["1"]) preferences.selectedTerrainType = terrainType.dirt00;
     if (key["2"]) preferences.selectedTerrainType = terrainType.sand;
     if (key["3"]) preferences.selectedTerrainType = terrainType.water;
     if (key["4"]) preferences.selectedTerrainType = terrainType.grass;

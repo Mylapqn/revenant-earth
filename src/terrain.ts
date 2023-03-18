@@ -1,9 +1,21 @@
 import { debugPrint, preferences, terrainTick } from ".";
 import { Camera } from "./camera";
 import { PixelDrawer } from "./pixelDrawer";
-import { indexSplit } from "./utils";
+import { indexSplit, random, randomInt } from "./utils";
 import { Vector } from "./vector";
 
+
+enum Direction {
+    none,
+    right,
+    bottomRight,
+    bottom,
+    bottomLeft,
+    left,
+    topLeft,
+    top,
+    topRight
+}
 
 export class Terrain {
     static readonly width = 1024 * 10;
@@ -41,6 +53,10 @@ export class Terrain {
         const i = x + y * this.width
         this.view.setUint8(i, type);
         updateSurrounding(i);
+    }
+
+    static queueUpdate(index: number) {
+        Terrain.queueUpdate(index)
     }
 
 
@@ -85,12 +101,42 @@ export class Terrain {
 export enum terrainType {
     void,
     sand,
+    sand2,
     water,
     grass,
-    dirt,
-    dryDirt,
-    wetDirt,
     stone,
+    dirt00 = 0b10000000,
+    dirt10 = 0b10000001,
+    dirt20 = 0b10000010,
+    dirt30 = 0b10000011,
+    dirt40 = 0b10000100,
+    dirt50 = 0b10000101,
+    dirt60 = 0b10000110,
+    dirt70 = 0b10000111,
+    dirt01 = 0b10001000,
+    dirt11 = 0b10001001,
+    dirt21 = 0b10001010,
+    dirt31 = 0b10001011,
+    dirt41 = 0b10001100,
+    dirt51 = 0b10001101,
+    dirt61 = 0b10001110,
+    dirt71 = 0b10001111,
+    dirt02 = 0b10010000,
+    dirt12 = 0b10010001,
+    dirt22 = 0b10010010,
+    dirt32 = 0b10010011,
+    dirt42 = 0b10010100,
+    dirt52 = 0b10010101,
+    dirt62 = 0b10010110,
+    dirt72 = 0b10010111,
+    dirt03 = 0b10011000,
+    dirt13 = 0b10011001,
+    dirt23 = 0b10011010,
+    dirt33 = 0b10011011,
+    dirt43 = 0b10011100,
+    dirt53 = 0b10011101,
+    dirt63 = 0b10011110,
+    dirt73 = 0b10011111,
 }
 
 type terrainProperties = {
@@ -104,81 +150,9 @@ export const lookup: Record<terrainType, terrainProperties> = {
         density: 0,
         color: 0
     },
-    [terrainType.dirt]: {
-        density: 1,
-        color: 0x71483Aff,
-        update(index) {
-            if (Math.random() > 0.05) {
-                Terrain.tempToUpdate.add(index);
-                return;
-            }
-
-            for (let i = 0; i < 9; i++) {
-                const adjust = (2 * i + index) % 9;
-                const checkIndex = Terrain.director[adjust] + index;
-                const px = Terrain.getPixelByIndex(checkIndex);
-
-                if (px == terrainType.water) {
-                    Terrain.setPixelByIndex(index, terrainType.wetDirt);
-                    Terrain.setPixelByIndex(checkIndex, terrainType.void);
-                    updateSurrounding(checkIndex);
-                    updateSurrounding(index);
-                    break;
-                }
-
-                if (adjust == 2 || adjust == 4 || adjust == 3) continue;
-
-                if (px == terrainType.wetDirt) {
-                    Terrain.setPixelByIndex(index, terrainType.wetDirt);
-                    Terrain.setPixelByIndex(checkIndex, terrainType.dirt);
-                    updateSurrounding(checkIndex);
-                    updateSurrounding(index);
-                    break;
-                }
-            }
-        }
-    },
     [terrainType.stone]: {
         density: 1,
         color: 0x594640ff
-    },
-    [terrainType.dryDirt]: {
-        density: 1,
-        color: 0x7E5344ff,
-        update(index) {
-            if (Math.random() > 0.1) {
-                Terrain.tempToUpdate.add(index);
-                return;
-            }
-
-            for (let i = 0; i < 9; i++) {
-                const adjust = (2 * i + index) % 9;
-                const checkIndex = Terrain.director[adjust] + index;
-                const px = Terrain.getPixelByIndex(checkIndex);
-
-                if (px == terrainType.water) {
-                    Terrain.setPixelByIndex(index, terrainType.dirt);
-                    Terrain.setPixelByIndex(checkIndex, terrainType.void);
-                    updateSurrounding(checkIndex);
-                    updateSurrounding(index);
-                    break;
-                }
-
-                if (adjust == 2 || adjust == 4 || adjust == 3) continue;
-
-                if (px == terrainType.wetDirt) {
-                    Terrain.setPixelByIndex(index, terrainType.dirt);
-                    Terrain.setPixelByIndex(checkIndex, terrainType.dirt);
-                    updateSurrounding(checkIndex);
-                    updateSurrounding(index);
-                    break;
-                }
-            }
-        }
-    },
-    [terrainType.wetDirt]: {
-        density: 1,
-        color: 0x593B32ff,
     },
     [terrainType.sand]: {
         density: 1,
@@ -206,6 +180,21 @@ export const lookup: Record<terrainType, terrainProperties> = {
             updateSurrounding(index);
         },
     },
+    [terrainType.sand2]: {
+        density: 1,
+        color: 0xFAccccff,
+        update(index) {
+            let checkIndex: number;
+            checkIndex = index - Terrain.width;
+            let px = Terrain.getPixelByIndex(checkIndex);
+            if (px == terrainType.void || px == terrainType.water) {
+                Terrain.setPixelByIndex(index, px);
+                Terrain.setPixelByIndex(checkIndex, terrainType.sand2);
+                updateSurrounding(checkIndex);
+                updateSurrounding(index);
+            }
+        },
+    },
     [terrainType.water]: {
         density: .9,
         color: 0x88CAC977,
@@ -214,8 +203,17 @@ export const lookup: Record<terrainType, terrainProperties> = {
             let checkIndex: number;
             checkIndex = index - Terrain.width;
             let px = Terrain.getPixelByIndex(checkIndex);
-
-            if (px != terrainType.void) {
+            if (DirtManager.isDirt(px)) {
+                const dirtWater = DirtManager.getDirtWater(px);
+                if (dirtWater < 4) {
+                    Terrain.setPixelByIndex(checkIndex, DirtManager.dirtByStats(dirtWater + 4, DirtManager.getDirtMinerals(px)));
+                    updateSurrounding(checkIndex);
+                    updateSurrounding(index);
+                    return;
+                }
+                Terrain.setPixelByIndex(index, terrainType.water);
+                return;
+            } else if (px != terrainType.void) {
                 let mod = (terrainTick + index) % 2;
                 let dir = 1 - mod * 2;
                 checkIndex += Terrain.width;
@@ -259,37 +257,300 @@ export const lookup: Record<terrainType, terrainProperties> = {
         density: 1,
         color: 0x55aa55ff,
         update(index) {
-            let mod = (terrainTick + index * Terrain.width / 2) % 97;
-            if (mod == 0) {
-                let voidCount = 0;
-                for (const adjust in Terrain.director) {
-                    const checkIndex = Terrain.director[adjust] + index;
-                    const px = Terrain.getPixelByIndex(checkIndex);
-                    if (px == terrainType.void) {
-                        voidCount++;
-                    } else if (px == terrainType.dirt) {
-                        for (const adjust2 in Terrain.director) {
-                            const checkIndex2 = Terrain.director[adjust2] + checkIndex;
-                            const px2 = Terrain.getPixelByIndex(checkIndex2);
-                            if (px2 == terrainType.void) {
-                                Terrain.setPixelByIndex(checkIndex, terrainType.grass);
-                                Terrain.tempToUpdate.add(index);
-                                Terrain.tempToUpdate.add(checkIndex);
-                            }
-                        }
-                    }
-                }
-                if (voidCount == 0) {
-                    Terrain.setPixelByIndex(index, terrainType.dirt);
-                    updateSurrounding(index);
-                }
-            } else {
-                Terrain.tempToUpdate.add(index);
-            }
+            //implement
         },
-    }
+    },
+    [terrainType.dirt00]: {
+        density: 1,
+        color: 0x6E5344ff,
+        update(index) {
+            dirtBehaviour(index, 0, 0)
+        },
+    },
+    [terrainType.dirt10]: {
+        density: 1,
+        color: 0x6D5243ff,
+        update(index) {
+            dirtBehaviour(index, 1, 0)
+        },
+    },
+    [terrainType.dirt20]: {
+        density: 1,
+        color: 0x6C5142ff,
+        update(index) {
+            dirtBehaviour(index, 2, 0)
+        },
+    },
+    [terrainType.dirt30]: {
+        density: 1,
+        color: 0x6B5041ff,
+        update(index) {
+            dirtBehaviour(index, 3, 0)
+        },
+    },
+    [terrainType.dirt40]: {
+        density: 1,
+        color: 0x6A4F40ff,
+        update(index) {
+            dirtBehaviour(index, 4, 0)
+        },
+    },
+    [terrainType.dirt50]: {
+        density: 1,
+        color: 0x694E3Fff,
+        update(index) {
+            dirtBehaviour(index, 5, 0)
+        },
+    },
+    [terrainType.dirt60]: {
+        density: 1,
+        color: 0x684D3Eff,
+        update(index) {
+            dirtBehaviour(index, 6, 0)
+        },
+    },
+    [terrainType.dirt70]: {
+        density: 1,
+        color: 0x674C3Dff,
+        update(index) {
+            dirtBehaviour(index, 7, 0)
+        },
+    },
+    [terrainType.dirt01]: {
+        density: 1,
+        color: 0x7E5344ff,
+        update(index) {
+            dirtBehaviour(index, 0, 1)
+        },
+    },
+    [terrainType.dirt11]: {
+        density: 1,
+        color: 0x7D5243ff,
+        update(index) {
+            dirtBehaviour(index, 1, 1)
+        },
+    },
+    [terrainType.dirt21]: {
+        density: 1,
+        color: 0x7C5142ff,
+        update(index) {
+            dirtBehaviour(index, 2, 1)
+        },
+    },
+    [terrainType.dirt31]: {
+        density: 1,
+        color: 0x7B5041ff,
+        update(index) {
+            dirtBehaviour(index, 3, 1)
+        },
+    },
+    [terrainType.dirt41]: {
+        density: 1,
+        color: 0x7A4F40ff,
+        update(index) {
+            dirtBehaviour(index, 4, 1)
+        },
+    },
+    [terrainType.dirt51]: {
+        density: 1,
+        color: 0x794E3Fff,
+        update(index) {
+            dirtBehaviour(index, 5, 1)
+        },
+    },
+    [terrainType.dirt61]: {
+        density: 1,
+        color: 0x784D3Eff,
+        update(index) {
+            dirtBehaviour(index, 6, 1)
+        },
+    },
+    [terrainType.dirt71]: {
+        density: 1,
+        color: 0x774C3Dff,
+        update(index) {
+            dirtBehaviour(index, 7, 1)
+        },
+    },
+    [terrainType.dirt02]: {
+        density: 1,
+        color: 0x8E5344ff,
+        update(index) {
+            dirtBehaviour(index, 0, 2)
+        },
+    },
+    [terrainType.dirt12]: {
+        density: 1,
+        color: 0x8D5243ff,
+        update(index) {
+            dirtBehaviour(index, 1, 2)
+        },
+    },
+    [terrainType.dirt22]: {
+        density: 1,
+        color: 0x8C5142ff,
+        update(index) {
+            dirtBehaviour(index, 2, 2)
+        },
+    },
+    [terrainType.dirt32]: {
+        density: 1,
+        color: 0x8B5041ff,
+        update(index) {
+            dirtBehaviour(index, 3, 2)
+        },
+    },
+    [terrainType.dirt42]: {
+        density: 1,
+        color: 0x8A4F40ff,
+        update(index) {
+            dirtBehaviour(index, 4, 2)
+        },
+    },
+    [terrainType.dirt52]: {
+        density: 1,
+        color: 0x894E3Fff,
+        update(index) {
+            dirtBehaviour(index, 5, 2)
+        },
+    },
+    [terrainType.dirt62]: {
+        density: 1,
+        color: 0x884D3Eff,
+        update(index) {
+            dirtBehaviour(index, 6, 2)
+        },
+    },
+    [terrainType.dirt72]: {
+        density: 1,
+        color: 0x874C3Dff,
+        update(index) {
+            dirtBehaviour(index, 7, 2)
+        },
+    },
+    [terrainType.dirt03]: {
+        density: 1,
+        color: 0x9E5344ff,
+        update(index) {
+            dirtBehaviour(index, 0, 3)
+        },
+    },
+    [terrainType.dirt13]: {
+        density: 1,
+        color: 0x9D5243ff,
+        update(index) {
+            dirtBehaviour(index, 1, 3)
+        },
+    },
+    [terrainType.dirt23]: {
+        density: 1,
+        color: 0x9C5142ff,
+        update(index) {
+            dirtBehaviour(index, 2, 3)
+        },
+    },
+    [terrainType.dirt33]: {
+        density: 1,
+        color: 0x9B5041ff,
+        update(index) {
+            dirtBehaviour(index, 3, 3)
+        },
+    },
+    [terrainType.dirt43]: {
+        density: 1,
+        color: 0x9A4F40ff,
+        update(index) {
+            dirtBehaviour(index, 4, 3)
+        },
+    },
+    [terrainType.dirt53]: {
+        density: 1,
+        color: 0x994E3Fff,
+        update(index) {
+            dirtBehaviour(index, 5, 3)
+        },
+    },
+    [terrainType.dirt63]: {
+        density: 1,
+        color: 0x984D3Eff,
+        update(index) {
+            dirtBehaviour(index, 6, 3)
+        },
+    },
+    [terrainType.dirt73]: {
+        density: 1,
+        color: 0x974C3Dff,
+        update(index) {
+            dirtBehaviour(index, 7, 3)
+        },
+    },
 };
 
+function dirtBehaviour(index: number, water: number, minerals: number) {
+    let checkIndex = Terrain.director[Direction.bottom] + index;
+    let px = Terrain.getPixelByIndex(checkIndex);
+    let dir = randomInt(0, 2) * 2 - 1;
+
+    const drip = () => {
+        if (px == terrainType.void) {
+            if (water > 3) {
+                Terrain.setPixelByIndex(checkIndex, terrainType.water);
+                Terrain.setPixelByIndex(index, DirtManager.dirtByStats(water - 4, minerals));
+                updateSurrounding(checkIndex);
+                updateSurrounding(index);
+                return true;
+            }
+        }
+    }
+
+    const soak = () => {
+        if (DirtManager.isDirt(px)) {
+            const otherWater = DirtManager.getDirtWater(px);
+            if (water > 3 && otherWater < 7 && water >= otherWater) {
+                Terrain.setPixelByIndex(index, DirtManager.dirtByStats(--water, minerals));
+                Terrain.setPixelByIndex(checkIndex, DirtManager.dirtByStats(otherWater + 1, DirtManager.getDirtMinerals(px)));
+                updateSurrounding(checkIndex);
+                updateSurrounding(index);
+                return true;
+            }
+        }
+    }
+
+    if (drip()) return;
+    soak();
+    checkIndex += dir
+    px = Terrain.getPixelByIndex(checkIndex);
+    if (drip()) return;
+    soak();
+    checkIndex -= dir * 2
+    px = Terrain.getPixelByIndex(checkIndex);
+    if (drip()) return;
+    soak();
+    checkIndex = index + dir
+    px = Terrain.getPixelByIndex(checkIndex);
+    soak();
+    checkIndex = index + dir * -1
+    px = Terrain.getPixelByIndex(checkIndex);
+    soak();
+}
+
+export class DirtManager {
+    static dirtByStats(water: number, minerals: number) {
+        return 0b10000000 + minerals * 8 + water as terrainType
+    }
+
+    static isDirt(terrain: terrainType) {
+        return (terrain & 0b10000000) == 128
+    }
+
+    static getDirtWater(terrain: terrainType) {
+        return terrain & 0b00000111
+    }
+
+    static getDirtMinerals(terrain: terrainType) {
+        return (terrain & 0b00011000) / 8
+    }
+}
 
 function updateSurrounding(index: number) {
     for (let i = 0; i < 9; i++) {
