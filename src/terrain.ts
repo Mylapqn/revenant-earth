@@ -1,4 +1,4 @@
-import { debugPrint, preferences, terrainTick } from ".";
+import { DebugMode, debugPrint, preferences, terrainTick } from ".";
 import { Camera } from "./camera";
 import { PixelDrawer } from "./pixelDrawer";
 import { indexSplit, random, randomInt } from "./utils";
@@ -46,7 +46,6 @@ export class Terrain {
     static setPixel(x: number, y: number, type: terrainType) {
         const i = x + y * this.width
         this.view.setUint8(i, type);
-        if (type == terrainType.sand || type == terrainType.water || type == terrainType.grass) this.tempToUpdate.add(i);
     }
 
     static setAndUpdatePixel(x: number, y: number, type: terrainType) {
@@ -54,11 +53,6 @@ export class Terrain {
         this.view.setUint8(i, type);
         updateSurrounding(i);
     }
-
-    static queueUpdate(index: number) {
-        Terrain.queueUpdate(index)
-    }
-
 
     static setPixelByIndex(i: number, type: terrainType) {
         this.view.setUint8(i, type);
@@ -70,8 +64,12 @@ export class Terrain {
                 const index = x + Camera.position.x + (y + Camera.position.y) * this.width;
                 const type = this.view.getUint8(index) as terrainType;
                 PixelDrawer.setPixel(x, y, lookup[type].color);
-                if (preferences.showUpdates && this.toUpdate.has(index)) {
+                if (preferences.debugMode == DebugMode.updates && this.toUpdate.has(index)) {
                     PixelDrawer.setPixel(x, y, 0x00ff0099);
+                } else if (preferences.debugMode == DebugMode.water) {
+                    if (DirtManager.isDirt(type)) {
+                        PixelDrawer.setPixel(x, y, 0x666666ff + 0x00051100 * DirtManager.getDirtWater(type));
+                    }
                 }
             }
         }
@@ -89,9 +87,18 @@ export class Terrain {
     static update(tick: number) {
         debugPrint("updates: " + this.toUpdate.size);
         for (const index of this.toUpdate) {
-            const type = this.view.getUint8(index) as terrainType;
-            const properties = lookup[type];
+            let type = this.view.getUint8(index) as terrainType;
+            let properties = lookup[type];
             if (properties.update) properties.update(index);
+            type = this.view.getUint8(index + 1) as terrainType;
+            properties = lookup[type];
+            if (properties.update) properties.update(index + 1);
+            type = this.view.getUint8(index + this.width + 1) as terrainType;
+            properties = lookup[type];
+            if (properties.update) properties.update(index + this.width + 1);
+            type = this.view.getUint8(index + this.width) as terrainType;
+            properties = lookup[type];
+            if (properties.update) properties.update(index + this.width);
         }
         this.toUpdate = this.tempToUpdate;
         this.tempToUpdate = new Set();
@@ -168,8 +175,12 @@ export const lookup: Record<terrainType, terrainProperties> = {
                 checkIndex += dir;
                 px = Terrain.getPixelByIndex(checkIndex);
                 if (px != terrainType.void && px != terrainType.water) {
-                    checkIndex = index;
+                    checkIndex -= dir * 2;
                     px = Terrain.getPixelByIndex(checkIndex);
+                    if (px != terrainType.void && px != terrainType.water) {
+                        checkIndex = index;
+                        px = Terrain.getPixelByIndex(checkIndex);
+                    }
                 }
             }
 
@@ -503,10 +514,10 @@ function dirtBehaviour(index: number, water: number, minerals: number) {
         }
     }
 
-    const soak = () => {
+    const soak = (adjust: number = 0) => {
         if (DirtManager.isDirt(px)) {
             const otherWater = DirtManager.getDirtWater(px);
-            if (water > 3 && otherWater < 7 && water >= otherWater) {
+            if (water > 1 && otherWater < 7 && water + adjust >= otherWater) {
                 Terrain.setPixelByIndex(index, DirtManager.dirtByStats(--water, minerals));
                 Terrain.setPixelByIndex(checkIndex, DirtManager.dirtByStats(otherWater + 1, DirtManager.getDirtMinerals(px)));
                 updateSurrounding(checkIndex);
@@ -517,7 +528,7 @@ function dirtBehaviour(index: number, water: number, minerals: number) {
     }
 
     if (drip()) return;
-    soak();
+    soak(1);
     checkIndex += dir
     px = Terrain.getPixelByIndex(checkIndex);
     if (drip()) return;
@@ -528,10 +539,10 @@ function dirtBehaviour(index: number, water: number, minerals: number) {
     soak();
     checkIndex = index + dir
     px = Terrain.getPixelByIndex(checkIndex);
-    soak();
+    soak(-1);
     checkIndex = index + dir * -1
     px = Terrain.getPixelByIndex(checkIndex);
-    soak();
+    soak(-1);
 }
 
 export class DirtManager {
@@ -553,7 +564,17 @@ export class DirtManager {
 }
 
 function updateSurrounding(index: number) {
+    let [x, y] = indexSplit(index, Terrain.width);
+    x = ((x - 1) >> 1) << 1;
+    y = ((y - 1) >> 1) << 1;
+    const quindex = x + y * Terrain.width;
+    Terrain.tempToUpdate.add(quindex);
+    Terrain.tempToUpdate.add(quindex + 2);
+    Terrain.tempToUpdate.add(quindex + Terrain.width * 2);
+    Terrain.tempToUpdate.add(quindex + 2 + Terrain.width * 2);
+    /*
     for (let i = 0; i < 9; i++) {
         Terrain.tempToUpdate.add(index + Terrain.director[(2 * i + index) % 9]);
     }
+    */
 }

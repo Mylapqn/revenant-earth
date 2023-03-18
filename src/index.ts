@@ -19,8 +19,12 @@ if (!seed) seed = Math.floor(Math.random() * 1000);
 Math.random = mulberry32(seed);
 console.log("seed:", seed);
 
-
-export const preferences = { showUpdates: false, selectedTerrainType: terrainType.dirt00, penSize: 1, showDebug: false }
+export enum DebugMode {
+    off,
+    updates,
+    water
+}
+export const preferences = { debugMode: DebugMode.off, selectedTerrainType: terrainType.dirt00, penSize: 1, showDebug: false }
 console.log(status);
 let app = new PIXI.Application<HTMLCanvasElement>();
 //PIXI.settings.SCALE_MODE = SCALE_MODES.NEAREST;
@@ -28,8 +32,6 @@ let app = new PIXI.Application<HTMLCanvasElement>();
 PIXI.BaseTexture.defaultOptions.scaleMode = SCALE_MODES.NEAREST;
 
 function resize() {
-    console.log(Camera.width, Camera.height);
-    
     Camera.aspectRatio = window.innerWidth / window.innerHeight;
     Camera.width = Math.ceil(Camera.height * Camera.aspectRatio);
     PixelDrawer.resize();
@@ -125,33 +127,33 @@ export const player = new Player(new Vector(400, 500));
 
 for (let x = 750; x < 800; x++) {
     for (let y = 500; y < 540; y++) {
-        if(randomBool(0.9))
-        Terrain.setPixel(x, y, terrainType.sand);
+        if (randomBool(0.9))
+            Terrain.setAndUpdatePixel(x, y, terrainType.sand);
         else
-        Terrain.setPixel(x, y, terrainType.sand2);
+            Terrain.setAndUpdatePixel(x, y, terrainType.sand2);
     }
 }
 
 for (let x = 900; x < 950; x++) {
     for (let y = 500; y < 540; y++) {
-        if(randomBool(0.9))
-        Terrain.setPixel(x, y, terrainType.sand);
+        if (randomBool(0.9))
+            Terrain.setAndUpdatePixel(x, y, terrainType.sand);
         else
-        Terrain.setPixel(x, y, terrainType.sand2);
+            Terrain.setAndUpdatePixel(x, y, terrainType.sand2);
     }
 }
 for (let x = 800; x < 900; x++) {
     for (let y = 495; y < 500; y++) {
-        if(randomBool(0.9))
-        Terrain.setPixel(x, y, terrainType.sand);
+        if (randomBool(0.9))
+            Terrain.setAndUpdatePixel(x, y, terrainType.sand);
         else
-        Terrain.setPixel(x, y, terrainType.sand2);
+            Terrain.setAndUpdatePixel(x, y, terrainType.sand2);
     }
 }
 
 for (let x = 800; x < 850; x++) {
     for (let y = 500; y < 550; y++) {
-        Terrain.setPixel(x, y, terrainType.water);
+        Terrain.setAndUpdatePixel(x, y, terrainType.water);
     }
 }
 
@@ -222,7 +224,15 @@ app.ticker.add((delta) => {
 
     if (key["e"]) {
         key["e"] = false;
-        preferences.showUpdates = !preferences.showUpdates;
+        preferences.debugMode++;
+        preferences.debugMode %= Object.keys(DebugMode).length / 2;
+        if (preferences.debugMode != DebugMode.off) {
+            Entity.graphic.filters = [];
+            PixelDrawer.graphic.filters = [];
+        } else {
+            Entity.graphic.filters = [new HighlightFilter(2, 0xFF9955, -.7, .3, 0.1, .5)];
+            PixelDrawer.graphic.filters = [new HighlightFilter(3, 0xFF9955, -.7, .3, 0.2, 1)];
+        }
     }
     if (key["r"]) {
         key["r"] = false;
