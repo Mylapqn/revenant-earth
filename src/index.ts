@@ -251,6 +251,7 @@ app.ticker.add((delta) => {
     if (Camera.position.y < 0) Camera.position.y = 0
     if (Camera.position.y + Camera.height >= Terrain.height) Camera.position.y = Terrain.height - Camera.height - 1
     debugPrint(Camera.position.toString());
+    debugPrint("FPS: " + (1/dt).toFixed(1));
     Terrain.draw();
     PixelDrawer.update();
     ParallaxDrawer.update();

@@ -24,8 +24,8 @@ export class Seed extends Entity {
     }
 
     update() {
-        debugPrint("L: " + this.l);
-        debugPrint("B: " + this.b);
+        //debugPrint("L: " + this.l);
+        //debugPrint("B: " + this.b);
         this.energy += 1;
         this.updatePosition();
         if (this.age == 0) {

@@ -99,11 +99,11 @@ export class Branch extends Entity {
         this.age++;
         //this.growSpeed *= .9995;
         if (this.main) {
-            debugPrint("rot:" + this.angleSpeed)
-            debugPrint("Energy: " + this.energy);
-            debugPrint("Leafiness: " + this.leafy);
-            debugPrint("Growth: " + this.growth);
-            debugPrint("NextSplit: " + this.nextSplit);
+            //debugPrint("rot:" + this.angleSpeed)
+            //debugPrint("Energy: " + this.energy);
+            //debugPrint("Leafiness: " + this.leafy);
+            //debugPrint("Growth: " + this.growth);
+            //debugPrint("NextSplit: " + this.nextSplit);
             //console.log(angleDiff(this.growAngle + this.trueAngle, 0));
         }
         if (this.energy > 1 || true) {
