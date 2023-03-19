@@ -59,9 +59,11 @@ export class Terrain {
     }
 
     static draw() {
+        const camX = Camera.position.x;
+        const camY = Camera.position.y;
         for (let y = 0; y < Camera.height; y++) {
             for (let x = 0; x < Camera.width; x++) {
-                const index = x + Camera.position.x + (y + Camera.position.y) * this.width;
+                const index = x + camX + (y + camY) * this.width;
                 const type = this.view.getUint8(index) as terrainType;
                 PixelDrawer.setPixel(x, y, lookup[type].color);
                 if (preferences.debugMode == DebugMode.updates && this.toUpdate.has(index)) {
