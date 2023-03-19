@@ -2,22 +2,11 @@ const fs = require("fs");
 import { Filter, utils } from '@pixi/core';
 import type { FilterSystem, RenderTexture, CLEAR_MODES } from '@pixi/core';
 import { Assets, Color } from 'pixi.js';
+import { Atmosphere } from '../../atmosphere';
+import { Camera } from '../../camera';
 
-let fragment: string = fs.readFileSync(__dirname + '/outline.frag', 'utf8');
+let fragment: string = fs.readFileSync(__dirname + '/highlight.frag', 'utf8');
 
-/**
- * OutlineFilter, originally by mishaa
- * http://www.html5gamedevs.com/topic/10640-outline-a-sprite-change-certain-colors/?p=69966
- * http://codepen.io/mishaa/pen/emGNRB<br>
- * ![original](../tools/screenshots/dist/original.png)![filter](../tools/screenshots/dist/outline.png)
- *
- * @class
- * @extends PIXI.Filter
- * @see {@link https://www.npmjs.com/package/@pixi/filter-outline|@pixi/filter-outline}
- * @see {@link https://www.npmjs.com/package/pixi-filters|pixi-filters} *
- * @example
- *  someSprite.filters = [new OutlineFilter(2, 0x99ff99)];
- */
 export class HighlightFilter extends Filter {
     /** The minimum number of samples for rendering outline. */
     public static MIN_SAMPLES = 1;
@@ -37,35 +26,30 @@ export class HighlightFilter extends Filter {
      * @param {number} [alpha=1.0] - The alpha of the outline.
      * @param {boolean} [knockout=false] - Only render outline, not the contents.
      */
-    constructor(thickness: number = 1, color: number = 0x000000, angle: number = 0.0, angleWidth: number = .1, alpha: number = 1.0, quality: number = 0.1, knockout: boolean = false) {
-        super(undefined, fragment.replace(/\$\{angleStep\}/, HighlightFilter.getAngleStep(quality)).replace(/\$\{minAngle\}/, (angle-angleWidth).toFixed(2)).replace(/\$\{maxAngle\}/, (angle+angleWidth).toFixed(2)));
+    constructor(thickness: number = 1, color: number = 0x000000, alpha: number = 1.0) {
+        super(undefined, fragment.replace(/(DEPTH_STEPS = )([\d.]+)/g, `$1${thickness.toFixed(1)}`));
 
-        this.uniforms.uThickness = new Float32Array([0, 0]);
+        this.uniforms.uLightPos = new Float32Array([0, 0]);
+        this.uniforms.uPixelSize = new Float32Array([0, 0]);
         this.uniforms.uColor = new Float32Array([0, 0, 0, 1]);
         this.uniforms.uAlpha = alpha;
-        this.uniforms.uKnockout = knockout;
 
-        Object.assign(this, { thickness, color, quality, alpha, knockout });
+        Object.assign(this, { thickness, color, alpha });
     }
 
     /**
      * Get the angleStep by quality
      * @private
      */
-    private static getAngleStep(quality: number): string {
-        const samples = Math.max(
-            quality * HighlightFilter.MAX_SAMPLES,
-            HighlightFilter.MIN_SAMPLES,
-        );
-
-        return (Math.PI * 2 / samples).toFixed(7);
-    }
 
     apply(filterManager: FilterSystem, input: RenderTexture, output: RenderTexture, clear: CLEAR_MODES): void {
-        this.uniforms.uThickness[0] = this._thickness / input._frame.width;
-        this.uniforms.uThickness[1] = this._thickness / input._frame.height;
         this.uniforms.uAlpha = this._alpha;
         this.uniforms.uKnockout = this._knockout;
+        this.uniforms.uAngle = Atmosphere.settings.sunAngle;
+        this.uniforms.uLightPos[0] = Atmosphere.settings.sunPosition.x / Camera.width;
+        this.uniforms.uLightPos[1] = Atmosphere.settings.sunPosition.y / Camera.height;
+        this.uniforms.uPixelSize[0] = 1 / input._frame.width;
+        this.uniforms.uPixelSize[1] = 1 / input._frame.height;
 
         filterManager.applyFilter(this, input, output, clear);
     }
