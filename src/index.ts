@@ -11,9 +11,10 @@ import { Robot } from "./entities/enemy/robot/robot";
 import { Player } from "./entities/player/player";
 import { ParallaxDrawer } from "./parallax";
 import { coniferousSettings, defaultTreeSettings } from "./entities/plants/tree/treeSettings";
-import { HighlightFilter } from "./shaders/outline/CustomFilter";
+import { HighlightFilter } from "./shaders/outline/highlightFilter";
 import { Rock } from "./entities/passive/rock";
 import { random, randomBool, randomInt } from "./utils";
+import { Atmosphere } from "./atmosphere";
 let seed = parseInt(window.location.toString().split('?')[1]);
 if (!seed) seed = Math.floor(Math.random() * 1000);
 Math.random = mulberry32(seed);
@@ -69,15 +70,15 @@ pixelContainer.addChild(ParallaxDrawer.container);
 pixelContainer.addChild(PixelDrawer.graphic);
 Entity.graphic = new Container();
 pixelContainer.addChild(Entity.graphic);
-ParallaxDrawer.addLayer("BG/Test/1.png", .1);
+ParallaxDrawer.addLayer("BG/Test/1.png", 0);
 ParallaxDrawer.addLayer("BG/Test/2.png", .2);
 ParallaxDrawer.addLayer("BG/Test/3.png", .3);
 ParallaxDrawer.addLayer("BG/Test/4.png", .45);
 ParallaxDrawer.addLayer("BG/Test/5.png", .65);
 app.stage.addChild(pixelContainer);
-PixelDrawer.graphic.filters = [new HighlightFilter(3, 0xFF9955, -.7, .3, 0.2, 1)];
+PixelDrawer.graphic.filters = [new HighlightFilter(5, 0xFF9955, .25)];
 PixelDrawer.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
-Entity.graphic.filters = [new HighlightFilter(2, 0xFF9955, -.7, .3, 0.1, .5)];
+Entity.graphic.filters = [new HighlightFilter(2, 0xFF9955, .2)];
 Entity.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
 app.stage.addChild(debugText);
 resize();
@@ -173,6 +174,9 @@ let seedCooldown = 0;
 app.ticker.add((delta) => {
     const dt = Math.min(.1, delta / app.ticker.FPS);
 
+    Atmosphere.settings.sunAngle += dt/2;
+    Atmosphere.settings.sunPosition = Vector.fromAngle(Atmosphere.settings.sunAngle).mult(200).add(new Vector(200,200));
+
     if (terrainTick % 30 == 0) {
         debugText.text = printText;
     }
@@ -230,8 +234,8 @@ app.ticker.add((delta) => {
             Entity.graphic.filters = [];
             PixelDrawer.graphic.filters = [];
         } else {
-            Entity.graphic.filters = [new HighlightFilter(2, 0xFF9955, -.7, .3, 0.1, .5)];
-            PixelDrawer.graphic.filters = [new HighlightFilter(3, 0xFF9955, -.7, .3, 0.2, 1)];
+            Entity.graphic.filters = [new HighlightFilter(2, 0xFF9955, .1)];
+            PixelDrawer.graphic.filters = [new HighlightFilter(4, 0xFF9955, .2)];
         }
     }
     if (key["r"]) {
