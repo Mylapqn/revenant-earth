@@ -24,7 +24,7 @@ export class ParallaxDrawer {
             sprite.filters.push(new SkyFilter());
         }
         else {
-            sprite.filters.push(new HighlightFilter(6 * depth, 0xFF9955, .4));
+            sprite.filters.push(new HighlightFilter(6 * depth, 0xFF9955, .2));
             //sprite.filters.push(new HslAdjustmentFilter({alpha:1-depth,colorize:true,hue:17,saturation:.57,lightness:.81}));
         }
         sprite.filters.push(new AtmosphereFilter(depth));

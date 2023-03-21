@@ -44,5 +44,5 @@ void main(void) {
     vec3 leng = vec3(len, len, len);
     vec3 powers = vec3(5., 10., 20.);
     vec3 additive = vec3(.97, .83, .78) * day + vec3(.05, .2, .30) * (1. - day);
-    gl_FragColor = vec4(blendMultiply(blendScreen(sourceColor.xyz, uColorScatter, uDensity * sourceColor.a), uColorAbsorb, pow(uDensity, 2.)), sourceColor.a);
+    gl_FragColor = vec4(blendMultiply(blendScreen(sourceColor.xyz*0.5, uColorScatter, uDensity * sourceColor.a), uColorAbsorb, pow(uDensity, 1.)), sourceColor.a);
 }

@@ -32,10 +32,10 @@ export class AtmosphereFilter extends Filter {
 
         this.uniforms.uSunPos = new Float32Array([0, 0]);
         this.uniforms.uPixelSize = new Float32Array([0, 0]);
-        this.uniforms.uColorScatter = new Float32Array([.12, .6, 1]);
+        this.uniforms.uColorScatter = new Float32Array([0.7, 0.8, 1]);
         //this.uniforms.uColorScatter = new Float32Array([1, .3, 0.2]);
         //this.uniforms.uColorAbsorb = new Float32Array([1, .8, 0.2]);
-        this.uniforms.uColorAbsorb = new Float32Array([1, 1, 1]);
+        this.uniforms.uColorAbsorb = new Float32Array([1,.99,.95]);
         this.uniforms.uAlpha = alpha;
         this.uniforms.uDensity = Math.pow(1-depth,1);
 
