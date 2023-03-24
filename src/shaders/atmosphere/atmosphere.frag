@@ -9,6 +9,7 @@ uniform float uAngle;
 uniform vec2 uSunPos;
 uniform vec2 uPixelSize;
 uniform float uDensity;
+uniform float uAbsorbDensity;
 uniform vec3 uColorScatter;
 uniform vec3 uColorAbsorb;
 
@@ -16,6 +17,18 @@ const float DOUBLE_PI = 2. * 3.14159265358979323846264;
 const float MAX_ANGLE = .5;
 const float ANGLE_STEP = 0.1;
 const float HORIZON_Y = .5;
+
+vec3 blendNormal(vec3 base, vec3 blend, float opacity) {
+	return (blend * opacity + base * (1.0 - opacity));
+}
+
+vec3 blendAverage(vec3 base, vec3 blend) {
+	return (base+blend)/2.0;
+}
+
+vec3 blendAverage(vec3 base, vec3 blend, float opacity) {
+	return (blendAverage(base, blend) * opacity + base * (1.0 - opacity));
+}
 
 vec3 blendMultiply(vec3 base, vec3 blend) {
     return base * blend;
@@ -44,5 +57,8 @@ void main(void) {
     vec3 leng = vec3(len, len, len);
     vec3 powers = vec3(5., 10., 20.);
     vec3 additive = vec3(.97, .83, .78) * day + vec3(.05, .2, .30) * (1. - day);
-    gl_FragColor = vec4(blendMultiply(blendScreen(sourceColor.xyz*0.5, uColorScatter, uDensity * sourceColor.a), uColorAbsorb, pow(uDensity, 1.)), sourceColor.a);
+    //gl_FragColor = vec4(blendMultiply(blendScreen(sourceColor.xyz*0.5, uColorScatter, uDensity * sourceColor.a), uColorAbsorb, pow(uDensity, 1.)), sourceColor.a);
+    
+    gl_FragColor = vec4(blendScreen(blendNormal(sourceColor.xyz, uColorAbsorb, uDensity*sourceColor.a*uAbsorbDensity), uColorScatter, uDensity * sourceColor.a), sourceColor.a);
+
 }

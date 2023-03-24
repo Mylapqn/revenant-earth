@@ -4,7 +4,9 @@ import { debugPrint } from "../..";
 import { Camera } from "../../camera";
 import { Entity } from "../../entity";
 import { lookup, Terrain, terrainType } from "../../terrain";
+import { random } from "../../utils";
 import { Vector } from "../../vector";
+import { Cloud } from "../passive/cloud";
 
 const playerSprites = {
     stand: AnimatedSprite.fromFrames(["player.png"]),
@@ -37,6 +39,7 @@ export class Player extends Entity {
     graphics: AnimatedSprite;
     run = false;
     animState = 0;
+    step = 0;
 
     constructor(position: Vector) {
         const graph = new AnimatedSprite(playerSprites.stand.textures);
@@ -77,7 +80,14 @@ export class Player extends Entity {
             legsPixels.push(t);
             highestDensity = Math.max(highestDensity, lookup[t].density);
         }
-        if (highestDensity == 1) this.grounded = true;
+        if (highestDensity == 1) {
+            this.grounded = true;
+            if (this.velocity.y < -250) {
+                for (let index = 0; index < Math.abs(this.velocity.y)/20; index++) {
+                    new Cloud(this.position.result(), Math.abs(this.velocity.x), new Vector(random(-1, 1) * 80+this.velocity.x/4, 10));
+                }
+            }
+        }
         if (!this.grounded) {
             this.velocity.y -= 4000 * dt * (1 - highestDensity);
             this.velocity.y = Math.max(-500 * (1 - highestDensity), this.velocity.y);
@@ -114,6 +124,11 @@ export class Player extends Entity {
         //Camera.position.add(new Vector(1, 1));
         //Camera.position = this.position.result().sub(new Vector(Camera.width, Camera.height).mult(.5));
         this.position.add(this.velocity.result().mult(dt));
+        this.step += Math.abs(this.velocity.x) * dt;
+        if (this.step > 5 && this.grounded) {
+            this.step = 0;
+            new Cloud(this.position.result(), Math.abs(this.velocity.x), new Vector(this.velocity.x * random(-.5, .1), -5));
+        }
         this.updatePosition();
         this.queueUpdate();
     }

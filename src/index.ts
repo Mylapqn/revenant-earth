@@ -16,6 +16,7 @@ import { Rock } from "./entities/passive/rock";
 import { random, randomBool, randomInt } from "./utils";
 import { Atmosphere } from "./atmosphere";
 import { AtmosphereFilter } from "./shaders/atmosphere/atmosphereFilter";
+import { Cloud } from "./entities/passive/cloud";
 let seed = parseInt(window.location.toString().split('?')[1]);
 if (!seed) seed = Math.floor(Math.random() * 1000);
 Math.random = mulberry32(seed);
@@ -32,8 +33,7 @@ let app = new PIXI.Application<HTMLCanvasElement>();
 //PIXI.settings.SCALE_MODE = SCALE_MODES.NEAREST;
 //PIXI.settings.ROUND_PIXELS = true;
 PIXI.BaseTexture.defaultOptions.scaleMode = SCALE_MODES.NEAREST;
-
-function resize() {
+function resize() {   
     Camera.aspectRatio = window.innerWidth / window.innerHeight;
     Camera.width = Math.ceil(Camera.height * Camera.aspectRatio);
     PixelDrawer.resize();
@@ -73,13 +73,13 @@ Entity.graphic = new Container();
 pixelContainer.addChild(Entity.graphic);
 ParallaxDrawer.addLayer("BG/Test/1.png", 0);
 ParallaxDrawer.addLayer("BG/Test/2.png", .1);
-ParallaxDrawer.addLayer("BG/Test/3.png", .3);
-ParallaxDrawer.addLayer("BG/Test/4.png", .45);
+ParallaxDrawer.addLayer("BG/Test/3.png", .25);
+ParallaxDrawer.addLayer("BG/Test/4.png", .42);
 ParallaxDrawer.addLayer("BG/Test/5.png", .65);
 app.stage.addChild(pixelContainer);
-PixelDrawer.graphic.filters = [new HighlightFilter(5, 0xFF9955, .25)];
+PixelDrawer.graphic.filters = [new HighlightFilter(5, 0xFF9955, .25),new AtmosphereFilter(.8)];
 PixelDrawer.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
-Entity.graphic.filters = [new HighlightFilter(2, 0xFF9955, .2)];
+Entity.graphic.filters = [new HighlightFilter(2, 0xFF9955, .2),new AtmosphereFilter(.8)];
 Entity.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
 app.stage.addChild(debugText);
 resize();
@@ -158,6 +158,8 @@ for (let x = 800; x < 850; x++) {
         Terrain.setAndUpdatePixel(x, y, terrainType.water);
     }
 }
+
+new Cloud(new Vector(100,500))
 
 //new Robot(new Vector(900, 900), undefined, 0);
 

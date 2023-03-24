@@ -32,12 +32,25 @@ export class AtmosphereFilter extends Filter {
 
         this.uniforms.uSunPos = new Float32Array([0, 0]);
         this.uniforms.uPixelSize = new Float32Array([0, 0]);
-        this.uniforms.uColorScatter = new Float32Array([0.7, 0.8, 1]);
-        //this.uniforms.uColorScatter = new Float32Array([1, .3, 0.2]);
-        //this.uniforms.uColorAbsorb = new Float32Array([1, .8, 0.2]);
-        this.uniforms.uColorAbsorb = new Float32Array([1,.99,.95]);
         this.uniforms.uAlpha = alpha;
-        this.uniforms.uDensity = Math.pow(1-depth,1);
+
+        this.uniforms.uColorScatter = new Float32Array([0.6, 0.8, 1]);
+        this.uniforms.uColorAbsorb = new Float32Array([.7, .7, .6]);
+        this.uniforms.uAbsorbDensity = 0.5;
+
+        //RED DUSTY
+        this.uniforms.uColorScatter = new Float32Array([1, 0.05, 0.02]);
+        this.uniforms.uColorAbsorb = new Float32Array([1., 0.6, 0.21]);
+        this.uniforms.uAbsorbDensity = 1;
+        
+
+        /*CLEAR SKY
+        this.uniforms.uColorScatter = new Float32Array([0.6, 0.8, 1]);
+        this.uniforms.uColorAbsorb = new Float32Array([.7, .7, .6]);
+        this.uniforms.uAbsorbDensity = 0.5;
+        */
+
+        this.uniforms.uDensity = Math.min((1 - depth) * 1, 1);
 
         Object.assign(this, { depth, color, alpha });
     }

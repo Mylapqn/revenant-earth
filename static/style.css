@@ -21,3 +21,28 @@ canvas {
     height: 100vh;
     image-rendering: pixelated;
 }
+
+.ui {
+    position: absolute;
+    background-color: #00000044;
+    padding: 20px;
+    left:100px;
+    top:100px;
+    border-bottom: 4px solid white;
+    backdrop-filter: blur(10px);
+    transition: all .1s;
+    color:white;
+    font-family: 'Bahnschrift';
+    display:flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.button {
+    cursor: pointer;
+}
+
+.button:hover {
+    background-color: #0000005d;
+    transform: scale(1.06);
+}
