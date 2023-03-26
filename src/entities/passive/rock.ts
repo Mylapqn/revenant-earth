@@ -26,5 +26,6 @@ export class Rock extends Entity {
         }
         this.graphics.endFill;
         this.graphics.angle = angle;
+        
     }
 }

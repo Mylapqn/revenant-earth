@@ -3,6 +3,7 @@ import { Container, Sprite } from "pixi.js";
 import { Camera } from "./camera";
 import { AtmosphereFilter } from "./shaders/atmosphere/atmosphereFilter";
 import { SkyFilter } from "./shaders/atmosphere/skyFilter";
+import { LightingFilter } from "./shaders/lighting/lightingFilter";
 import { HighlightFilter } from "./shaders/outline/highlightFilter";
 import { Vector } from "./vector";
 
@@ -24,10 +25,11 @@ export class ParallaxDrawer {
             sprite.filters.push(new SkyFilter());
         }
         else {
-            sprite.filters.push(new HighlightFilter(2, 0xFF9955, .2));
+            sprite.filters.push(new LightingFilter());
+            sprite.filters.push(new HighlightFilter(1, 0xFF9955, .2));
             //sprite.filters.push(new HslAdjustmentFilter({alpha:1-depth,colorize:true,hue:17,saturation:.57,lightness:.81}));
         }
-        sprite.filters.push(new AtmosphereFilter(depth/1.5));
+        sprite.filters.push(new AtmosphereFilter(depth/1.3));
         this.layers.push({ sprite: sprite, depth: depth });
     }
 }

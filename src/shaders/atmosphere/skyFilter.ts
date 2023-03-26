@@ -4,6 +4,7 @@ import type { FilterSystem, RenderTexture, CLEAR_MODES } from '@pixi/core';
 import { Assets, Color } from 'pixi.js';
 import { Atmosphere } from '../../atmosphere';
 import { Camera } from '../../camera';
+import { mouse } from '../..';
 
 let fragment: string = fs.readFileSync(__dirname + '/sky.frag', 'utf8');
 
@@ -48,6 +49,8 @@ export class SkyFilter extends Filter {
         this.uniforms.uAngle = Atmosphere.settings.sunAngle;
         this.uniforms.uSunPos[0] = Atmosphere.settings.sunPosition.x / Camera.width;
         this.uniforms.uSunPos[1] = Atmosphere.settings.sunPosition.y / Camera.height;
+        this.uniforms.uSunPos[0] = mouse.x/window.innerWidth;
+        this.uniforms.uSunPos[1] = mouse.y / window.innerHeight;
         this.uniforms.uPixelSize[0] = 1 / input._frame.width;
         this.uniforms.uPixelSize[1] = 1 / input._frame.height;
 

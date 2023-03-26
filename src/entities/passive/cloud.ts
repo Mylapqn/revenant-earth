@@ -27,9 +27,12 @@ export class Cloud extends Entity {
         this.position.add(this.velocity.result().mult(dt));
         this.graphics.scale.set((lerp(.7, 2, ageRatio)));
         this.velocity.mult(1 - (dt));
-        this.velocity.y += dt*10
+        this.velocity.y += dt * 10
         this.graphics.alpha = lerp(.2, 0, ageRatio);
-        if (this.age >= this.maxAge) return;
+        if (this.age >= this.maxAge) {
+            this.remove();
+            return;
+        }
         this.updatePosition()
         this.queueUpdate()
     }

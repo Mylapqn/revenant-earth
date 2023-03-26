@@ -53,7 +53,7 @@ export class Entity {
     }
 
     remove() {
-        this.parent.graphics.removeChild(this.graphics);
+        this.parent?.graphics.removeChild(this.graphics);
         this.graphics.destroy();
         Entity.tempToUpdate.delete(this);
         Entity.toUpdate.delete(this);

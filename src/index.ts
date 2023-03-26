@@ -17,6 +17,8 @@ import { random, randomBool, randomInt } from "./utils";
 import { Atmosphere } from "./atmosphere";
 import { AtmosphereFilter } from "./shaders/atmosphere/atmosphereFilter";
 import { Cloud } from "./entities/passive/cloud";
+import { LightingFilter } from "./shaders/lighting/lightingFilter";
+import { FilmicFilter } from "./shaders/filmic/filmicFilter";
 let seed = parseInt(window.location.toString().split('?')[1]);
 if (!seed) seed = Math.floor(Math.random() * 1000);
 Math.random = mulberry32(seed);
@@ -77,10 +79,13 @@ ParallaxDrawer.addLayer("BG/Test/3.png", .25);
 ParallaxDrawer.addLayer("BG/Test/4.png", .42);
 ParallaxDrawer.addLayer("BG/Test/5.png", .65);
 app.stage.addChild(pixelContainer);
-PixelDrawer.graphic.filters = [new HighlightFilter(5, 0xFF9955, .25),new AtmosphereFilter(.8)];
+const lightingFilter = new LightingFilter();
+PixelDrawer.graphic.filters = [lightingFilter, new HighlightFilter(4, 0xFF9955, .25),new AtmosphereFilter(.85)];
 PixelDrawer.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
-Entity.graphic.filters = [new HighlightFilter(2, 0xFF9955, .2),new AtmosphereFilter(.8)];
+Entity.graphic.filters = [lightingFilter,new HighlightFilter(1, 0xFF9955, .2),new AtmosphereFilter(.85)];
 Entity.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
+console.log(app.renderer);
+
 app.stage.addChild(debugText);
 resize();
 window.addEventListener("resize", resize);
@@ -276,7 +281,7 @@ terrainTicker.add((dt) => {
 terrainTicker.start();
 
 const key: Record<string, boolean> = {};
-const mouse = { x: 0, y: 0, pressed: 0 };
+export const mouse = { x: 0, y: 0, pressed: 0 };
 
 window.addEventListener("keydown", (e) => { key[e.key.toLowerCase()] = true });
 window.addEventListener("keyup", (e) => { key[e.key.toLowerCase()] = false });

@@ -4,6 +4,7 @@ import type { FilterSystem, RenderTexture, CLEAR_MODES } from '@pixi/core';
 import { Assets, Color } from 'pixi.js';
 import { Atmosphere } from '../../atmosphere';
 import { Camera } from '../../camera';
+import { mouse } from '../..';
 
 let fragment: string = fs.readFileSync(__dirname + '/highlight.frag', 'utf8');
 
@@ -48,8 +49,10 @@ export class HighlightFilter extends Filter {
         this.uniforms.uAngle = Atmosphere.settings.sunAngle;
         this.uniforms.uLightPos[0] = Atmosphere.settings.sunPosition.x / Camera.width;
         this.uniforms.uLightPos[1] = Atmosphere.settings.sunPosition.y / Camera.height;
-        this.uniforms.uPixelSize[0] = 1 / input._frame.width;
-        this.uniforms.uPixelSize[1] = 1 / input._frame.height;
+        this.uniforms.uLightPos[0] = mouse.x/window.innerWidth;
+        this.uniforms.uLightPos[1] = mouse.y / window.innerHeight;
+        this.uniforms.uPixelSize[0] = 1 / Camera.width;
+        this.uniforms.uPixelSize[1] = 1 / Camera.height;
 
         filterManager.applyFilter(this, input, output, clear);
     }

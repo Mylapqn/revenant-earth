@@ -27,7 +27,7 @@ float outlineMaxAlphaAtPos(vec2 pos, vec4 sourceColor) {
     //vec2 totalOffset = uThickness * sgn * max(uPixelSize * 500., abs);
     for(float angleOffset = -MAX_ANGLE; angleOffset <= MAX_ANGLE; angleOffset += ANGLE_STEP) {
         float angle = angleOffset + lightAngle;
-        for(float i = 0.0; i < DEPTH_STEPS; i += 1.) {
+        for(float i = 0.0; i < DEPTH_STEPS+.1; i += 1.) {
             displacedPos.x = vTextureCoord.x + uPixelSize.x * i * cos(angle);
             displacedPos.y = vTextureCoord.y + uPixelSize.y * i * sin(angle);
             displacedColor = texture2D(uSampler, clamp(displacedPos, filterClamp.xy, filterClamp.zw));

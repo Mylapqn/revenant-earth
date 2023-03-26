@@ -34,17 +34,17 @@ export class AtmosphereFilter extends Filter {
         this.uniforms.uPixelSize = new Float32Array([0, 0]);
         this.uniforms.uAlpha = alpha;
 
-        this.uniforms.uColorScatter = new Float32Array([0.6, 0.8, 1]);
-        this.uniforms.uColorAbsorb = new Float32Array([.7, .7, .6]);
-        this.uniforms.uAbsorbDensity = 0.5;
+        this.uniforms.uColorScatter = new Float32Array([1, 0.15, 0.12]);
+        this.uniforms.uColorAbsorb = new Float32Array([1., 0.7, 0.4]);
+        this.uniforms.uAbsorbDensity = 1;
 
-        //RED DUSTY
+        /*//RED DUSTY
         this.uniforms.uColorScatter = new Float32Array([1, 0.05, 0.02]);
         this.uniforms.uColorAbsorb = new Float32Array([1., 0.6, 0.21]);
         this.uniforms.uAbsorbDensity = 1;
-        
+        */
 
-        /*CLEAR SKY
+        /*//CLEAR SKY
         this.uniforms.uColorScatter = new Float32Array([0.6, 0.8, 1]);
         this.uniforms.uColorAbsorb = new Float32Array([.7, .7, .6]);
         this.uniforms.uAbsorbDensity = 0.5;
