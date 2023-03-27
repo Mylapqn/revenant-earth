@@ -22,14 +22,18 @@ export class ParallaxDrawer {
         this.container.addChild(sprite);
         sprite.filters = [];
         if (depth <= 0.0) {
-            sprite.filters.push(new SkyFilter());
+            sprite.tint = 0;
+            //sprite.filters.push(new SkyFilter());
         }
         else {
             sprite.filters.push(new LightingFilter());
             sprite.filters.push(new HighlightFilter(1, 0xFF9955, .2));
             //sprite.filters.push(new HslAdjustmentFilter({alpha:1-depth,colorize:true,hue:17,saturation:.57,lightness:.81}));
         }
-        sprite.filters.push(new AtmosphereFilter(depth/1.3));
+        sprite.filters.push(new AtmosphereFilter(depth/1.2));
+        if (depth <= 0.0) {
+            sprite.filters.push(new SkyFilter());
+        }
         this.layers.push({ sprite: sprite, depth: depth });
     }
 }

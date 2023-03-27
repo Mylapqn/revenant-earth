@@ -29,7 +29,7 @@ vec3 tonemap(vec3 x) {
 void main(void) {
     vec4 sourceColor = texture2D(uSampler, vTextureCoord);
     vec3 lightMap = vec3(.8, .6, .4);
-    //lightMap = vec3(.0);
+    lightMap = vec3(1.);
     lightMap += pow(max(1. - length((vTextureCoord - uLightPos) / uPixelSize / 40.), 0.), 2.) * 2.;
     //lightMap += (pow(max(1. - length((vTextureCoord - vec2(0.5, .8)) / uPixelSize / 40.), 0.), 2.) *1.) * vec3(.0, .0, 1.);
     //lightMap += (pow(max(1. - length((vTextureCoord - vec2(0.4, .8)) / uPixelSize / 40.), 0.), 2.) * 1.) * vec3(.0, 1.0, 0.);
