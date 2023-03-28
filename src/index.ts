@@ -13,7 +13,7 @@ import { ParallaxDrawer } from "./parallax";
 import { coniferousSettings, defaultTreeSettings } from "./entities/plants/tree/treeSettings";
 import { HighlightFilter } from "./shaders/outline/highlightFilter";
 import { Rock } from "./entities/passive/rock";
-import { random, randomBool, randomInt } from "./utils";
+import { noise, random, randomBool, randomInt } from "./utils";
 import { Atmosphere } from "./atmosphere";
 import { AtmosphereFilter } from "./shaders/atmosphere/atmosphereFilter";
 import { Cloud } from "./entities/passive/cloud";
@@ -35,7 +35,7 @@ let app = new PIXI.Application<HTMLCanvasElement>();
 //PIXI.settings.SCALE_MODE = SCALE_MODES.NEAREST;
 //PIXI.settings.ROUND_PIXELS = true;
 PIXI.BaseTexture.defaultOptions.scaleMode = SCALE_MODES.NEAREST;
-function resize() {   
+function resize() {
     Camera.aspectRatio = window.innerWidth / window.innerHeight;
     Camera.width = Math.ceil(Camera.height * Camera.aspectRatio);
     PixelDrawer.resize();
@@ -105,7 +105,7 @@ for (let x = 0; x < Terrain.width; x++) {
     for (let y = 0; y < ty; y++) {
         if (y + 50 > ty) {
 
-            if (Math.random() * ty > y) {
+            if (Math.abs(noise(x, y, 0.2)) < Math.min((ty - y) / 50, 0.5)) {
                 Terrain.setPixel(x, y, terrainType.stone);
             } else {
                 if (ty - 20 > y) {

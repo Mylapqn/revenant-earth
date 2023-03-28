@@ -1,5 +1,10 @@
 import { Color } from "./color";
+import { perlin2d } from "./perlin";
 import { Vector } from "./vector";
+
+export function noise(x: number, y: number, freq: number = 1) {
+    return perlin2d(x , y, freq, 2);
+}
 
 export function indexSplit(index: number, width: number) {
     const x = index % width;

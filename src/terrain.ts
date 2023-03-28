@@ -1,7 +1,7 @@
 import { DebugMode, debugPrint, preferences, terrainTick } from ".";
 import { Camera } from "./camera";
 import { PixelDrawer } from "./pixelDrawer";
-import { indexSplit, random, randomInt } from "./utils";
+import { indexSplit, noise, random, randomInt } from "./utils";
 import { Vector } from "./vector";
 
 
@@ -65,6 +65,7 @@ export class Terrain {
             for (let x = 0; x < Camera.width; x++) {
                 const index = x + camX + (y + camY) * this.width;
                 const type = this.view.getUint8(index) as terrainType;
+                //PixelDrawer.setPixel(x, y, 0x000000ff + 0x01010100 * Math.floor(Math.abs(noise(x, y, 0.01) * 255)))//lookup[type].color);
                 PixelDrawer.setPixel(x, y, lookup[type].color);
                 if (preferences.debugMode == DebugMode.updates && this.toUpdate.has(index)) {
                     PixelDrawer.setPixel(x, y, 0x00ff0099);
