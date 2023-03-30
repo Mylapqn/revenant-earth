@@ -4,12 +4,12 @@ import { PixelDrawer } from "./pixelDrawer";
 import { Terrain, terrainType } from "./terrain";
 import { Camera } from "./camera";
 import { Entity } from "./entity";
-import { Container, Rectangle, SCALE_MODES, Sprite, Ticker } from "pixi.js";
+import { AnimatedSprite, Container, Rectangle, SCALE_MODES, Sprite, Texture, Ticker } from "pixi.js";
 import { Vector } from "./vector";
 import { Seed } from "./entities/plants/tree/seed";
 import { Robot } from "./entities/enemy/robot/robot";
 import { Player } from "./entities/player/player";
-import { ParallaxDrawer } from "./parallax";
+import { Backdrop, ParallaxDrawer } from "./parallax";
 import { coniferousSettings, defaultTreeSettings } from "./entities/plants/tree/treeSettings";
 import { HighlightFilter } from "./shaders/outline/highlightFilter";
 import { Rock } from "./entities/passive/rock";
@@ -56,7 +56,7 @@ for (let y = 0; y < 256; y++) {
 const pixelContainer = new Container();
 
 bg.tint = 0xccddff;
-const bgImg = PIXI.Sprite.from("https://media.discordapp.net/attachments/767355244111331338/1069710151117963264/Artboard_1.png");
+bg.scale.set(10, 1);
 const debugText = new PIXI.Text();
 debugText.text = "text";
 debugText.tint = 0x999999;
@@ -68,21 +68,26 @@ debugText.scale.set(1);
 debugText.position.set(4, 4);
 debugText.visible = preferences.showDebug;
 app.stage.addChild(bg);
-app.stage.addChild(bgImg);
 pixelContainer.addChild(ParallaxDrawer.container);
 pixelContainer.addChild(PixelDrawer.graphic);
 Entity.graphic = new Container();
 pixelContainer.addChild(Entity.graphic);
-ParallaxDrawer.addLayer("BG/Test/1.png", 0);
-ParallaxDrawer.addLayer("BG/Test/2.png", .1);
-ParallaxDrawer.addLayer("BG/Test/3.png", .25);
-ParallaxDrawer.addLayer("BG/Test/4.png", .42);
-ParallaxDrawer.addLayer("BG/Test/5.png", .65);
+
+
+//ParallaxDrawer.addLayer("BG/Test/1.png", 0);
+//ParallaxDrawer.addLayer("BG/Test/2.png", .1);
+//ParallaxDrawer.addLayer("BG/Test/3.png", .25);
+//ParallaxDrawer.addLayer("BG/Test/4.png", .42);
+
+const backdrop0 = new Backdrop(.65);
+const backdrop1 = new Backdrop(.42);
+const backdrop2 = new Backdrop(.25);
+const backdrop3 = new Backdrop(.1);
 app.stage.addChild(pixelContainer);
 const lightingFilter = new LightingFilter();
-PixelDrawer.graphic.filters = [lightingFilter, new HighlightFilter(4, 0xFF9955, .25),new AtmosphereFilter(.85)];
+PixelDrawer.graphic.filters = [lightingFilter, new HighlightFilter(4, 0xFF9955, .25), new AtmosphereFilter(.85)];
 PixelDrawer.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
-Entity.graphic.filters = [lightingFilter,new HighlightFilter(1, 0xFF9955, .2),new AtmosphereFilter(.85)];
+Entity.graphic.filters = [lightingFilter, new HighlightFilter(1, 0xFF9955, .2), new AtmosphereFilter(.85)];
 Entity.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
 console.log(app.renderer);
 
@@ -119,6 +124,12 @@ for (let x = 0; x < Terrain.width; x++) {
             Terrain.setPixel(x, y, terrainType.stone);
         }
     }
+    backdrop0.setHeight(x, ty);
+    backdrop1.setHeight(x, ty);
+    backdrop2.setHeight(x, ty);
+    backdrop3.setHeight(x, ty);
+
+
     //if (x > 450 && x < 500) Terrain.setPixel(x, Math.floor(ty), terrainType.grass);
     //if (x > 450 && x < 1000 && x % 100 == 0) new Seed(new Vector(x, ty));
     //if (x == 500) new Seed(new Vector(x, ty));
@@ -164,7 +175,11 @@ for (let x = 800; x < 850; x++) {
     }
 }
 
-new Cloud(new Vector(100,500))
+new Cloud(new Vector(100, 500))
+backdrop3.placeContainer(1500, (()=>{const a = new AnimatedSprite([Texture.from("antenna0.png"), Texture.from("antenna1.png")], true);a.animationSpeed = 0.01; a.play(); return a})());
+backdrop2.placeContainer(1500, (()=>{const a = new AnimatedSprite([Texture.from("antenna1.png"), Texture.from("antenna0.png")], true);a.animationSpeed = 0.02; a.play(); return a})());
+backdrop1.placeContainer(1500, (()=>{const a = new AnimatedSprite([Texture.from("antenna1.png"), Texture.from("antenna0.png")], true);a.animationSpeed = 0.01; a.play(); return a})());
+backdrop0.placeContainer(1500, (()=>{const a = new AnimatedSprite([Texture.from("antenna0.png"), Texture.from("antenna1.png")], true);a.animationSpeed = 0.02; a.play(); return a})());
 
 //new Robot(new Vector(900, 900), undefined, 0);
 
@@ -177,13 +192,13 @@ PixelDrawer.update();
 let printText = "";
 export function debugPrint(s: string) { printText += s + "\n" };
 
-const camspeed = 3;
+const camspeed = 50;
 let seedCooldown = 0;
 app.ticker.add((delta) => {
     const dt = Math.min(.1, delta / app.ticker.FPS);
 
-    Atmosphere.settings.sunAngle += dt/2;
-    Atmosphere.settings.sunPosition = Vector.fromAngle(Atmosphere.settings.sunAngle).mult(200).add(new Vector(200,200));
+    Atmosphere.settings.sunAngle += dt / 2;
+    Atmosphere.settings.sunPosition = Vector.fromAngle(Atmosphere.settings.sunAngle).mult(200).add(new Vector(200, 200));
 
     if (terrainTick % 30 == 0) {
         debugText.text = printText;
@@ -263,7 +278,7 @@ app.ticker.add((delta) => {
     if (Camera.position.y < 0) Camera.position.y = 0
     if (Camera.position.y + Camera.height >= Terrain.height) Camera.position.y = Terrain.height - Camera.height - 1
     debugPrint(Camera.position.toString());
-    debugPrint("FPS: " + (1/dt).toFixed(1));
+    debugPrint("FPS: " + (1 / dt).toFixed(1));
     Terrain.draw();
     PixelDrawer.update();
     ParallaxDrawer.update();
@@ -271,14 +286,10 @@ app.ticker.add((delta) => {
 });
 
 export let terrainTick = 0;
-let terrainTicker = new Ticker();
-terrainTicker.speed = 7;
-terrainTicker.add((dt) => {
+setInterval(() => {
     Terrain.update(terrainTick);
     terrainTick++;
-});
-
-terrainTicker.start();
+}, 7);
 
 const key: Record<string, boolean> = {};
 export const mouse = { x: 0, y: 0, pressed: 0 };
