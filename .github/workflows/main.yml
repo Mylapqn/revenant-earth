@@ -29,13 +29,14 @@ jobs:
       needs: build
       steps:
         - name: Send notification
-          uses: johannes-huther/webhook.sh@v1.0.0
+          uses: indiesdev/curl@v1.1
           with:
-            webhook_url: https://jacekkocek.coal.games/api/notify
-            data: |
+            method: POST
+            url: https://jacekkocek.coal.games/api/notify
+            body: |
                 {
                   "title":"Revenant github pages build",
-                  "description":${{github.event.head_commit.message}}
+                  "description":"${{github.event.head_commit.message}}"
                 }
           
      
