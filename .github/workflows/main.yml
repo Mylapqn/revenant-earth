@@ -1,13 +1,16 @@
 name: Revenant build pages
-on: [push]
+on:
+  push:
+    branches:
+      - main
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Installing modules
-      - run: yarn
+        run: yarn
       - name: Building
-      - run: yarn build
+        run: yarn build
       - name: Uploading pages artifact
         uses: actions/upload-pages-artifact@v1
         with:
