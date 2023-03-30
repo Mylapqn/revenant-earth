@@ -24,22 +24,6 @@ jobs:
           name: github-pages
           retention-days: 1
           
-  notify:
-      runs-on: ubuntu-latest
-      needs: build
-      steps:
-        - name: Send notification
-          uses: indiesdev/curl@v1.1
-          with:
-            method: POST
-            url: https://jacekkocek.coal.games/api/notify
-            body: |
-                {
-                  "title":"Revenant github pages build",
-                  "description":"${{github.event.head_commit.message}}"
-                }
-          
-     
   deploy:
     needs: build
     permissions:
