@@ -17,6 +17,12 @@ jobs:
         run: yarn
       - name: Building
         run: yarn build
+      - name: Uploading pages artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: ./static
+          name: github-pages
+          retention-days: 1
   
   deploy:
     needs: build
@@ -28,11 +34,6 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Uploading pages artifact
-        uses: actions/upload-pages-artifact@v1
-        with:
-          path: ./static
-          name: github-pages
-          retention-days: 1
       - name: Deploy GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v2.0.0
