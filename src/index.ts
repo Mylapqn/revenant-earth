@@ -9,7 +9,7 @@ import { Vector } from "./vector";
 import { Seed } from "./entities/plants/tree/seed";
 import { Robot } from "./entities/enemy/robot/robot";
 import { Player } from "./entities/player/player";
-import { Backdrop, ParallaxDrawer } from "./parallax";
+import { Backdrop, BackdropProp, ParallaxDrawer } from "./parallax";
 import { coniferousSettings, defaultTreeSettings } from "./entities/plants/tree/treeSettings";
 import { HighlightFilter } from "./shaders/outline/highlightFilter";
 import { Rock } from "./entities/passive/rock";
@@ -176,10 +176,12 @@ for (let x = 800; x < 850; x++) {
 }
 
 new Cloud(new Vector(100, 500))
-backdrop3.placeContainer(1500, (()=>{const a = new AnimatedSprite([Texture.from("antenna0.png"), Texture.from("antenna1.png")], true);a.animationSpeed = 0.01; a.play(); return a})());
-backdrop2.placeContainer(1500, (()=>{const a = new AnimatedSprite([Texture.from("antenna1.png"), Texture.from("antenna0.png")], true);a.animationSpeed = 0.02; a.play(); return a})());
-backdrop1.placeContainer(1500, (()=>{const a = new AnimatedSprite([Texture.from("antenna1.png"), Texture.from("antenna0.png")], true);a.animationSpeed = 0.01; a.play(); return a})());
-backdrop0.placeContainer(1500, (()=>{const a = new AnimatedSprite([Texture.from("antenna0.png"), Texture.from("antenna1.png")], true);a.animationSpeed = 0.02; a.play(); return a})());
+backdrop3.placeSprite(1500, (() => { const a = new AnimatedSprite([Texture.from("antenna0.png"), Texture.from("antenna1.png")], true); a.animationSpeed = 0.01; a.play(); return a })());
+backdrop2.placeSprite(1500, (() => { const a = new AnimatedSprite([Texture.from("antenna1.png"), Texture.from("antenna0.png")], true); a.animationSpeed = 0.02; a.play(); return a })());
+backdrop1.placeSprite(1500, (() => { const a = new AnimatedSprite([Texture.from("antenna1.png"), Texture.from("antenna0.png")], true); a.animationSpeed = 0.01; a.play(); return a })());
+backdrop0.placeSprite(1500, (() => { const a = new AnimatedSprite([Texture.from("antenna0.png"), Texture.from("antenna1.png")], true); a.animationSpeed = 0.02; a.play(); return a })());
+
+new BackdropProp(0.5, (() => { const a = new AnimatedSprite([Texture.from("antenna0.png"), Texture.from("antenna1.png")], true); a.position.set(200,150); a.animationSpeed = 0.01; a.play(); return a })());
 
 //new Robot(new Vector(900, 900), undefined, 0);
 

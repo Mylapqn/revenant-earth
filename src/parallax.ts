@@ -44,12 +44,15 @@ export class ParallaxDrawer {
 export class Backdrop {
     depth: number;
     surface: number[] = [];
+    container: Container;
     graphics: Graphics;
     constructor(depth: number) {
         this.depth = depth;
         this.graphics = new Graphics();
-        this.graphics.zIndex = depth;
-        ParallaxDrawer.addLayer(this.graphics, depth);
+        this.container = new Container();
+        this.container.zIndex = depth;
+        this.container.addChild(this.graphics)
+        ParallaxDrawer.addLayer(this.container, depth);
     }
 
     setHeight(x: number, y: number) {
@@ -61,23 +64,27 @@ export class Backdrop {
         this.surface[localX] = -localY + Terrain.height * this.depth - 300 * this.depth + 50;
     }
 
-    placeContainer(x: number, container: Sprite) {
+    placeSprite(x: number, sprite: Sprite) {
         const localX = Math.floor(x * this.depth);
-        container.anchor.set(0.5, 1);
-        container.position.set(localX, Math.floor(this.surface[localX]));
-        container.scale.set(this.depth);
+        sprite.anchor.set(0.5, 1);
+        sprite.position.set(localX, Math.floor(this.surface[localX]));
+        sprite.scale.set(this.depth);
 
-        this.graphics.addChild(container);
+        this.container.addChildAt(sprite, 0);
     }
 }
 
 export class BackdropProp {
     depth: number;
-    graphics: Graphics;
-    constructor(depth: number) {
+    container: Container;
+    graphic: Container;
+    constructor(depth: number, graphic: Container) {
         this.depth = depth;
-        this.graphics = new Graphics();
-        this.graphics.zIndex = depth;
-        ParallaxDrawer.addLayer(this.graphics, depth);
+        this.container = new Container();
+        this.graphic = graphic;
+        this.container.zIndex = depth;
+        this.container.addChild(graphic);
+        graphic.scale.set(depth);
+        ParallaxDrawer.addLayer(this.container, depth);
     }
 }
