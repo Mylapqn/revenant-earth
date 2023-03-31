@@ -70,3 +70,14 @@ export class Backdrop {
         this.graphics.addChild(container);
     }
 }
+
+export class BackdropProp {
+    depth: number;
+    graphics: Graphics;
+    constructor(depth: number) {
+        this.depth = depth;
+        this.graphics = new Graphics();
+        this.graphics.zIndex = depth;
+        ParallaxDrawer.addLayer(this.graphics, depth);
+    }
+}
