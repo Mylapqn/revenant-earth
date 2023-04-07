@@ -23,11 +23,15 @@ float filmic(float x) {
 const float logBase = log(6.);
 
 vec3 tonemap(vec3 x) {
-    return mix(pow(x, vec3(0.75)), log(x+0.1) / logBase + 1. - log(1.1) / logBase, min(x, 1.));
+    return mix(pow(x, vec3(0.75)), log(x + 0.1) / logBase + 1. - log(1.1) / logBase, min(x, 1.));
+}
+
+vec4 demult(vec4 color) {
+    return vec4(vec3(color.rgb) / color.a, color.a);
 }
 
 void main(void) {
-    vec4 sourceColor = texture2D(uSampler, vTextureCoord);
+    vec4 sourceColor = demult(texture2D(uSampler, vTextureCoord));
     vec3 lightMap = vec3(.8, .6, .4);
     lightMap = vec3(1.);
     lightMap += pow(max(1. - length((vTextureCoord - uLightPos) / uPixelSize / 40.), 0.), 2.) * 2.;
@@ -37,6 +41,6 @@ void main(void) {
     //lightMap = pow(lightMap, vec3(1. / 2.2));
     lightMap = tonemap(lightMap);
     //lightMap = min(lightMap, 2.);
-    gl_FragColor = vec4(min(sourceColor.rgb * lightMap, 1.), sourceColor.a);
+    gl_FragColor = vec4(min(sourceColor.rgb * lightMap, 1.)*sourceColor.a, sourceColor.a);
     //gl_FragColor = sourceColor;
 }

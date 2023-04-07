@@ -14,7 +14,7 @@ const float DOUBLE_PI = 2. * 3.14159265358979323846264;
 const float MAX_ANGLE = .5;
 const float ANGLE_STEP = 0.1;
 const float DEPTH_STEPS = 4.;
-const float HORIZON_Y = .5;
+const float HORIZON_Y = .35;
 
 const float logBase = log(6.);
 

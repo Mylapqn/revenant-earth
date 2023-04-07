@@ -50,8 +50,12 @@ vec3 blendScreen(vec3 base, vec3 blend, float opacity) {
     return (blendScreen(base, blend) * opacity + base * (1.0 - opacity));
 }
 
+vec4 demult(vec4 color){
+    return vec4(vec3(color.rgb)/color.a,color.a);
+}
+
 void main(void) {
-    vec4 sourceColor = texture2D(uSampler, vTextureCoord);
+    vec4 sourceColor = demult(texture2D(uSampler, vTextureCoord));
     float len = max(0., 1. - (length((uSunPos - vTextureCoord.xy) / uPixelSize / 40.)));
     float day = min(1., max(0., (HORIZON_Y - uSunPos.y) * 2.));
     vec3 leng = vec3(len, len, len);
@@ -59,6 +63,5 @@ void main(void) {
     vec3 additive = vec3(.97, .83, .78) * day + vec3(.05, .2, .30) * (1. - day);
     //gl_FragColor = vec4(blendMultiply(blendScreen(sourceColor.xyz*0.5, uColorScatter, uDensity * sourceColor.a), uColorAbsorb, pow(uDensity, 1.)), sourceColor.a);
 
-    gl_FragColor = vec4(blendScreen(blendNormal(sourceColor.rgb, uColorAbsorb, uDensity * sourceColor.a * uAbsorbDensity), uColorScatter, uDensity * sourceColor.a), sourceColor.a);
-
+    gl_FragColor = vec4(blendScreen(blendNormal(sourceColor.rgb, uColorAbsorb, uDensity * uAbsorbDensity), uColorScatter, uDensity)*sourceColor.a, sourceColor.a);
 }
