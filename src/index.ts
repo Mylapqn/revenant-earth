@@ -20,6 +20,8 @@ import { Cloud } from "./entities/passive/cloud";
 import { LightingFilter } from "./shaders/lighting/lightingFilter";
 import { FilmicFilter } from "./shaders/filmic/filmicFilter";
 import { TerrainGenerator } from "./biome";
+import { SkyFilter } from "./shaders/atmosphere/skyFilter";
+import { GUI, GuiLabel } from "./gui/gui";
 let seed = parseInt(window.location.toString().split('?')[1]);
 if (!seed) seed = Math.floor(Math.random() * 1000);
 Math.random = mulberry32(seed);
@@ -58,6 +60,7 @@ const pixelContainer = new Container();
 
 bg.tint = 0xccddff;
 bg.scale.set(10, 1);
+bg.filters = [new SkyFilter()];
 const debugText = new PIXI.Text();
 debugText.text = "text";
 debugText.tint = 0x999999;
@@ -79,7 +82,6 @@ pixelContainer.addChild(Entity.graphic);
 //ParallaxDrawer.addLayer("BG/Test/2.png", .1);
 //ParallaxDrawer.addLayer("BG/Test/3.png", .25);
 //ParallaxDrawer.addLayer("BG/Test/4.png", .42);
-
 const backdrop0 = new Backdrop(.65);
 const backdrop1 = new Backdrop(.42);
 const backdrop2 = new Backdrop(.25);
@@ -114,16 +116,14 @@ function rockSpawner(x: number, ty: number) {
         new Rock(new Vector(x, ty), null, size, random(.3, 1.2), random(-2, 2));
     }
 
-    backdrop0.setHeight(x, ty);
-    backdrop1.setHeight(x, ty);
-    backdrop2.setHeight(x, ty);
-    backdrop3.setHeight(x, ty);
+    backdrop0.setHeight(x - 100, ty);
+    backdrop1.setHeight(x - 500, ty);
+    backdrop2.setHeight(x + 400, ty);
+    backdrop3.setHeight(x - 150, ty);
 
 }
 
-generator.generate(0.1, rockSpawner);
-
-export const player = new Player(new Vector(400, 500));
+export const player = new Player(new Vector(2500, 500));
 
 for (let x = 750; x < 800; x++) {
     for (let y = 500; y < 540; y++) {
@@ -158,12 +158,18 @@ for (let x = 800; x < 850; x++) {
 }
 
 new Cloud(new Vector(100, 500))
-backdrop3.placeSprite(1500, (() => { const a = new AnimatedSprite([Texture.from("antenna0.png"), Texture.from("antenna1.png")], true); a.animationSpeed = 0.01; a.play(); return a })());
-backdrop2.placeSprite(1500, (() => { const a = new AnimatedSprite([Texture.from("antenna1.png"), Texture.from("antenna0.png")], true); a.animationSpeed = 0.02; a.play(); return a })());
-backdrop1.placeSprite(1500, (() => { const a = new AnimatedSprite([Texture.from("antenna1.png"), Texture.from("antenna0.png")], true); a.animationSpeed = 0.01; a.play(); return a })());
-backdrop0.placeSprite(1500, (() => { const a = new AnimatedSprite([Texture.from("antenna0.png"), Texture.from("antenna1.png")], true); a.animationSpeed = 0.02; a.play(); return a })());
+//backdrop3.placeSprite(1500, (() => { const a = new AnimatedSprite([Texture.from("antenna0.png"), Texture.from("antenna1.png")], true); a.animationSpeed = 0.01; a.play(); return a })());
+//backdrop2.placeSprite(1500, (() => { const a = new AnimatedSprite([Texture.from("antenna1.png"), Texture.from("antenna0.png")], true); a.animationSpeed = 0.02; a.play(); return a })());
+//backdrop1.placeSprite(1500, (() => { const a = new AnimatedSprite([Texture.from("antenna1.png"), Texture.from("antenna0.png")], true); a.animationSpeed = 0.01; a.play(); return a })());
+//backdrop0.placeSprite(1500, (() => { const a = new AnimatedSprite([Texture.from("antenna0.png"), Texture.from("antenna1.png")], true); a.animationSpeed = 0.02; a.play(); return a })());
+backdrop3.placeSprite(2000, (() => { const a = Sprite.from("building.png"); return a })(), false);
+let cloudList: BackdropProp[];
+cloudList = [];
 
-new BackdropProp(0.5, (() => { const a = new AnimatedSprite([Texture.from("antenna0.png"), Texture.from("antenna1.png")], true); a.position.set(200, 150); a.animationSpeed = 0.01; a.play(); return a })());
+for (let i = 0; i <= 10; i++) {
+    const c = new BackdropProp(random(.02, .7), (() => { const a = new Sprite(Texture.from("cloud.png")); a.position.set(randomInt(0, 1500), randomInt(80, 120)); a.alpha = .3; return a })(), 2, true);
+    cloudList.push(c);
+}
 
 //new Robot(new Vector(900, 900), undefined, 0);
 
@@ -267,6 +273,10 @@ app.ticker.add((delta) => {
     PixelDrawer.update();
     ParallaxDrawer.update();
     Entity.update(dt);
+    GUI.update(dt);
+    for (const c of cloudList) {
+        c.graphic.position.x += 10 * dt * c.depth;
+    }
 });
 
 export let terrainTick = 0;
@@ -285,7 +295,13 @@ window.addEventListener("mouseup", (e) => { mouse.pressed = e.buttons });
 window.addEventListener("mousemove", (e) => { mouse.x = e.clientX; mouse.y = e.clientY });
 
 
-function screenToWorld(vector: { x: number, y: number }) {
-    return new Vector(Camera.position.x + (vector.x * (Camera.height / window.innerHeight)),
+export function screenToWorld(vector: { x: number, y: number }) {
+    return new Vector(
+        Camera.position.x + (vector.x * (Camera.height / window.innerHeight)),
         Camera.position.y + Camera.height - (vector.y * (Camera.height / window.innerHeight)));
+}
+export function worldToScreen(vector: { x: number, y: number }) {
+    return new Vector(
+        (vector.x - Camera.position.x) / (Camera.height / window.innerHeight),
+        ((-vector.y)+Camera.position.y + Camera.height)/(Camera.height / window.innerHeight));
 }

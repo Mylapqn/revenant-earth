@@ -1,7 +1,9 @@
-import { Container, Graphics, Point, Sprite } from "pixi.js";
+import { Container, Graphics, Point, Rectangle, Sprite } from "pixi.js";
 import { Camera } from "./camera";
 import { Terrain } from "./terrain";
 import { Vector } from "./vector";
+import { OutlineFilter } from "@pixi/filter-outline";
+import { GuiTooltip } from "./gui/gui";
 
 export class Entity {
     static graphic: Container;
@@ -11,6 +13,8 @@ export class Entity {
     position: Vector;
     angle: number;
     graphics: Container;
+    tooltip: GuiTooltip;
+    hovered = false;
     constructor(graphics: Container, position: Vector, parent?: Entity, angle = 0) {
         this.graphics = graphics;
         this.position = position;
@@ -57,6 +61,35 @@ export class Entity {
         this.graphics.destroy();
         Entity.tempToUpdate.delete(this);
         Entity.toUpdate.delete(this);
+    }
+
+    get interactive() {
+        return this.graphics.interactive;
+    }
+
+    set interactive(val: boolean) {
+        this.graphics.interactive = val;
+        if (val) {
+            this.graphics.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
+            this.graphics.on("pointerenter", () => {
+                if (!this.hovered) {
+                    this.hovered = true;
+                    this.graphics.filters = [new OutlineFilter(1, 0xFFFFFF, .1, .3)];
+                    this.tooltip = new GuiTooltip("entity");
+                }
+            })
+            this.graphics.on("pointerleave", () => {
+                if (this.hovered) {
+                    this.hovered = false;
+                    this.graphics.filters = [];
+                    this.tooltip.remove();
+                }
+            })
+        }
+        else {
+            this.graphics.removeAllListeners("pointerenter");
+            this.graphics.removeAllListeners("pointerleave");
+        }
     }
 
     static update(dt: number) {

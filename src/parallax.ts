@@ -29,7 +29,7 @@ export class ParallaxDrawer {
             //sprite.filters.push(new SkyFilter());
         }
         else {
-            sprite.filters.push(new LightingFilter());
+            //sprite.filters.push(new LightingFilter());
             sprite.filters.push(new HighlightFilter(1, 0xFF9955, .2));
             //sprite.filters.push(new HslAdjustmentFilter({alpha:1-depth,colorize:true,hue:17,saturation:.57,lightness:.81}));
         }
@@ -51,7 +51,8 @@ export class Backdrop {
         this.graphics = new Graphics();
         this.container = new Container();
         this.container.zIndex = depth;
-        this.container.addChild(this.graphics)
+        this.container.addChild(this.graphics);
+        this.graphics.position.y = 30 - 100 * depth;
         ParallaxDrawer.addLayer(this.container, depth);
     }
 
@@ -64,11 +65,11 @@ export class Backdrop {
         this.surface[localX] = -localY + Terrain.height * this.depth - 300 * this.depth + 50;
     }
 
-    placeSprite(x: number, sprite: Sprite) {
+    placeSprite(x: number, sprite: Sprite, depthScaling = true) {
         const localX = Math.floor(x * this.depth);
         sprite.anchor.set(0.5, 1);
         sprite.position.set(localX, Math.floor(this.surface[localX]));
-        sprite.scale.set(this.depth);
+        if (depthScaling) sprite.scale.set(this.depth);
 
         this.container.addChildAt(sprite, 0);
     }
@@ -78,13 +79,17 @@ export class BackdropProp {
     depth: number;
     container: Container;
     graphic: Container;
-    constructor(depth: number, graphic: Container) {
+    depthScaling: boolean;
+    scaleMult: number;
+    constructor(depth: number, graphic: Container, scale = 1, depthScaling = true) {
+        this.scaleMult = scale;
+        this.depthScaling = depthScaling;
         this.depth = depth;
         this.container = new Container();
         this.graphic = graphic;
         this.container.zIndex = depth;
         this.container.addChild(graphic);
-        graphic.scale.set(depth);
+        if (this.depthScaling) graphic.scale.set(depth * this.scaleMult);
         ParallaxDrawer.addLayer(this.container, depth);
     }
 }

@@ -1,3 +1,7 @@
+:root{
+    --borderWidth: 4px;
+}
+
 * {
     box-sizing: border-box;
 }
@@ -22,20 +26,50 @@ canvas {
     image-rendering: pixelated;
 }
 
-.ui {
+.absolute {
+    left: 100px;
+    top: 100px;
     position: absolute;
+}
+
+.ui {
     background-color: #00000044;
     padding: 20px;
-    left:100px;
-    top:100px;
-    border-bottom: 4px solid white;
+    border-bottom: var(--borderWidth) solid white;
     backdrop-filter: blur(10px);
-    transition: all .1s;
-    color:white;
+    transition: transform .1s;
+    color: white;
     font-family: 'Bahnschrift';
-    display:flex;
+    display: flex;
     align-items: center;
     justify-content: center;
+    gap:10px;
+    flex-direction: column;
+}
+
+.ui > .ui {
+    backdrop-filter: none;
+}
+
+.tooltip{
+    border-bottom: none;
+}
+
+.label{
+    right:unset;
+    transform: translateX(-50%);
+}
+
+.label::after{
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    width: var(--borderWidth);
+    height:200px;
+    bottom:-200px;
+    background-color: white;
 }
 
 .button {
@@ -45,4 +79,11 @@ canvas {
 .button:hover {
     background-color: #0000005d;
     transform: scale(1.06);
+}
+
+#guiContainer {
+    position: absolute;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
 }

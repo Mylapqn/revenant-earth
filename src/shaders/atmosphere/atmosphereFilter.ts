@@ -49,8 +49,12 @@ export class AtmosphereFilter extends Filter {
         this.uniforms.uColorAbsorb = new Float32Array([.7, .8, .6]);
         this.uniforms.uAbsorbDensity = 0.5;
 
+        this.uniforms.uColorScatter = new Float32Array([0.1, 0.4, .5]);
+        this.uniforms.uColorAbsorb = new Float32Array([.95, .9, .7]);
+        this.uniforms.uAbsorbDensity = 0.5;
 
-        this.uniforms.uDensity = Math.min((1 - depth) * 1, 1);
+
+        this.uniforms.uDensity = Math.min((1 - depth), 1);
 
         Object.assign(this, { depth, color, alpha });
     }

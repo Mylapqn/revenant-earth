@@ -1,4 +1,4 @@
-import { Graphics } from "pixi.js";
+import { Graphics, Rectangle } from "pixi.js";
 import { debugPrint } from "../../..";
 import { Color } from "../../../color";
 import { Entity } from "../../../entity";
@@ -8,6 +8,8 @@ import { Falling } from "../../falling";
 import { Leaf } from "./leaf";
 import { Seed } from "./seed";
 import { defaultTreeSettings, TreeSettings } from "./treeSettings";
+import { OutlineFilter } from "@pixi/filter-outline";
+import { Camera } from "../../../camera";
 
 export class Branch extends Entity {
     seed: Seed;

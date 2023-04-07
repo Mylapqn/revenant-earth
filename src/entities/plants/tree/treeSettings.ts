@@ -11,6 +11,7 @@ type Subset<K> = {
 export interface TreeSettings extends Required<typeof defaultTreeSettings> { }
 
 export const defaultTreeSettings = {
+    name:"oak",
     main: {
         maxGrowth: 100,
         growSpeed: .1,
@@ -44,6 +45,7 @@ export const defaultTreeSettings = {
 }
 
 export const coniferousSettings:TreeSettings = {
+    name:"pine",
     main: {
         maxGrowth: 200,
         growSpeed: .1,
