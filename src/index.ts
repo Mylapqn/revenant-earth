@@ -19,6 +19,7 @@ import { AtmosphereFilter } from "./shaders/atmosphere/atmosphereFilter";
 import { Cloud } from "./entities/passive/cloud";
 import { LightingFilter } from "./shaders/lighting/lightingFilter";
 import { FilmicFilter } from "./shaders/filmic/filmicFilter";
+import { TerrainGenerator } from "./biome";
 let seed = parseInt(window.location.toString().split('?')[1]);
 if (!seed) seed = Math.floor(Math.random() * 1000);
 Math.random = mulberry32(seed);
@@ -99,47 +100,28 @@ document.body.appendChild(app.view);
 
 
 Terrain.init();
-let ty = 470;
-let trend = 0;
-let nextRock = randomInt(50, 150)
-for (let x = 0; x < Terrain.width; x++) {
-    ty += trend;
-    trend += Math.random() * 2 - 1;
-    trend = trend / 1.2;
-    if (ty < 360 || ty > 580) trend = -trend;
-    for (let y = 0; y < ty; y++) {
-        if (y + 50 > ty) {
 
-            if (Math.abs(noise(x, y, 0.2)) < Math.min((ty - y) / 50, 0.5)) {
-                Terrain.setPixel(x, y, terrainType.stone);
-            } else {
-                if (ty - 20 > y) {
-                    Terrain.setAndUpdatePixel(x, y, terrainType.dirt70);
-                } else {
-                    Terrain.setAndUpdatePixel(x, y, terrainType.dirt03);
-                }
-            }
-
-        } else {
-            Terrain.setPixel(x, y, terrainType.stone);
-        }
-    }
-    backdrop0.setHeight(x, ty);
-    backdrop1.setHeight(x, ty);
-    backdrop2.setHeight(x, ty);
-    backdrop3.setHeight(x, ty);
+const generator = new TerrainGenerator();
+let nextRock = randomInt(1, 10);
+generator.addToQueue({ stoneTop: 0, stoneBottom: 0.5, bottom: 360, top: 580, moisture: 3, minerals: 3, dirtDepth: 50, mineralDepthPenalty: 1, curveModifier: 1, curveLimiter: 2 }, 500);
+generator.addToQueue({ stoneTop: 1, stoneBottom: 1, bottom: 360, top: 580, moisture: 3, minerals: 1, dirtDepth: 20, mineralDepthPenalty: 0, curveModifier: 1.5, curveLimiter: 0.1 }, Terrain.width);
 
 
-    //if (x > 450 && x < 500) Terrain.setPixel(x, Math.floor(ty), terrainType.grass);
-    //if (x > 450 && x < 1000 && x % 100 == 0) new Seed(new Vector(x, ty));
-    //if (x == 500) new Seed(new Vector(x, ty));
-    //if (x == 700) new Seed(new Vector(x, ty), null, 0, coniferousSettings);
+function rockSpawner(x: number, ty: number) {
     if (x == nextRock) {
         let size = random(3, 8);
         nextRock += randomInt(1, 10) * Math.round(size);
         new Rock(new Vector(x, ty), null, size, random(.3, 1.2), random(-2, 2));
     }
+
+    backdrop0.setHeight(x, ty);
+    backdrop1.setHeight(x, ty);
+    backdrop2.setHeight(x, ty);
+    backdrop3.setHeight(x, ty);
+
 }
+
+generator.generate(0.1, rockSpawner);
 
 export const player = new Player(new Vector(400, 500));
 
@@ -181,7 +163,7 @@ backdrop2.placeSprite(1500, (() => { const a = new AnimatedSprite([Texture.from(
 backdrop1.placeSprite(1500, (() => { const a = new AnimatedSprite([Texture.from("antenna1.png"), Texture.from("antenna0.png")], true); a.animationSpeed = 0.01; a.play(); return a })());
 backdrop0.placeSprite(1500, (() => { const a = new AnimatedSprite([Texture.from("antenna0.png"), Texture.from("antenna1.png")], true); a.animationSpeed = 0.02; a.play(); return a })());
 
-new BackdropProp(0.5, (() => { const a = new AnimatedSprite([Texture.from("antenna0.png"), Texture.from("antenna1.png")], true); a.position.set(200,150); a.animationSpeed = 0.01; a.play(); return a })());
+new BackdropProp(0.5, (() => { const a = new AnimatedSprite([Texture.from("antenna0.png"), Texture.from("antenna1.png")], true); a.position.set(200, 150); a.animationSpeed = 0.01; a.play(); return a })());
 
 //new Robot(new Vector(900, 900), undefined, 0);
 
