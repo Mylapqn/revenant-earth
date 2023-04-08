@@ -10,7 +10,7 @@ export class TerrainGenerator {
 
     generate(transitionRate = 0.01, surfaceSpawner?: (x: number, y: number) => void) {
         let widthCountdown = this.queue[0].width;
-        let currentState = this.queue[0].biome;
+        let currentState = { ...this.queue[0].biome };
 
         let ty = 470;
         let trend = 0;
@@ -30,7 +30,7 @@ export class TerrainGenerator {
 
             trend += random(-currentState.curveModifier, currentState.curveModifier);
             trend = trend / 1.2;
-            if ( ty > currentState.top) trend -= currentState.curveLimiter;
+            if (ty > currentState.top) trend -= currentState.curveLimiter;
             if (ty < currentState.bottom) trend += currentState.curveLimiter;
             ty += trend;
             for (let y = 0; y < ty; y++) {
@@ -46,6 +46,7 @@ export class TerrainGenerator {
                 } else {
                     Terrain.setPixel(x, y, terrainType.stone);
                 }
+
             }
             surfaceSpawner(x, ty);
         }

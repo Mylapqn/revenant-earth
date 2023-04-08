@@ -105,8 +105,19 @@ Terrain.init();
 
 const generator = new TerrainGenerator();
 let nextRock = randomInt(1, 10);
-generator.addToQueue({ stoneTop: 0, stoneBottom: 0.5, bottom: 360, top: 580, moisture: 3, minerals: 3, dirtDepth: 50, mineralDepthPenalty: 1, curveModifier: 1, curveLimiter: 2 }, 500);
-generator.addToQueue({ stoneTop: 1, stoneBottom: 1, bottom: 360, top: 580, moisture: 3, minerals: 1, dirtDepth: 20, mineralDepthPenalty: 0, curveModifier: 1.5, curveLimiter: 0.1 }, Terrain.width);
+const flatland = { stoneTop: 0, stoneBottom: 0.5, bottom: 360, top: 480, moisture: 3, minerals: 3, dirtDepth: 50, mineralDepthPenalty: 1, curveModifier: 0.5, curveLimiter: 0.1 };
+const mountains = { stoneTop: 1, stoneBottom: 1, bottom: 550, top: 660, moisture: 3, minerals: 1, dirtDepth: 20, mineralDepthPenalty: 0, curveModifier: 1.5, curveLimiter: 1 };
+generator.addToQueue(mountains, 1000);
+generator.addToQueue(flatland, 1000);
+generator.addToQueue(mountains, 1000);
+generator.addToQueue(flatland, 1000);
+generator.addToQueue(mountains, 1000);
+generator.addToQueue(flatland, 1000);
+generator.addToQueue(mountains, 1000);
+generator.addToQueue(flatland, 1000);
+
+
+generator.addToQueue(flatland, Terrain.width);
 
 
 function rockSpawner(x: number, ty: number) {
@@ -122,6 +133,8 @@ function rockSpawner(x: number, ty: number) {
     backdrop3.setHeight(x - 150, ty);
 
 }
+
+generator.generate(0.01, rockSpawner);
 
 export const player = new Player(new Vector(2500, 500));
 
@@ -303,5 +316,5 @@ export function screenToWorld(vector: { x: number, y: number }) {
 export function worldToScreen(vector: { x: number, y: number }) {
     return new Vector(
         (vector.x - Camera.position.x) / (Camera.height / window.innerHeight),
-        ((-vector.y)+Camera.position.y + Camera.height)/(Camera.height / window.innerHeight));
+        ((-vector.y) + Camera.position.y + Camera.height) / (Camera.height / window.innerHeight));
 }
