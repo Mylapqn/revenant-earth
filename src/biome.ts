@@ -1,4 +1,4 @@
-import { DirtManager, Terrain, terrainType } from "./terrain";
+import { TerrainManager, Terrain, terrainType } from "./terrain";
 import { lerp, noise, random } from "./utils";
 
 
@@ -40,7 +40,7 @@ export class TerrainGenerator {
                     if (Math.abs(noise(x, y, 0.2)) < Math.min((ty - y) / currentState.dirtDepth, 0.5)) {
                         Terrain.setPixel(x, y, terrainType.stone);
                     } else {
-                        Terrain.setAndUpdatePixel(x, y, DirtManager.dirtByStats(Math.floor(currentState.moisture), Math.floor((noise(x, y, 0.05) + 1) / 2 * (currentState.minerals - currentState.mineralDepthPenalty * dirtDepthRatio))));
+                        Terrain.setAndUpdatePixel(x, y, TerrainManager.dirtByStats(Math.floor(currentState.moisture), Math.floor((noise(x, y, 0.05) + 1) / 2 * (currentState.minerals - currentState.mineralDepthPenalty * dirtDepthRatio))));
                     }
 
                 } else {
@@ -54,7 +54,6 @@ export class TerrainGenerator {
 }
 
 
-const transitor: BiomeData = { stoneTop: 0, stoneBottom: 0.5, bottom: 360, top: 580, moisture: 3, minerals: 3, dirtDepth: 50, mineralDepthPenalty: 1, curveModifier: 1, curveLimiter: 2 }
 
 export type BiomeData = {
     stoneTop: number;

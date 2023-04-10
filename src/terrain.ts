@@ -1,7 +1,8 @@
+import { log } from "console";
 import { DebugMode, debugPrint, preferences, terrainTick } from ".";
 import { Camera } from "./camera";
 import { PixelDrawer } from "./pixelDrawer";
-import { indexSplit, noise, random, randomInt } from "./utils";
+import { indexSplit, noise, random, randomBool, randomInt } from "./utils";
 import { Vector } from "./vector";
 
 
@@ -24,6 +25,7 @@ export class Terrain {
     static view: DataView;
     static toUpdate: Set<number>;
     static tempToUpdate: Set<number>;
+    static defferedUpdate: Set<number>;
     static director: Record<number, number> = {
         [0]: 0,
         [1]: 1,
@@ -38,6 +40,7 @@ export class Terrain {
     static init() {
         this.toUpdate = new Set();
         this.tempToUpdate = new Set();
+        this.defferedUpdate = new Set();
         this.pixels = new Uint8Array(this.width * this.height);
         this.view = new DataView(this.pixels.buffer);
         this.pixels.fill(0)
@@ -58,6 +61,10 @@ export class Terrain {
         this.view.setUint8(i, type);
     }
 
+    static deferUpdate(index: number) {
+        this.defferedUpdate.add(index);
+    }
+
     static draw() {
         const camX = Camera.position.x;
         const camY = Camera.position.y;
@@ -67,11 +74,21 @@ export class Terrain {
                 const type = this.view.getUint8(index) as terrainType;
                 //PixelDrawer.setPixel(x, y, 0x000000ff + 0x01010100 * Math.floor(Math.abs(noise(x, y, 0.01) * 255)))//lookup[type].color);
                 PixelDrawer.setPixel(x, y, lookup[type].color);
-                if (preferences.debugMode == DebugMode.updates && this.toUpdate.has(index)) {
-                    PixelDrawer.setPixel(x, y, 0x00ff0099);
+                if (preferences.debugMode == DebugMode.updates) {
+                    let [mx, my] = indexSplit(index, Terrain.width);
+
+                    mx = ((mx - 1) >> 1) << 1;
+                    my = ((my - 1) >> 1) << 1;
+                    const quindex = mx + my * Terrain.width;
+                    if (this.toUpdate.has(quindex)) {
+                        PixelDrawer.setPixel(x, y, 0x55ff55ff);
+                    }
+                    if (this.defferedUpdate.has(index)) {
+                        PixelDrawer.setPixel(x, y, 0x00aa00ff);
+                    }
                 } else if (preferences.debugMode == DebugMode.water) {
-                    if (DirtManager.isDirt(type)) {
-                        PixelDrawer.setPixel(x, y, 0x666666ff + 0x00051100 * DirtManager.getDirtWater(type));
+                    if (TerrainManager.isWaterable(type)) {
+                        PixelDrawer.setPixel(x, y, 0x666666ff + 0x00052200 * TerrainManager.getWater(type));
                     }
                 }
             }
@@ -90,19 +107,38 @@ export class Terrain {
     static update(tick: number) {
         debugPrint("updates: " + this.toUpdate.size);
         for (const index of this.toUpdate) {
+            try {
+                let type = this.view.getUint8(index) as terrainType;
+                let properties = lookup[type];
+                if (properties.update) properties.update(index);
+                type = this.view.getUint8(index + 1) as terrainType;
+                properties = lookup[type];
+                if (properties.update) properties.update(index + 1);
+                type = this.view.getUint8(index + this.width + 1) as terrainType;
+                properties = lookup[type];
+                if (properties.update) properties.update(index + this.width + 1);
+                type = this.view.getUint8(index + this.width) as terrainType;
+                properties = lookup[type];
+                if (properties.update) properties.update(index + this.width);
+            } catch {
+                console.error(this.view.getUint8(index))
+                console.error(this.view.getUint8(index + this.width + 1))
+                console.error(this.view.getUint8(index + 1))
+                console.error(this.view.getUint8(index + this.width))
+            }
+        }
+
+
+        let c = -1;
+        for (const index of this.defferedUpdate) {
+            c++;
+            if (c % 100 != 0) continue;
             let type = this.view.getUint8(index) as terrainType;
             let properties = lookup[type];
-            if (properties.update) properties.update(index);
-            type = this.view.getUint8(index + 1) as terrainType;
-            properties = lookup[type];
-            if (properties.update) properties.update(index + 1);
-            type = this.view.getUint8(index + this.width + 1) as terrainType;
-            properties = lookup[type];
-            if (properties.update) properties.update(index + this.width + 1);
-            type = this.view.getUint8(index + this.width) as terrainType;
-            properties = lookup[type];
-            if (properties.update) properties.update(index + this.width);
+            if (properties.defferedUpdate) properties.defferedUpdate(index);
+            this.defferedUpdate.delete(index);
         }
+
         this.toUpdate = this.tempToUpdate;
         this.tempToUpdate = new Set();
     }
@@ -110,47 +146,34 @@ export class Terrain {
 
 export enum terrainType {
     void,
+    stone,
     sand,
     sand2,
-    water,
-    grass,
-    stone,
-    dirt00 = 0b10000000,
-    dirt10 = 0b10000001,
-    dirt20 = 0b10000010,
-    dirt30 = 0b10000011,
-    dirt40 = 0b10000100,
-    dirt50 = 0b10000101,
-    dirt60 = 0b10000110,
-    dirt70 = 0b10000111,
-    dirt01 = 0b10001000,
-    dirt11 = 0b10001001,
-    dirt21 = 0b10001010,
-    dirt31 = 0b10001011,
-    dirt41 = 0b10001100,
-    dirt51 = 0b10001101,
-    dirt61 = 0b10001110,
-    dirt71 = 0b10001111,
-    dirt02 = 0b10010000,
-    dirt12 = 0b10010001,
-    dirt22 = 0b10010010,
-    dirt32 = 0b10010011,
-    dirt42 = 0b10010100,
-    dirt52 = 0b10010101,
-    dirt62 = 0b10010110,
-    dirt72 = 0b10010111,
-    dirt03 = 0b10011000,
-    dirt13 = 0b10011001,
-    dirt23 = 0b10011010,
-    dirt33 = 0b10011011,
-    dirt43 = 0b10011100,
-    dirt53 = 0b10011101,
-    dirt63 = 0b10011110,
-    dirt73 = 0b10011111,
+    water0 = 0b10000000,
+    water1 = 0b10000001,
+    water2 = 0b10000010,
+    water3 = 0b10000011,
+    dirt00 = 0b11000000,
+    dirt10 = 0b11000001,
+    dirt20 = 0b11000010,
+    dirt30 = 0b11000011,
+    dirt01 = 0b11000100,
+    dirt11 = 0b11000101,
+    dirt21 = 0b11000110,
+    dirt31 = 0b11000111,
+    dirt02 = 0b11001000,
+    dirt12 = 0b11001001,
+    dirt22 = 0b11001010,
+    dirt32 = 0b11001011,
+    dirt03 = 0b11001100,
+    dirt13 = 0b11001101,
+    dirt23 = 0b11001110,
+    dirt33 = 0b11001111,
 }
 
 type terrainProperties = {
     update?: (index: number) => void
+    defferedUpdate?: (index: number) => void
     color: number
     density: number
 }
@@ -168,19 +191,20 @@ export const lookup: Record<terrainType, terrainProperties> = {
         density: 1,
         color: 0xEAD1B7ff,
         update(index) {
+            return;
             let checkIndex: number;
             checkIndex = index - Terrain.width;
             let px = Terrain.getPixelByIndex(checkIndex);
 
-            if (px != terrainType.void && px != terrainType.water) {
+            if (px != terrainType.void && TerrainManager.isWater(px)) {
                 let mod = (terrainTick * 4871 + index * 10003193) % 2;
                 let dir = 1 - mod * 2;
                 checkIndex += dir;
                 px = Terrain.getPixelByIndex(checkIndex);
-                if (px != terrainType.void && px != terrainType.water) {
+                if (px != terrainType.void && TerrainManager.isWater(px)) {
                     checkIndex -= dir * 2;
                     px = Terrain.getPixelByIndex(checkIndex);
-                    if (px != terrainType.void && px != terrainType.water) {
+                    if (px != terrainType.void && TerrainManager.isWater(px)) {
                         checkIndex = index;
                         px = Terrain.getPixelByIndex(checkIndex);
                     }
@@ -201,7 +225,7 @@ export const lookup: Record<terrainType, terrainProperties> = {
             let checkIndex: number;
             checkIndex = index - Terrain.width;
             let px = Terrain.getPixelByIndex(checkIndex);
-            if (px == terrainType.void || px == terrainType.water) {
+            if (px == terrainType.void || TerrainManager.isWater(px)) {
                 Terrain.setPixelByIndex(index, px);
                 Terrain.setPixelByIndex(checkIndex, terrainType.sand2);
                 updateSurrounding(checkIndex);
@@ -209,75 +233,41 @@ export const lookup: Record<terrainType, terrainProperties> = {
             }
         },
     },
-    [terrainType.water]: {
+    [terrainType.water0]: {
+        density: .9,
+        color: 0x88CAC911,
+        update(index) {
+            waterBehavoiour(index, 0);
+        }
+    },
+    [terrainType.water1]: {
+        density: .9,
+        color: 0x88CAC933,
+        update(index) {
+            waterBehavoiour(index, 1);
+        }
+    },
+    [terrainType.water2]: {
+        density: .9,
+        color: 0x88CAC955,
+        update(index) {
+            waterBehavoiour(index, 2);
+        }
+    },
+    [terrainType.water3]: {
         density: .9,
         color: 0x88CAC977,
         update(index) {
-            Terrain.setPixelByIndex(index, terrainType.void);
-            let checkIndex: number;
-            checkIndex = index - Terrain.width;
-            let px = Terrain.getPixelByIndex(checkIndex);
-            if (DirtManager.isDirt(px)) {
-                const dirtWater = DirtManager.getDirtWater(px);
-                if (dirtWater < 4) {
-                    Terrain.setPixelByIndex(checkIndex, DirtManager.dirtByStats(dirtWater + 4, DirtManager.getDirtMinerals(px)));
-                    updateSurrounding(checkIndex);
-                    updateSurrounding(index);
-                    return;
-                }
-                Terrain.setPixelByIndex(index, terrainType.water);
-                return;
-            } else if (px != terrainType.void) {
-                let mod = (terrainTick + index) % 2;
-                let dir = 1 - mod * 2;
-                checkIndex += Terrain.width;
-                checkIndex += dir;
-                px = Terrain.getPixelByIndex(checkIndex);
-                if (px != terrainType.void) {
-                    checkIndex += dir;
-                    px = Terrain.getPixelByIndex(checkIndex);
-                    if (px != terrainType.void) {
-                        checkIndex += dir;
-                        px = Terrain.getPixelByIndex(checkIndex);
-                        if (px != terrainType.void) {
-                            checkIndex += dir;
-                            px = Terrain.getPixelByIndex(checkIndex);
-                            if (px != terrainType.void) {
-                                checkIndex += dir;
-                                px = Terrain.getPixelByIndex(checkIndex);
-                                if (px != terrainType.void) {
-                                    checkIndex += dir;
-                                    px = Terrain.getPixelByIndex(checkIndex);
-                                    if (px != terrainType.void) {
-                                        checkIndex += dir;
-                                        px = Terrain.getPixelByIndex(checkIndex);
-                                        if (px != terrainType.void) {
-                                            checkIndex = index;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            Terrain.setPixelByIndex(checkIndex, terrainType.water);
-            if (checkIndex == index) return;
-            updateSurrounding(checkIndex);
-            updateSurrounding(index);
-        },
-    },
-    [terrainType.grass]: {
-        density: 1,
-        color: 0x55aa55ff,
-        update(index) {
-            //implement
-        },
+            waterBehavoiour(index, 3);
+        }
     },
     [terrainType.dirt00]: {
         density: 1,
         color: 0x6E5344ff,
         update(index) {
+            Terrain.deferUpdate(index);
+        },
+        defferedUpdate(index) {
             dirtBehaviour(index, 0, 0)
         },
     },
@@ -285,6 +275,9 @@ export const lookup: Record<terrainType, terrainProperties> = {
         density: 1,
         color: 0x6D5243ff,
         update(index) {
+            Terrain.deferUpdate(index);
+        },
+        defferedUpdate(index) {
             dirtBehaviour(index, 1, 0)
         },
     },
@@ -292,6 +285,9 @@ export const lookup: Record<terrainType, terrainProperties> = {
         density: 1,
         color: 0x6C5142ff,
         update(index) {
+            Terrain.deferUpdate(index);
+        },
+        defferedUpdate(index) {
             dirtBehaviour(index, 2, 0)
         },
     },
@@ -299,41 +295,19 @@ export const lookup: Record<terrainType, terrainProperties> = {
         density: 1,
         color: 0x6B5041ff,
         update(index) {
+            Terrain.deferUpdate(index);
+        },
+        defferedUpdate(index) {
             dirtBehaviour(index, 3, 0)
-        },
-    },
-    [terrainType.dirt40]: {
-        density: 1,
-        color: 0x6A4F40ff,
-        update(index) {
-            dirtBehaviour(index, 4, 0)
-        },
-    },
-    [terrainType.dirt50]: {
-        density: 1,
-        color: 0x694E3Fff,
-        update(index) {
-            dirtBehaviour(index, 5, 0)
-        },
-    },
-    [terrainType.dirt60]: {
-        density: 1,
-        color: 0x684D3Eff,
-        update(index) {
-            dirtBehaviour(index, 6, 0)
-        },
-    },
-    [terrainType.dirt70]: {
-        density: 1,
-        color: 0x674C3Dff,
-        update(index) {
-            dirtBehaviour(index, 7, 0)
         },
     },
     [terrainType.dirt01]: {
         density: 1,
         color: 0x7E5344ff,
         update(index) {
+            Terrain.deferUpdate(index);
+        },
+        defferedUpdate(index) {
             dirtBehaviour(index, 0, 1)
         },
     },
@@ -341,6 +315,9 @@ export const lookup: Record<terrainType, terrainProperties> = {
         density: 1,
         color: 0x7D5243ff,
         update(index) {
+            Terrain.deferUpdate(index);
+        },
+        defferedUpdate(index) {
             dirtBehaviour(index, 1, 1)
         },
     },
@@ -348,6 +325,9 @@ export const lookup: Record<terrainType, terrainProperties> = {
         density: 1,
         color: 0x7C5142ff,
         update(index) {
+            Terrain.deferUpdate(index);
+        },
+        defferedUpdate(index) {
             dirtBehaviour(index, 2, 1)
         },
     },
@@ -355,41 +335,19 @@ export const lookup: Record<terrainType, terrainProperties> = {
         density: 1,
         color: 0x7B5041ff,
         update(index) {
+            Terrain.deferUpdate(index);
+        },
+        defferedUpdate(index) {
             dirtBehaviour(index, 3, 1)
-        },
-    },
-    [terrainType.dirt41]: {
-        density: 1,
-        color: 0x7A4F40ff,
-        update(index) {
-            dirtBehaviour(index, 4, 1)
-        },
-    },
-    [terrainType.dirt51]: {
-        density: 1,
-        color: 0x794E3Fff,
-        update(index) {
-            dirtBehaviour(index, 5, 1)
-        },
-    },
-    [terrainType.dirt61]: {
-        density: 1,
-        color: 0x784D3Eff,
-        update(index) {
-            dirtBehaviour(index, 6, 1)
-        },
-    },
-    [terrainType.dirt71]: {
-        density: 1,
-        color: 0x774C3Dff,
-        update(index) {
-            dirtBehaviour(index, 7, 1)
         },
     },
     [terrainType.dirt02]: {
         density: 1,
         color: 0x8E5344ff,
         update(index) {
+            Terrain.deferUpdate(index);
+        },
+        defferedUpdate(index) {
             dirtBehaviour(index, 0, 2)
         },
     },
@@ -397,6 +355,9 @@ export const lookup: Record<terrainType, terrainProperties> = {
         density: 1,
         color: 0x8D5243ff,
         update(index) {
+            Terrain.deferUpdate(index);
+        },
+        defferedUpdate(index) {
             dirtBehaviour(index, 1, 2)
         },
     },
@@ -404,6 +365,9 @@ export const lookup: Record<terrainType, terrainProperties> = {
         density: 1,
         color: 0x8C5142ff,
         update(index) {
+            Terrain.deferUpdate(index);
+        },
+        defferedUpdate(index) {
             dirtBehaviour(index, 2, 2)
         },
     },
@@ -411,41 +375,19 @@ export const lookup: Record<terrainType, terrainProperties> = {
         density: 1,
         color: 0x8B5041ff,
         update(index) {
+            Terrain.deferUpdate(index);
+        },
+        defferedUpdate(index) {
             dirtBehaviour(index, 3, 2)
-        },
-    },
-    [terrainType.dirt42]: {
-        density: 1,
-        color: 0x8A4F40ff,
-        update(index) {
-            dirtBehaviour(index, 4, 2)
-        },
-    },
-    [terrainType.dirt52]: {
-        density: 1,
-        color: 0x894E3Fff,
-        update(index) {
-            dirtBehaviour(index, 5, 2)
-        },
-    },
-    [terrainType.dirt62]: {
-        density: 1,
-        color: 0x884D3Eff,
-        update(index) {
-            dirtBehaviour(index, 6, 2)
-        },
-    },
-    [terrainType.dirt72]: {
-        density: 1,
-        color: 0x874C3Dff,
-        update(index) {
-            dirtBehaviour(index, 7, 2)
         },
     },
     [terrainType.dirt03]: {
         density: 1,
         color: 0x9E5344ff,
         update(index) {
+            Terrain.deferUpdate(index);
+        },
+        defferedUpdate(index) {
             dirtBehaviour(index, 0, 3)
         },
     },
@@ -453,6 +395,9 @@ export const lookup: Record<terrainType, terrainProperties> = {
         density: 1,
         color: 0x9D5243ff,
         update(index) {
+            Terrain.deferUpdate(index);
+        },
+        defferedUpdate(index) {
             dirtBehaviour(index, 1, 3)
         },
     },
@@ -460,6 +405,9 @@ export const lookup: Record<terrainType, terrainProperties> = {
         density: 1,
         color: 0x9C5142ff,
         update(index) {
+            Terrain.deferUpdate(index);
+        },
+        defferedUpdate(index) {
             dirtBehaviour(index, 2, 3)
         },
     },
@@ -467,35 +415,10 @@ export const lookup: Record<terrainType, terrainProperties> = {
         density: 1,
         color: 0x9B5041ff,
         update(index) {
+            Terrain.deferUpdate(index);
+        },
+        defferedUpdate(index) {
             dirtBehaviour(index, 3, 3)
-        },
-    },
-    [terrainType.dirt43]: {
-        density: 1,
-        color: 0x9A4F40ff,
-        update(index) {
-            dirtBehaviour(index, 4, 3)
-        },
-    },
-    [terrainType.dirt53]: {
-        density: 1,
-        color: 0x994E3Fff,
-        update(index) {
-            dirtBehaviour(index, 5, 3)
-        },
-    },
-    [terrainType.dirt63]: {
-        density: 1,
-        color: 0x984D3Eff,
-        update(index) {
-            dirtBehaviour(index, 6, 3)
-        },
-    },
-    [terrainType.dirt73]: {
-        density: 1,
-        color: 0x974C3Dff,
-        update(index) {
-            dirtBehaviour(index, 7, 3)
         },
     },
 };
@@ -507,9 +430,9 @@ function dirtBehaviour(index: number, water: number, minerals: number) {
 
     const drip = () => {
         if (px == terrainType.void) {
-            if (water > 3) {
-                Terrain.setPixelByIndex(checkIndex, terrainType.water);
-                Terrain.setPixelByIndex(index, DirtManager.dirtByStats(water - 4, minerals));
+            if (water == 3) {
+                Terrain.setPixelByIndex(checkIndex, terrainType.water0);
+                Terrain.setPixelByIndex(index, TerrainManager.dirtByStats(water - 1, minerals));
                 updateSurrounding(checkIndex);
                 updateSurrounding(index);
                 return true;
@@ -518,11 +441,11 @@ function dirtBehaviour(index: number, water: number, minerals: number) {
     }
 
     const soak = (adjust: number = 0) => {
-        if (DirtManager.isDirt(px)) {
-            const otherWater = DirtManager.getDirtWater(px);
-            if (water > 1 && otherWater < 7 && water + adjust >= otherWater) {
-                Terrain.setPixelByIndex(index, DirtManager.dirtByStats(--water, minerals));
-                Terrain.setPixelByIndex(checkIndex, DirtManager.dirtByStats(otherWater + 1, DirtManager.getDirtMinerals(px)));
+        if (TerrainManager.isWaterable(px)) {
+            const otherWater = TerrainManager.getWater(px);
+            if (water > 1 && otherWater < 3 && water + adjust >= otherWater) {
+                Terrain.setPixelByIndex(index, TerrainManager.dirtByStats(--water, minerals));
+                Terrain.setPixelByIndex(checkIndex, TerrainManager.setWater(px, otherWater + 1));
                 updateSurrounding(checkIndex);
                 updateSurrounding(index);
                 return true;
@@ -548,21 +471,213 @@ function dirtBehaviour(index: number, water: number, minerals: number) {
     soak(-1);
 }
 
-export class DirtManager {
-    static dirtByStats(water: number, minerals: number) {
-        return 0b10000000 + minerals * 8 + water as terrainType
+function waterBehavoiour(index: number, waterLevel: number) {
+    Terrain.setPixelByIndex(index, terrainType.void);
+    let checkIndex: number;
+    checkIndex = index - Terrain.width;
+    let px = Terrain.getPixelByIndex(checkIndex);
+
+    /*
+    if (TerrainManager.isWaterable(px)) {
+        const otherWaterLevel = TerrainManager.getWater(px);
+        if (otherWaterLevel < 3) {
+            Terrain.setPixelByIndex(checkIndex, TerrainManager.setWater(px, otherWaterLevel + 1));
+            updateSurrounding(checkIndex);
+            if (waterLevel == 0) {
+                Terrain.setPixelByIndex(index, terrainType.void);
+                updateSurrounding(index);
+                return;
+            } else {
+                waterLevel = waterLevel - 1;
+            }
+        }
+    }*/
+
+
+    let dir = randomBool() ? 1 : -1;
+    let checkA = true;
+    let checkB = true;
+    let candidate1 = -1;
+    let candidate1Level = 3;
+    let candidate2 = -1;
+    let candidate2Level = 3;
+    let candidate3 = -1;
+    let candidate3Level = 3;
+    px = Terrain.getPixelByIndex(checkIndex);
+
+    if (px == terrainType.void) {
+        Terrain.setPixelByIndex(checkIndex, TerrainManager.setWater(terrainType.water0, waterLevel));
+        updateSurrounding(index);
+        updateSurrounding(checkIndex);
+        return;
+    } else {
+        for (let i = 1; i < 50; i++) {
+            if (checkA) {
+                checkIndex = index + dir * i;
+                px = Terrain.getPixelByIndex(checkIndex);
+                if (!(px == terrainType.void || TerrainManager.isWater(px))) {
+                    checkA = false;
+                } else {
+                    let tempWater;
+                    if (TerrainManager.isWater(px)) {
+                        tempWater = TerrainManager.getWater(px);
+                    } else {
+                        tempWater = -1;
+                    }
+
+                    if (tempWater < candidate1Level) {
+                        candidate1 = checkIndex;
+                        candidate1Level = tempWater;
+                    } else if (tempWater < candidate2Level) {
+                        candidate2 = checkIndex;
+                        candidate2Level = tempWater;
+                    } else if (tempWater < candidate3Level) {
+                        candidate3 = checkIndex;
+                        candidate3Level = tempWater;
+                    }
+
+                    checkIndex = index + dir * i - Terrain.width;
+                    px = Terrain.getPixelByIndex(checkIndex);
+                    if (TerrainManager.isWaterable(px)) {
+                        const otherWater = TerrainManager.getWater(px);
+                        if (waterLevel + otherWater <= 3) {
+                            Terrain.setPixelByIndex(checkIndex, TerrainManager.setWater(px, waterLevel + otherWater));
+
+                            updateSurrounding(index);
+                            updateSurrounding(checkIndex);
+                            return;
+                        } else {
+                            Terrain.setPixelByIndex(checkIndex, TerrainManager.setWater(px, 3));
+                            updateSurrounding(checkIndex);
+                            waterLevel = waterLevel - (3 - otherWater);
+                        }
+                    } else if (px == terrainType.void) {
+                        Terrain.setPixelByIndex(checkIndex, TerrainManager.setWater(terrainType.water0, waterLevel));
+                        updateSurrounding(index);
+                        updateSurrounding(checkIndex);
+                        return;
+                    }
+                }
+            }
+
+            if (checkB) {
+                checkIndex = index - dir * i;
+                px = Terrain.getPixelByIndex(checkIndex);
+                if (!(px == terrainType.void || TerrainManager.isWater(px))) {
+                    checkB = false;
+                } else {
+                    let tempWater;
+                    if (TerrainManager.isWater(px)) {
+                        tempWater = TerrainManager.getWater(px);
+                    } else {
+                        tempWater = -1;
+                    }
+
+                    if (tempWater < candidate1Level) {
+                        candidate1 = checkIndex;
+                        candidate1Level = tempWater;
+                    } else if (tempWater < candidate2Level) {
+                        candidate2 = checkIndex;
+                        candidate2Level = tempWater;
+                    } else if (tempWater < candidate3Level) {
+                        candidate3 = checkIndex;
+                        candidate3Level = tempWater;
+                    }
+
+                    checkIndex = index - dir * i - Terrain.width;
+                    px = Terrain.getPixelByIndex(checkIndex);
+                    if (TerrainManager.isWaterable(px)) {
+                        const otherWater = TerrainManager.getWater(px);
+                        if (waterLevel + otherWater <= 3) {
+                            Terrain.setPixelByIndex(checkIndex, TerrainManager.setWater(px, waterLevel + otherWater));
+
+                            updateSurrounding(index);
+                            updateSurrounding(checkIndex);
+                            return;
+                        } else {
+                            Terrain.setPixelByIndex(checkIndex, TerrainManager.setWater(px, 3));
+                            updateSurrounding(checkIndex);
+                            waterLevel = waterLevel - (3 - otherWater);
+                        }
+                    } else if (px == terrainType.void) {
+                        Terrain.setPixelByIndex(checkIndex, TerrainManager.setWater(terrainType.water0, waterLevel));
+                        updateSurrounding(index);
+                        updateSurrounding(checkIndex);
+                        return;
+                    }
+                }
+            }
+
+            if (!(checkA || checkB)) {
+                break;
+            }
+        }
+
+        if (candidate1 == -1) {
+            Terrain.setPixelByIndex(index, TerrainManager.setWater(terrainType.water0, waterLevel));
+            return;
+        }
+        /*
+
+        if (waterLevel > 0) {
+            if (candidate1 != -1) {
+                Terrain.setPixelByIndex(candidate1, TerrainManager.setWater(terrainType.water0, TerrainManager.getWater(candidate1) + 1));
+                updateSurrounding(candidate1);
+                waterLevel--;
+            }
+        }
+
+
+        if (waterLevel > 0) {
+            if (candidate2 != -1) {
+                Terrain.setPixelByIndex(candidate2, TerrainManager.setWater(terrainType.water0, TerrainManager.getWater(candidate2) + 1));
+                updateSurrounding(candidate2);
+                waterLevel--;
+            }
+        }
+
+        if (waterLevel > 0) {
+            if (candidate3 != -1) {
+                Terrain.setPixelByIndex(candidate3, TerrainManager.setWater(terrainType.water0, TerrainManager.getWater(candidate3) + 1));
+                updateSurrounding(candidate3);
+                waterLevel--;
+            }
+        }
+*/
+        Terrain.setPixelByIndex(index, TerrainManager.setWater(terrainType.water0, waterLevel));
+        updateSurrounding(index);
+
     }
 
-    static isDirt(terrain: terrainType) {
+}
+
+export class TerrainManager {
+    static dirtByStats(water: number, minerals: number) {
+        return 0b11000000 + minerals * 4 + water as terrainType
+    }
+
+    static isWaterable(terrain: terrainType) {
         return (terrain & 0b10000000) == 128
     }
 
-    static getDirtWater(terrain: terrainType) {
-        return terrain & 0b00000111
+    static isDirt(terrain: terrainType) {
+        return (terrain & 0b11111000) == 64
+    }
+
+    static isWater(terrain: terrainType) {
+        return (terrain & 0b11111100) == 128
+    }
+
+    static getWater(terrain: terrainType) {
+        return terrain & 0b00000011
+    }
+
+    static setWater(terrain: terrainType, water: number) {
+        return (terrain & 0b11111100) + water
     }
 
     static getDirtMinerals(terrain: terrainType) {
-        return (terrain & 0b00011000) / 8
+        return (terrain & 0b0001100) / 4
     }
 }
 
@@ -575,9 +690,4 @@ function updateSurrounding(index: number) {
     Terrain.tempToUpdate.add(quindex + 2);
     Terrain.tempToUpdate.add(quindex + Terrain.width * 2);
     Terrain.tempToUpdate.add(quindex + 2 + Terrain.width * 2);
-    /*
-    for (let i = 0; i < 9; i++) {
-        Terrain.tempToUpdate.add(index + Terrain.director[(2 * i + index) % 9]);
-    }
-    */
 }

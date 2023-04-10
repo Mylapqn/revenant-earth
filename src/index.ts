@@ -105,8 +105,8 @@ Terrain.init();
 
 const generator = new TerrainGenerator();
 let nextRock = randomInt(1, 10);
-const flatland = { stoneTop: 0, stoneBottom: 0.5, bottom: 360, top: 480, moisture: 3, minerals: 3, dirtDepth: 50, mineralDepthPenalty: 1, curveModifier: 0.5, curveLimiter: 0.1 };
-const mountains = { stoneTop: 1, stoneBottom: 1, bottom: 550, top: 660, moisture: 3, minerals: 1, dirtDepth: 20, mineralDepthPenalty: 0, curveModifier: 1.5, curveLimiter: 1 };
+const flatland = { stoneTop: 0, stoneBottom: 0.5, bottom: 360, top: 480, moisture: 3, minerals: 3, dirtDepth: 0, mineralDepthPenalty: 1, curveModifier: 0.5, curveLimiter: 0.1 };
+const mountains = { stoneTop: 1, stoneBottom: 1, bottom: 550, top: 660, moisture: 3, minerals: 1, dirtDepth: 0, mineralDepthPenalty: 0, curveModifier: 1.5, curveLimiter: 1 };
 generator.addToQueue(mountains, 1000);
 generator.addToQueue(flatland, 1000);
 generator.addToQueue(mountains, 1000);
@@ -138,6 +138,7 @@ generator.generate(0.01, rockSpawner);
 
 export const player = new Player(new Vector(2500, 500));
 
+/*
 for (let x = 750; x < 800; x++) {
     for (let y = 500; y < 540; y++) {
         if (randomBool(0.9))
@@ -166,16 +167,16 @@ for (let x = 800; x < 900; x++) {
 
 for (let x = 800; x < 850; x++) {
     for (let y = 500; y < 550; y++) {
-        Terrain.setAndUpdatePixel(x, y, terrainType.water);
+        //Terrain.setAndUpdatePixel(x, y, terrainType.water3);
     }
-}
+}*/
 
 new Cloud(new Vector(100, 500))
-//backdrop3.placeSprite(1500, (() => { const a = new AnimatedSprite([Texture.from("antenna0.png"), Texture.from("antenna1.png")], true); a.animationSpeed = 0.01; a.play(); return a })());
-//backdrop2.placeSprite(1500, (() => { const a = new AnimatedSprite([Texture.from("antenna1.png"), Texture.from("antenna0.png")], true); a.animationSpeed = 0.02; a.play(); return a })());
-//backdrop1.placeSprite(1500, (() => { const a = new AnimatedSprite([Texture.from("antenna1.png"), Texture.from("antenna0.png")], true); a.animationSpeed = 0.01; a.play(); return a })());
-//backdrop0.placeSprite(1500, (() => { const a = new AnimatedSprite([Texture.from("antenna0.png"), Texture.from("antenna1.png")], true); a.animationSpeed = 0.02; a.play(); return a })());
-backdrop3.placeSprite(2000, (() => { const a = Sprite.from("building.png"); return a })(), false);
+//backdrop3.placeSprite(1500, 0, (() => { const a = new AnimatedSprite([Texture.from("antenna0.png"), Texture.from("antenna1.png")], true); a.animationSpeed = 0.01; a.play(); return a })());
+//backdrop2.placeSprite(1500, 0, (() => { const a = new AnimatedSprite([Texture.from("antenna1.png"), Texture.from("antenna0.png")], true); a.animationSpeed = 0.02; a.play(); return a })());
+//backdrop1.placeSprite(1500, 0, (() => { const a = new AnimatedSprite([Texture.from("antenna1.png"), Texture.from("antenna0.png")], true); a.animationSpeed = 0.01; a.play(); return a })());
+//backdrop0.placeSprite(1500, 0, (() => { const a = new AnimatedSprite([Texture.from("antenna0.png"), Texture.from("antenna1.png")], true); a.animationSpeed = 0.02; a.play(); return a })());
+backdrop3.placeSprite(2000, 0, (() => { const a = Sprite.from("building.png"); return a })(), false, 100);
 let cloudList: BackdropProp[];
 cloudList = [];
 
@@ -237,8 +238,7 @@ app.ticker.add((delta) => {
 
     if (key["1"]) preferences.selectedTerrainType = terrainType.dirt00;
     if (key["2"]) preferences.selectedTerrainType = terrainType.sand;
-    if (key["3"]) preferences.selectedTerrainType = terrainType.water;
-    if (key["4"]) preferences.selectedTerrainType = terrainType.grass;
+    if (key["3"]) preferences.selectedTerrainType = terrainType.water3;
 
     if (key["+"]) {
         key["+"] = false;

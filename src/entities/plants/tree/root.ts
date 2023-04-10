@@ -1,7 +1,7 @@
 import { Graphics, Point, Sprite } from "pixi.js";
 import { Color } from "../../../color";
 import { Entity } from "../../../entity";
-import { DirtManager, Terrain, terrainType } from "../../../terrain";
+import { TerrainManager, Terrain, terrainType } from "../../../terrain";
 import { random, randomInt } from "../../../utils";
 import { Vector } from "../../../vector";
 import { Seed } from "./seed";
@@ -66,16 +66,12 @@ export class Root extends Entity {
             //console.log(coords.x, coords.y);
             let px = Terrain.getPixel(coords.x, coords.y);
 
-            if (DirtManager.isDirt(px)) {
-                const dirtWater = DirtManager.getDirtWater(px);
+            if (TerrainManager.isWaterable(px)) {
+                const dirtWater = TerrainManager.getWater(px);
                 if (dirtWater > 0) {
                     this.seed.energy += 4;
-                    Terrain.setAndUpdatePixel(coords.x, coords.y, DirtManager.dirtByStats(dirtWater - 1, DirtManager.getDirtMinerals(px)));
+                    Terrain.setAndUpdatePixel(coords.x, coords.y, TerrainManager.setWater(px, dirtWater - 1));
                 }
-            }
-            if (px == terrainType.water) {
-                this.seed.energy += 32;
-                Terrain.setAndUpdatePixel(coords.x, coords.y, terrainType.void);
             }
         }
         this.queueUpdate();

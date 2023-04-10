@@ -1,5 +1,5 @@
 import { HslAdjustmentFilter } from "@pixi/filter-hsl-adjustment";
-import { AnimatedSprite, Container, Graphics, Sprite, Texture } from "pixi.js";
+import { AnimatedSprite, Container, Graphics, Renderer, Sprite, Texture } from "pixi.js";
 import { Camera } from "./camera";
 import { AtmosphereFilter } from "./shaders/atmosphere/atmosphereFilter";
 import { SkyFilter } from "./shaders/atmosphere/skyFilter";
@@ -52,7 +52,7 @@ export class Backdrop {
         this.container = new Container();
         this.container.zIndex = depth;
         this.container.addChild(this.graphics);
-        this.graphics.position.y = 30 - 100 * depth;
+        this.container.position.y = 30 - 100 * depth;
         ParallaxDrawer.addLayer(this.container, depth);
     }
 
@@ -65,10 +65,16 @@ export class Backdrop {
         this.surface[localX] = -localY + Terrain.height * this.depth - 300 * this.depth + 50;
     }
 
-    placeSprite(x: number, sprite: Sprite, depthScaling = true) {
+    placeSprite(x: number, yOffset = 0, sprite: Sprite, depthScaling = true, lowestAround = 1) {
         const localX = Math.floor(x * this.depth);
         sprite.anchor.set(0.5, 1);
-        sprite.position.set(localX, Math.floor(this.surface[localX]));
+
+        let lowest = this.surface[localX];
+        for (let x = localX-lowestAround; x < localX+lowestAround; x++) {
+            if(lowest < this.surface[x]) lowest = this.surface[x];
+        }
+
+        sprite.position.set(localX, Math.floor(lowest - yOffset * this.depth));
         if (depthScaling) sprite.scale.set(this.depth);
 
         this.container.addChildAt(sprite, 0);
