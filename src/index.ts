@@ -32,7 +32,7 @@ export enum DebugMode {
     updates,
     water
 }
-export const preferences = { debugMode: DebugMode.off, selectedTerrainType: terrainType.dirt00, penSize: 1, showDebug: false }
+export const preferences = { debugMode: DebugMode.off, selectedTerrainType: terrainType.water3, penSize: 4, showDebug: false }
 console.log(status);
 let app = new PIXI.Application<HTMLCanvasElement>();
 //PIXI.settings.SCALE_MODE = SCALE_MODES.NEAREST;
