@@ -8,6 +8,13 @@ export class TerrainGenerator {
         this.queue.push({ width, biome });
     }
 
+    getBiome(x: number): BiomeData | undefined {
+        for (const item of this.queue) {
+            x -= item.width;
+            if(x < 0) return item.biome;
+        }
+    }
+
     generate(transitionRate = 0.01, surfaceSpawner?: (x: number, y: number) => void) {
         let widthCountdown = this.queue[0].width;
         let currentState = { ...this.queue[0].biome };
