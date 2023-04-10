@@ -105,8 +105,8 @@ Terrain.init();
 
 const generator = new TerrainGenerator();
 let nextRock = randomInt(1, 10);
-const flatland = { stoneTop: 0, stoneBottom: 0.5, bottom: 360, top: 480, moisture: 3, minerals: 3, dirtDepth: 0, mineralDepthPenalty: 1, curveModifier: 0.5, curveLimiter: 0.1 };
-const mountains = { stoneTop: 1, stoneBottom: 1, bottom: 550, top: 660, moisture: 3, minerals: 1, dirtDepth: 0, mineralDepthPenalty: 0, curveModifier: 1.5, curveLimiter: 1 };
+const flatland = { stoneTop: 0, stoneBottom: 0.5, bottom: 360, top: 480, moisture: 3, minerals: 3, dirtDepth: 50, mineralDepthPenalty: 1, curveModifier: 0.5, curveLimiter: 0.1 };
+const mountains = { stoneTop: 1, stoneBottom: 1, bottom: 550, top: 660, moisture: 3, minerals: 1, dirtDepth: 10, mineralDepthPenalty: 0, curveModifier: 1.5, curveLimiter: 1 };
 generator.addToQueue(mountains, 1000);
 generator.addToQueue(flatland, 1000);
 generator.addToQueue(mountains, 1000);
@@ -137,39 +137,6 @@ function rockSpawner(x: number, ty: number) {
 generator.generate(0.01, rockSpawner);
 
 export const player = new Player(new Vector(2500, 500));
-
-/*
-for (let x = 750; x < 800; x++) {
-    for (let y = 500; y < 540; y++) {
-        if (randomBool(0.9))
-            Terrain.setAndUpdatePixel(x, y, terrainType.sand);
-        else
-            Terrain.setAndUpdatePixel(x, y, terrainType.sand2);
-    }
-}
-
-for (let x = 900; x < 950; x++) {
-    for (let y = 500; y < 540; y++) {
-        if (randomBool(0.9))
-            Terrain.setAndUpdatePixel(x, y, terrainType.sand);
-        else
-            Terrain.setAndUpdatePixel(x, y, terrainType.sand2);
-    }
-}
-for (let x = 800; x < 900; x++) {
-    for (let y = 495; y < 500; y++) {
-        if (randomBool(0.9))
-            Terrain.setAndUpdatePixel(x, y, terrainType.sand);
-        else
-            Terrain.setAndUpdatePixel(x, y, terrainType.sand2);
-    }
-}
-
-for (let x = 800; x < 850; x++) {
-    for (let y = 500; y < 550; y++) {
-        //Terrain.setAndUpdatePixel(x, y, terrainType.water3);
-    }
-}*/
 
 new Cloud(new Vector(100, 500))
 //backdrop3.placeSprite(1500, 0, (() => { const a = new AnimatedSprite([Texture.from("antenna0.png"), Texture.from("antenna1.png")], true); a.animationSpeed = 0.01; a.play(); return a })());
