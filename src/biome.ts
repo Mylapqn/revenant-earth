@@ -66,6 +66,7 @@ export class TerrainGenerator {
 
 
 export type BiomeData = {
+    biomeId: number;
     stoneTop: number;
     stoneBottom: number;
     moisture: number;

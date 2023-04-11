@@ -105,8 +105,8 @@ Terrain.init();
 
 const generator = new TerrainGenerator();
 let nextRock = randomInt(1, 10);
-const flatland = { stoneTop: 0.5, stoneBottom: 0.5, bottom: 360, top: 480, moisture: 3, minerals: 3, dirtDepth: 50, mineralDepthPenalty: 1, curveModifier: 0.5, curveLimiter: 0.1 };
-const mountains = { stoneTop: 1, stoneBottom: 2, bottom: 550, top: 660, moisture: 3, minerals: 1, dirtDepth: 10, mineralDepthPenalty: 0, curveModifier: 1.5, curveLimiter: 1 };
+const flatland = { stoneTop: 0.5, stoneBottom: 0.5, bottom: 360, top: 480, moisture: 3, minerals: 3, dirtDepth: 50, mineralDepthPenalty: 1, curveModifier: 0.5, curveLimiter: 0.1, biomeId: 1 };
+const mountains = { stoneTop: 1, stoneBottom: 2, bottom: 550, top: 660, moisture: 3, minerals: 1, dirtDepth: 10, mineralDepthPenalty: 0, curveModifier: 1.5, curveLimiter: 1, biomeId: 2 };
 generator.addToQueue(flatland, 1000);
 generator.addToQueue(mountains, 1000);
 generator.addToQueue(flatland, 1000);
@@ -189,6 +189,7 @@ app.ticker.add((delta) => {
 
     const [wx, wy] = screenToWorld(mouse).xy();
     debugPrint(screenToWorld(mouse).toString());
+    debugPrint(generator.getBiome(player.position.x).biomeId == 1 ? "flatlands": "not-flatlands")
     if (mouse.pressed == 1) {
         for (let x = 0; x < preferences.penSize; x++) {
             for (let y = 0; y < preferences.penSize; y++) {
