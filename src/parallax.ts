@@ -52,7 +52,6 @@ export class Backdrop {
         this.container = new Container();
         this.container.zIndex = depth;
         this.container.addChild(this.graphics);
-        this.container.position.y = 30 - 100 * depth;
         ParallaxDrawer.addLayer(this.container, depth);
     }
 
@@ -60,9 +59,10 @@ export class Backdrop {
         const localX = Math.floor(x * this.depth);
         const localY = Math.floor(y * this.depth);
         this.graphics.lineStyle(1, 0x995555, 1);
-        this.graphics.moveTo(localX, -localY + Terrain.height * this.depth - 300 * this.depth + 50);
+        const surface = -localY + Terrain.height * this.depth - 400 * Math.pow(this.depth, 0.8) + 110;
+        this.graphics.moveTo(localX, surface);
         this.graphics.lineTo(localX, Terrain.height * this.depth + 300 * this.depth + 50);
-        this.surface[localX] = -localY + Terrain.height * this.depth - 300 * this.depth + 50;
+        this.surface[localX] = surface
     }
 
     placeSprite(x: number, yOffset = 0, sprite: Sprite, depthScaling = true, lowestAround = 1) {
@@ -70,8 +70,8 @@ export class Backdrop {
         sprite.anchor.set(0.5, 1);
 
         let lowest = this.surface[localX];
-        for (let x = localX-lowestAround; x < localX+lowestAround; x++) {
-            if(lowest < this.surface[x]) lowest = this.surface[x];
+        for (let x = localX - lowestAround; x < localX + lowestAround; x++) {
+            if (lowest < this.surface[x]) lowest = this.surface[x];
         }
 
         sprite.position.set(localX, Math.floor(lowest - yOffset * this.depth));
