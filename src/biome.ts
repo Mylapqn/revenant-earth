@@ -11,23 +11,24 @@ export class TerrainGenerator {
     getBiome(x: number): BiomeData | undefined {
         for (const item of this.queue) {
             x -= item.width;
-            if(x < 0) return item.biome;
+            if (x < 0) return item.biome;
         }
     }
 
-    generate(transitionRate = 0.01, surfaceSpawner?: (x: number, y: number) => void) {
-        let widthCountdown = this.queue[0].width;
+    generate(transitionRate = 0.01, settings = {skipPlacement: false, padding: 0}, surfaceSpawner?: (x: number, y: number) => void) {
+        let widthCountdown = this.queue[0].width + settings.padding;
         let currentState = { ...this.queue[0].biome };
 
         let ty = 470;
         let trend = 0;
-        for (let x = 0; x < Terrain.width; x++) {
-            const targetState = this.queue[0].biome;
+        let i = 0;
+        for (let x = -settings.padding; x < Terrain.width + settings.padding; x++) {
+            const targetState = this.queue[i].biome;
             widthCountdown--;
 
             if (widthCountdown == 0) {
-                this.queue.shift();
-                widthCountdown = this.queue[0].width;
+                i++;
+                widthCountdown = this.queue[i].width;
             }
 
             for (let key in currentState) {
@@ -40,22 +41,24 @@ export class TerrainGenerator {
             if (ty > currentState.top) trend -= currentState.curveLimiter;
             if (ty < currentState.bottom) trend += currentState.curveLimiter;
             ty += trend;
-            for (let y = 0; y < ty; y++) {
-                if (y + currentState.dirtDepth > ty) {
-                    const dirtDepthRatio = (y - (ty - currentState.dirtDepth)) / currentState.dirtDepth;
+            if (!settings.skipPlacement) {
+                for (let y = 0; y < ty; y++) {
+                    if (y + currentState.dirtDepth > ty) {
+                        const dirtDepthRatio = (y - (ty - currentState.dirtDepth)) / currentState.dirtDepth;
+                        const stoneBonus = lerp(currentState.stoneBottom, currentState.stoneTop, dirtDepthRatio)
+                        if (Math.abs(noise(x, y, 0.2)) < (ty - y) / currentState.dirtDepth * stoneBonus) {
+                            Terrain.setPixel(x, y, terrainType.stone);
+                        } else {
+                            Terrain.setAndUpdatePixel(x, y, TerrainManager.dirtByStats(Math.floor(currentState.moisture), Math.floor((noise(x, y, 0.05) + 1) / 2 * (currentState.minerals - currentState.mineralDepthPenalty * dirtDepthRatio))));
+                        }
 
-                    if (Math.abs(noise(x, y, 0.2)) < Math.min((ty - y) / currentState.dirtDepth, 0.5)) {
-                        Terrain.setPixel(x, y, terrainType.stone);
                     } else {
-                        Terrain.setAndUpdatePixel(x, y, TerrainManager.dirtByStats(Math.floor(currentState.moisture), Math.floor((noise(x, y, 0.05) + 1) / 2 * (currentState.minerals - currentState.mineralDepthPenalty * dirtDepthRatio))));
+                        Terrain.setPixel(x, y, terrainType.stone);
                     }
 
-                } else {
-                    Terrain.setPixel(x, y, terrainType.stone);
                 }
-
             }
-            surfaceSpawner(x, ty);
+            surfaceSpawner && surfaceSpawner(x, ty);
         }
     }
 }

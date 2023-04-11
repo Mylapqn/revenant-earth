@@ -189,12 +189,13 @@ export class Terrain {
 
 export enum terrainType {
     void = 0,
-    stone = 0b10000000,
-    sand,
-    sand2,
     water1 = 0b00000001,
     water2 = 0b00000010,
     water3 = 0b00000011,
+    grass0 = 0b00000100,
+    grass1 = 0b00000101,
+    grass2 = 0b00000110,
+    grass3 = 0b00000111,
     dirt00 = 0b01000000,
     dirt10 = 0b01000001,
     dirt20 = 0b01000010,
@@ -211,6 +212,9 @@ export enum terrainType {
     dirt13 = 0b01001101,
     dirt23 = 0b01001110,
     dirt33 = 0b01001111,
+    stone = 0b10000000,
+    sand,
+    sand2,
 }
 
 type terrainProperties = {
@@ -294,6 +298,47 @@ export const lookup: Record<terrainType, terrainProperties> = {
         update(index) {
             waterBehavoiour(index, 3);
         }
+    },
+    [terrainType.grass0]: {
+        density: 1,
+        color: 0x7f8561ff,
+        update(index) {
+            Terrain.deferUpdate(index);
+        },
+        defferedUpdate(index) {
+            grassBehaviour(index, 0)
+        },
+    },
+    [terrainType.grass1]: {
+        density: 1,
+        color: 0x7f8561ff,
+        update(index) {
+            Terrain.deferUpdate(index);
+
+        },
+        defferedUpdate(index) {
+            grassBehaviour(index, 1)
+        },
+    },
+    [terrainType.grass2]: {
+        density: 1,
+        color: 0x7f8561ff,
+        update(index) {
+            Terrain.deferUpdate(index);
+        },
+        defferedUpdate(index) {
+            grassBehaviour(index, 2)
+        },
+    },
+    [terrainType.grass3]: {
+        density: 1,
+        color: 0x7f8561ff,
+        update(index) {
+            Terrain.deferUpdate(index);
+        },
+        defferedUpdate(index) {
+            grassBehaviour(index, 3)
+        },
     },
     [terrainType.dirt00]: {
         density: 1,
@@ -678,6 +723,47 @@ export class TerrainManager {
 
     static getDirtMinerals(terrain: terrainType) {
         return (terrain & 0b0001100) / 4
+    }
+}
+
+function grassBehaviour(index: number, waterLevel: number) {
+    if (waterLevel == 3) {
+
+    }
+
+    const bias = randomInt(0, 9);
+    let enclosed = true;
+    for (let i = 0; i < 9; i++) {
+        let dir = Terrain.director[(i + bias) % 9];
+        if (dir == 0) continue;
+        let checkIndex = index + dir;
+        let px = Terrain.getPixelByIndex(checkIndex);
+        if (px == terrainType.void) enclosed = false;
+
+        if (TerrainManager.isDirt(px)) {
+            let targetWater = TerrainManager.getWater(px);
+            let targetMinerals = TerrainManager.getDirtMinerals(px);
+
+            if (targetWater >= 1 && targetMinerals >= 1) {
+                let newEnclosed = true;
+                for (let j = 0; j < 9; j++) {
+                    let newDir = Terrain.director[(j + bias) % 9];
+                    if (newDir == 0) continue;
+                    let newCheckIndex = index + newDir;
+                    if (Terrain.getPixelByIndex(newCheckIndex) == terrainType.void) newEnclosed = false;
+                }
+
+                if (!newEnclosed) {
+                    Terrain.setPixelByIndex(checkIndex, TerrainManager.setWater(terrainType.grass0, targetWater - 1));
+                    updateSurrounding(checkIndex);
+                }
+            }
+        }
+    }
+
+    if (enclosed) {
+        Terrain.setPixelByIndex(index, TerrainManager.setWater(terrainType.dirt00, waterLevel));
+        updateSurrounding(index);
     }
 }
 
