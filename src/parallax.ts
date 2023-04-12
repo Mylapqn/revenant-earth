@@ -58,7 +58,7 @@ export class Backdrop {
     setHeight(x: number, y: number) {
         const localX = Math.floor(x * this.depth);
         const localY = Math.floor(y * this.depth);
-        this.graphics.lineStyle(1, 0x995555, 1);
+        this.graphics.lineStyle(1, 0x995544, 1);
         const surface = -localY + Terrain.height * this.depth - 400 * Math.pow(this.depth, 0.8) + 110;
         this.graphics.moveTo(localX, surface);
         this.graphics.lineTo(localX, Terrain.height * this.depth + 300 * this.depth + 50);

@@ -84,3 +84,17 @@ export class GuiButton extends GuiElement {
         this.element.onclick = callback;
     }
 }
+
+export class GuiSplash {
+    element: HTMLElement;
+    constructor(content = "none", duration = 5) {
+        this.element = document.createElement("h1");
+        GUI.container.appendChild(this.element);
+        this.element.classList.add("splash");
+        this.element.innerText = content;
+        this.element.style.animationDuration = duration + "s";
+        setTimeout(() => {
+            this.element.remove();
+        }, duration*1000);
+    }
+}

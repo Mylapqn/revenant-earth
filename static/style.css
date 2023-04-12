@@ -1,4 +1,4 @@
-:root{
+:root {
     --borderWidth: 4px;
 }
 
@@ -27,8 +27,6 @@ canvas {
 }
 
 .absolute {
-    left: 100px;
-    top: 100px;
     position: absolute;
 }
 
@@ -43,32 +41,32 @@ canvas {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap:10px;
+    gap: 10px;
     flex-direction: column;
 }
 
-.ui > .ui {
+.ui>.ui {
     backdrop-filter: none;
 }
 
-.tooltip{
+.tooltip {
     border-bottom: none;
 }
 
-.label{
-    right:unset;
+.label {
+    right: unset;
     transform: translateX(-50%);
 }
 
-.label::after{
+.label::after {
     content: '';
     position: absolute;
     left: 0;
     right: 0;
     margin: 0 auto;
     width: var(--borderWidth);
-    height:200px;
-    bottom:-200px;
+    height: 200px;
+    bottom: -200px;
     background-color: white;
 }
 
@@ -86,4 +84,52 @@ canvas {
     width: 100vw;
     height: 100vh;
     overflow: hidden;
+    font-family: 'Bahnschrift';
+    color: white;
+}
+
+.splash {
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 6em;
+    animation: splash 7s;
+    animation-fill-mode: both;
+    animation-timing-function: linear;
+    letter-spacing: .1em;
+    font-weight: 100;
+    flex-direction: column;
+}
+.splash::after{
+    content: "new biome discovered";
+    font-size: .4em;
+    display: block;
+    letter-spacing: 0;
+}
+
+@keyframes splash {
+    from {
+        opacity: 0;
+        letter-spacing: .0em;
+    }
+    20%{
+        opacity:1;
+    }
+    80%{
+        opacity:1;
+    }
+
+    to {
+        opacity: 0;
+        letter-spacing: .05em;
+    }
 }

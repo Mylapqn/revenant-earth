@@ -21,7 +21,7 @@ import { LightingFilter } from "./shaders/lighting/lightingFilter";
 import { FilmicFilter } from "./shaders/filmic/filmicFilter";
 import { TerrainGenerator } from "./biome";
 import { SkyFilter } from "./shaders/atmosphere/skyFilter";
-import { GUI, GuiLabel } from "./gui/gui";
+import { GUI, GuiLabel, GuiSplash } from "./gui/gui";
 let seed = parseInt(window.location.toString().split('?')[1]);
 if (!seed) seed = Math.floor(Math.random() * 1000);
 Math.random = mulberry32(seed);
@@ -138,16 +138,16 @@ generator.generate(0.01, { skipPlacement: true, padding: 3000 }, (x, ty) => back
 
 export const player = new Player(new Vector(2500, 500));
 
-new Cloud(new Vector(100, 500))
-backdrop3.placeSprite(2500, 0, (() => { const a = new AnimatedSprite([Texture.from("antenna0.png"), Texture.from("antenna1.png")], true); a.animationSpeed = 0.01; a.play(); return a })(), true, 16);
-backdrop2.placeSprite(2500, 0, (() => { const a = new AnimatedSprite([Texture.from("antenna1.png"), Texture.from("antenna0.png")], true); a.animationSpeed = 0.02; a.play(); return a })(), true, 16);
-backdrop1.placeSprite(2500, 0, (() => { const a = new AnimatedSprite([Texture.from("antenna1.png"), Texture.from("antenna0.png")], true); a.animationSpeed = 0.01; a.play(); return a })(), true, 16);
-backdrop0.placeSprite(2500, 0, (() => { const a = new AnimatedSprite([Texture.from("antenna0.png"), Texture.from("antenna1.png")], true); a.animationSpeed = 0.02; a.play(); return a })(), true, 16);
+new Cloud(new Vector(100, 500));
 backdrop3.placeSprite(2000, 0, (() => { const a = Sprite.from("building.png"); return a })(), false, 100);
+backdrop0.placeSprite(2200, 0, (() => { const a = Sprite.from("building2.png"); return a })(), false, 70);
+backdrop0.placeSprite(2600, 0, (() => { const a = Sprite.from("building3.png"); return a })(), false, 70);
+backdrop1.placeSprite(2300, 0, (() => { const a = Sprite.from("building4.png"); return a })(), false, 70);
+backdrop0.placeSprite(2900, 0, (() => { const a = Sprite.from("dump1.png"); return a })(), false, 120);
 let cloudList: BackdropProp[];
 cloudList = [];
 
-for (let i = 0; i <= 10; i++) {
+for (let i = 0; i <= 12; i++) {
     const c = new BackdropProp(random(.02, .7), (() => { const a = new Sprite(Texture.from("cloud.png")); a.position.set(randomInt(0, 1500), randomInt(80, 120)); a.alpha = .3; return a })(), 2, true);
     cloudList.push(c);
 }
@@ -165,6 +165,7 @@ export function debugPrint(s: string) { printText += s + "\n" };
 
 const camspeed = 50;
 let seedCooldown = 0;
+let currentBiome = 0;
 app.ticker.add((delta) => {
     const dt = Math.min(.1, delta / app.ticker.FPS);
 
@@ -189,6 +190,11 @@ app.ticker.add((delta) => {
 
     const [wx, wy] = screenToWorld(mouse).xy();
     debugPrint(screenToWorld(mouse).toString());
+    let newBiome = generator.getBiome(player.position.x).biomeId;
+    if(newBiome!=currentBiome){
+        new GuiSplash(newBiome==1?"Urban Ruins": "Melted Mountains")
+        currentBiome = newBiome;
+    }
     debugPrint(generator.getBiome(player.position.x).biomeId == 1 ? "flatlands": "not-flatlands")
     if (mouse.pressed == 1) {
         for (let x = 0; x < preferences.penSize; x++) {
@@ -257,7 +263,7 @@ app.ticker.add((delta) => {
     Entity.update(dt);
     GUI.update(dt);
     for (const c of cloudList) {
-        c.graphic.position.x += 10 * dt * c.depth;
+        c.graphic.position.x += 15 * dt * c.depth;
     }
 });
 
