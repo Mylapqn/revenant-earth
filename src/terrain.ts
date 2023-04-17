@@ -4,6 +4,8 @@ import { Camera } from "./camera";
 import { PixelDrawer } from "./pixelDrawer";
 import { indexSplit, noise, random, randomBool, randomInt } from "./utils";
 import { Vector } from "./vector";
+import { Rock } from "./entities/passive/rock";
+import { GrassPatch } from "./entities/passive/grassPatch";
 
 
 enum Direction {
@@ -44,6 +46,12 @@ export class Terrain {
         this.pixels = new Uint8Array(this.width * this.height);
         this.view = new DataView(this.pixels.buffer);
         this.pixels.fill(terrainType.void)
+    }
+
+    static posFromIndex(i: number) {
+        const x = i % this.width;
+        const y = (i - x) / this.width;
+        return new Vector(x, y);
     }
 
     static setPixel(x: number, y: number, type: terrainType) {
@@ -754,6 +762,11 @@ function grassBehaviour(index: number, waterLevel: number) {
                 }
 
                 if (!newEnclosed) {
+                    grassExp++;
+                    if (grassExp > 5) {
+                        grassExp = 0;
+                        new GrassPatch(Terrain.posFromIndex(checkIndex));
+                    }
                     Terrain.setPixelByIndex(checkIndex, TerrainManager.setWater(terrainType.grass0, targetWater - 1));
                     updateSurrounding(checkIndex);
                 }
@@ -766,6 +779,8 @@ function grassBehaviour(index: number, waterLevel: number) {
         updateSurrounding(index);
     }
 }
+
+let grassExp = 0;
 
 function updateSurrounding(index: number) {
     let [x, y] = indexSplit(index, Terrain.width);

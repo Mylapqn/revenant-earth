@@ -35,7 +35,7 @@ export class Player extends Entity {
     velocity = new Vector();
     input = new Vector();
     grounded = false;
-    camTarget = new Vector(200, 400);
+    camTarget = Camera.position.result();
     graphics: AnimatedSprite;
     run = false;
     animState = 0;
@@ -112,7 +112,7 @@ export class Player extends Entity {
         }
         let pos = this.position.result().sub(new Vector(Camera.width, Camera.height).mult(.5));
         let diff = pos.sub(this.camTarget).add(new Vector(this.velocity.result().mult(.7).x, 50));
-        this.camTarget.add(diff.mult(10 * dt))
+        this.camTarget.add(diff.mult(5 * dt))
         Camera.position.x = Math.floor(this.camTarget.x);
         Camera.position.y = Math.floor(this.camTarget.y);
         if (lookup[terrainInFront].density == 1) this.velocity.x = 0;

@@ -155,7 +155,7 @@ for (let i = 0; i <= 12; i++) {
 //new Robot(new Vector(900, 900), undefined, 0);
 
 Camera.position.y = 400;
-Camera.position.x = 400;
+Camera.position.x = 3000;
 
 Terrain.draw();
 PixelDrawer.update();
