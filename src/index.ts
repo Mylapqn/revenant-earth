@@ -167,6 +167,7 @@ const camspeed = 50;
 let seedCooldown = 0;
 let currentBiome = 0;
 app.ticker.add((delta) => {
+    delta = 1;
     const dt = Math.min(.1, delta / app.ticker.FPS);
 
     Atmosphere.settings.sunAngle += dt / 2;
