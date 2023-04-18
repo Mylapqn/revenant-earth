@@ -58,7 +58,7 @@ for (let y = 0; y < 256; y++) {
 
 const pixelContainer = new Container();
 
-bg.tint = 0xccddff;
+bg.tint = 0xF0E0DD;
 bg.scale.set(10, 1);
 bg.filters = [new SkyFilter()];
 const debugText = new PIXI.Text();
@@ -167,7 +167,7 @@ const camspeed = 50;
 let seedCooldown = 0;
 let currentBiome = 0;
 app.ticker.add((delta) => {
-    delta = 1;
+    delta = .5;//REMOVE
     const dt = Math.min(.1, delta / app.ticker.FPS);
 
     Atmosphere.settings.sunAngle += dt / 2;
