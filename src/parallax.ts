@@ -30,7 +30,7 @@ export class ParallaxDrawer {
         }
         else {
             sprite.filters.push(new LightingFilter(sprite));
-            sprite.filters.push(new HighlightFilter(1, 0xFF9955, .2));
+            sprite.filters.push(new HighlightFilter(1, 0xFF9955, .4));
             //sprite.filters.push(new HslAdjustmentFilter({alpha:1-depth,colorize:true,hue:17,saturation:.57,lightness:.81}));
         }
         sprite.filters.push(new AtmosphereFilter(depth / 1.2));

@@ -89,7 +89,7 @@ const backdrop1 = new Backdrop(.38);
 const backdrop2 = new Backdrop(.22);
 const backdrop3 = new Backdrop(.1);
 app.stage.addChild(pixelContainer);
-PixelDrawer.graphic.filters = [new LightingFilter(PixelDrawer.graphic), new HighlightFilter(4, 0xFF9955, .25), new AtmosphereFilter(.85)];
+PixelDrawer.graphic.filters = [new LightingFilter(PixelDrawer.graphic), new HighlightFilter(4, 0xFF9955, .45), new AtmosphereFilter(.85)];
 PixelDrawer.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
 Entity.graphic.filters = [new LightingFilter(Entity.graphic), new HighlightFilter(1, 0xFF9955, .2), new AtmosphereFilter(.85)];
 Entity.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
@@ -140,10 +140,11 @@ generator.generate(0.01, { skipPlacement: true, padding: 3000 }, (x, ty) => back
 export const player = new Player(new Vector(2500, 500));
 
 new Cloud(new Vector(100, 500));
-backdrop3.placeSprite(2000, 0, (() => { const a = Sprite.from("building.png"); return a })(), false, 100);
+backdrop3.placeSprite(2050, 0, (() => { const a = Sprite.from("building.png"); return a })(), false, 100);
 backdrop0.placeSprite(2200, 0, (() => { const a = Sprite.from("building2.png"); return a })(), false, 70);
 backdrop0.placeSprite(2600, 0, (() => { const a = Sprite.from("building3.png"); return a })(), false, 70);
-backdrop1.placeSprite(2300, 0, (() => { const a = Sprite.from("building4.png"); return a })(), false, 70);
+backdrop1.placeSprite(2150, 0, (() => { const a = Sprite.from("building4.png"); return a })(), false, 70);
+backdrop1.placeSprite(2850, 0, (() => { const a = Sprite.from("building4.png"); return a })(), true, 70);
 backdrop0.placeSprite(2900, 0, (() => { const a = Sprite.from("dump1.png"); return a })(), false, 120);
 let cloudList: BackdropProp[];
 cloudList = [];
@@ -171,14 +172,15 @@ app.ticker.add((delta) => {
     delta = .5;//REMOVE
     const dt = Math.min(.1, delta / app.ticker.FPS);
 
-    Atmosphere.settings.sunAngle += dt / 120;
+    Atmosphere.settings.sunAngle += dt / 20;
     //Atmosphere.settings.sunAngle = new Vector(mouse.x/window.innerWidth-.5, mouse.y/window.innerHeight-.5).toAngle();
     
     Atmosphere.settings.sunPosition = Vector.fromAngle(Atmosphere.settings.sunAngle).mult(Camera.width/2*.6).add(new Vector(Camera.width/2, Camera.height*.63));
     let sunFac = (-Vector.fromAngle(Atmosphere.settings.sunAngle).y - .5) * 2;
+    let sunHor = 1-Math.abs(Vector.fromAngle(Atmosphere.settings.sunAngle).y);
     Atmosphere.settings.ambientLight = Color.fromHsl(lerp(0, 20, clamp(sunFac*5)), clamp(1 - sunFac), clamp(sunFac + .5));
-    Atmosphere.settings.ambientLight = Atmosphere.settings.ambientLight.add(Color.fromHsl(lerp(260, 200, clamp(-sunFac/2)), clamp(-sunFac+.3)/2, Math.max(.1, (clamp(-sunFac+.3)*.1))))
-    Atmosphere.settings.sunIntensity = clamp(sunFac+1)
+    Atmosphere.settings.ambientLight = Atmosphere.settings.ambientLight.add(Color.fromHsl(lerp(280, 230, clamp(-sunFac/2)), clamp(-sunFac+.3)*.6, Math.max(.1, (clamp(-sunFac+.3)*.3))))
+    Atmosphere.settings.sunIntensity = clamp(clamp(sunFac+1.2)*Math.max(.4,sunHor*2))
     if (terrainTick % 30 == 0) {
         debugText.text = printText;
     }
