@@ -1,4 +1,4 @@
-import { lerp, random, randomInt } from "./utils";
+import { clamp, lerp, random, randomInt } from "./utils";
 
 export class Color {
     r: number;
@@ -34,6 +34,10 @@ export class Color {
     mix(color: Color, ratio = 0.5) {
         ratio = Math.min(1, Math.max(0, ratio));
         return new Color(lerp(this.r, color.r, ratio), lerp(this.g, color.g, ratio), lerp(this.b, color.b, ratio))
+    }
+    add(color:Color,ratio=1){
+        ratio = clamp(ratio);
+        return new Color(this.r + color.r*ratio,this.g + color.g*ratio,this.b + color.b*ratio);
     }
     copy() {
         return new Color(this.r, this.g, this.b);

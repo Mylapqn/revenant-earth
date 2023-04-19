@@ -9,6 +9,7 @@ uniform bool uKnockout;
 uniform float uAngle;
 uniform vec2 uSunPos;
 uniform vec2 uPixelSize;
+uniform vec3 uAmbient;
 
 const float DOUBLE_PI = 2. * 3.14159265358979323846264;
 const float MAX_ANGLE = .5;
@@ -38,16 +39,25 @@ vec3 posterise(vec3 x) {
     return floor((x) * 5.) / 5.;
 }
 
+vec3 blendNormal(vec3 base, vec3 blend, float opacity) {
+    return (blend * opacity + base * (1.0 - opacity));
+}
+vec3 blendMultiply(vec3 base, vec3 blend, float opacity) {
+    return (base*blend * opacity + base * (1.0 - opacity));
+}
+
 void main(void) {
     vec4 sourceColor = texture2D(uSampler, vTextureCoord);
     float hor = (pow(max(0., 1. - (length((HORIZON_Y - vTextureCoord.y) / uPixelSize / 200.))), 2.) * .5);
+    hor*=clamp(HORIZON_Y-(uSunPos.y-.5),0.,1.);
     float len = (pow(max(0., 1. - (length((uSunPos - vTextureCoord.xy) / uPixelSize / 50.))), 2.) * .5);
     if(len > .35)
         len = 1.;
     else
-        len *= 1.*(hor+.5);
-    vec3 horizon = vec3(1., .4, .1) * hor;
+        len *= 1.5 * (hor + .3);
+    vec3 horizon = vec3(1., .6, .1) * hor;
     vec3 sun = vec3(1., .7, .3) * len;
-    gl_FragColor = vec4((tonemap(sourceColor.rgb + horizon + sun)), 1.);
+    sun = blendMultiply(sun, vec3(.8, .1, 0), hor);
+    gl_FragColor = vec4((tonemap(sourceColor.rgb*uAmbient + horizon + sun)), 1.);
 
 }

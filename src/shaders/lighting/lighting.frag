@@ -5,6 +5,7 @@ uniform vec4 filterClamp;
 
 uniform vec2 uLightPos;
 uniform vec2 uPixelSize;
+uniform vec3 uAmbient;
 
 const float DOUBLE_PI = 2. * 3.14159265358979323846264;
 
@@ -33,8 +34,9 @@ vec4 demult(vec4 color) {
 void main(void) {
     vec4 sourceColor = demult(texture2D(uSampler, vTextureCoord));
     vec3 lightMap = vec3(.8, .6, .4);
-    lightMap = vec3(1.);
-    lightMap += pow(max(1. - length((vTextureCoord - uLightPos) / uPixelSize / 40.), 0.), 2.) * 2.;
+    //lightMap = vec3(1.);
+    lightMap = uAmbient;
+    lightMap += pow(max(1. - length((vTextureCoord - uLightPos) / uPixelSize / 40.), 0.), 2.) * vec3(.6,1.,.9)*2.;
     //lightMap += (pow(max(1. - length((vTextureCoord - vec2(0.5, .8)) / uPixelSize / 40.), 0.), 2.) *1.) * vec3(.0, .0, 1.);
     //lightMap += (pow(max(1. - length((vTextureCoord - vec2(0.4, .8)) / uPixelSize / 40.), 0.), 2.) * 1.) * vec3(.0, 1.0, 0.);
     //lightMap += (pow(max(1. - length((vTextureCoord - vec2(0.45, .85)) / uPixelSize /40.), 0.), 2.) * 1.) * vec3(1.0, 0.0, 0.);

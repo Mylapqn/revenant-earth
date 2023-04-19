@@ -9,6 +9,7 @@ uniform vec4 uColor;
 uniform bool uKnockout;
 uniform float uAngle;
 uniform vec2 uLightPos;
+uniform float uIntensity;
 
 const float DOUBLE_PI = 2. * 3.14159265358979323846264;
 const float MAX_ANGLE = .5;
@@ -44,5 +45,5 @@ void main(void) {
     vec4 contentColor = sourceColor * float(!uKnockout);
     float outlineAlpha = uAlpha * outlineMaxAlphaAtPos(sourceColor);
     vec4 outlineColor = vec4(vec3(uColor) * outlineAlpha, 0.);
-    gl_FragColor = contentColor + outlineColor;
+    gl_FragColor = contentColor + outlineColor*uIntensity;
 }

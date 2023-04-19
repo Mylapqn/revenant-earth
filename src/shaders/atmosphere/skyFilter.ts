@@ -34,6 +34,7 @@ export class SkyFilter extends Filter {
         this.uniforms.uPixelSize = new Float32Array([0, 0]);
         this.uniforms.uColor = new Float32Array([0, 0, 0, 1]);
         this.uniforms.uAlpha = alpha;
+        this.uniforms.uAmbient = new Float32Array([0, 0, 0]);
 
         Object.assign(this, { thickness, color, alpha });
     }
@@ -49,10 +50,14 @@ export class SkyFilter extends Filter {
         this.uniforms.uAngle = Atmosphere.settings.sunAngle;
         this.uniforms.uSunPos[0] = Atmosphere.settings.sunPosition.x / Camera.width;
         this.uniforms.uSunPos[1] = Atmosphere.settings.sunPosition.y / Camera.height;
-        this.uniforms.uSunPos[0] = mouse.x/window.innerWidth;
-        this.uniforms.uSunPos[1] = mouse.y / window.innerHeight;
+        //this.uniforms.uSunPos[0] = mouse.x/window.innerWidth;
+        //this.uniforms.uSunPos[1] = mouse.y / window.innerHeight;
         this.uniforms.uPixelSize[0] = 1 / input._frame.width;
         this.uniforms.uPixelSize[1] = 1 / input._frame.height;
+        this.uniforms.uAmbient[0] = Atmosphere.settings.ambientLight.r / 255
+        this.uniforms.uAmbient[1] = Atmosphere.settings.ambientLight.g / 255
+        this.uniforms.uAmbient[2] = Atmosphere.settings.ambientLight.b / 255
+
 
         filterManager.applyFilter(this, input, output, clear);
     }

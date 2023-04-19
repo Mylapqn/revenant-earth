@@ -13,7 +13,7 @@ import { Backdrop, BackdropProp, ParallaxDrawer } from "./parallax";
 import { coniferousSettings, defaultTreeSettings } from "./entities/plants/tree/treeSettings";
 import { HighlightFilter } from "./shaders/outline/highlightFilter";
 import { Rock } from "./entities/passive/rock";
-import { noise, random, randomBool, randomInt } from "./utils";
+import { lerp, noise, random, randomBool, randomInt } from "./utils";
 import { Atmosphere } from "./atmosphere";
 import { AtmosphereFilter } from "./shaders/atmosphere/atmosphereFilter";
 import { Cloud } from "./entities/passive/cloud";
@@ -22,6 +22,8 @@ import { FilmicFilter } from "./shaders/filmic/filmicFilter";
 import { TerrainGenerator } from "./biome";
 import { SkyFilter } from "./shaders/atmosphere/skyFilter";
 import { GUI, GuiLabel, GuiSplash } from "./gui/gui";
+import { Color } from "./color";
+import { clamp } from "./utils";
 let seed = parseInt(window.location.toString().split('?')[1]);
 if (!seed) seed = Math.floor(Math.random() * 1000);
 Math.random = mulberry32(seed);
@@ -87,10 +89,9 @@ const backdrop1 = new Backdrop(.38);
 const backdrop2 = new Backdrop(.22);
 const backdrop3 = new Backdrop(.1);
 app.stage.addChild(pixelContainer);
-const lightingFilter = new LightingFilter();
-PixelDrawer.graphic.filters = [lightingFilter, new HighlightFilter(4, 0xFF9955, .25), new AtmosphereFilter(.85)];
+PixelDrawer.graphic.filters = [new LightingFilter(PixelDrawer.graphic), new HighlightFilter(4, 0xFF9955, .25), new AtmosphereFilter(.85)];
 PixelDrawer.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
-Entity.graphic.filters = [lightingFilter, new HighlightFilter(1, 0xFF9955, .2), new AtmosphereFilter(.85)];
+Entity.graphic.filters = [new LightingFilter(Entity.graphic), new HighlightFilter(1, 0xFF9955, .2), new AtmosphereFilter(.85)];
 Entity.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
 console.log(app.renderer);
 
@@ -170,9 +171,14 @@ app.ticker.add((delta) => {
     delta = .5;//REMOVE
     const dt = Math.min(.1, delta / app.ticker.FPS);
 
-    Atmosphere.settings.sunAngle += dt / 2;
-    Atmosphere.settings.sunPosition = Vector.fromAngle(Atmosphere.settings.sunAngle).mult(200).add(new Vector(200, 200));
-
+    Atmosphere.settings.sunAngle += dt / 120;
+    //Atmosphere.settings.sunAngle = new Vector(mouse.x/window.innerWidth-.5, mouse.y/window.innerHeight-.5).toAngle();
+    
+    Atmosphere.settings.sunPosition = Vector.fromAngle(Atmosphere.settings.sunAngle).mult(Camera.width/2*.6).add(new Vector(Camera.width/2, Camera.height*.63));
+    let sunFac = (-Vector.fromAngle(Atmosphere.settings.sunAngle).y - .5) * 2;
+    Atmosphere.settings.ambientLight = Color.fromHsl(lerp(0, 20, clamp(sunFac*5)), clamp(1 - sunFac), clamp(sunFac + .5));
+    Atmosphere.settings.ambientLight = Atmosphere.settings.ambientLight.add(Color.fromHsl(lerp(260, 200, clamp(-sunFac/2)), clamp(-sunFac+.3)/2, Math.max(.1, (clamp(-sunFac+.3)*.1))))
+    Atmosphere.settings.sunIntensity = clamp(sunFac+1)
     if (terrainTick % 30 == 0) {
         debugText.text = printText;
     }
@@ -192,11 +198,11 @@ app.ticker.add((delta) => {
     const [wx, wy] = screenToWorld(mouse).xy();
     debugPrint(screenToWorld(mouse).toString());
     let newBiome = generator.getBiome(player.position.x).biomeId;
-    if(newBiome!=currentBiome){
-        new GuiSplash(newBiome==1?"Urban Ruins": "Melted Mountains")
+    if (newBiome != currentBiome) {
+        new GuiSplash(newBiome == 1 ? "Urban Ruins" : "Melted Mountains")
         currentBiome = newBiome;
     }
-    debugPrint(generator.getBiome(player.position.x).biomeId == 1 ? "flatlands": "not-flatlands")
+    debugPrint(generator.getBiome(player.position.x).biomeId == 1 ? "flatlands" : "not-flatlands")
     if (mouse.pressed == 1) {
         for (let x = 0; x < preferences.penSize; x++) {
             for (let y = 0; y < preferences.penSize; y++) {

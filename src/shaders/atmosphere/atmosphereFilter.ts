@@ -52,6 +52,7 @@ export class AtmosphereFilter extends Filter {
         this.uniforms.uColorScatter = new Float32Array([0.05, 0.6, .78]);
         this.uniforms.uColorAbsorb = new Float32Array([.9, .65, .3]);
         this.uniforms.uAbsorbDensity = 0.8;
+        this.uniforms.uAmbient = new Float32Array([0, 0, 0]);
 
 
         this.uniforms.uDensity = Math.min((1 - depth), 1);
@@ -72,6 +73,10 @@ export class AtmosphereFilter extends Filter {
         this.uniforms.uSunPos[1] = Atmosphere.settings.sunPosition.y / Camera.height;
         this.uniforms.uPixelSize[0] = 1 / input._frame.width;
         this.uniforms.uPixelSize[1] = 1 / input._frame.height;
+
+        this.uniforms.uAmbient[0] = Atmosphere.settings.ambientLight.r/255
+        this.uniforms.uAmbient[1] = Atmosphere.settings.ambientLight.g/255
+        this.uniforms.uAmbient[2] = Atmosphere.settings.ambientLight.b/255
 
         filterManager.applyFilter(this, input, output, clear);
     }

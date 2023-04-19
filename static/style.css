@@ -65,8 +65,8 @@ canvas {
     right: 0;
     margin: 0 auto;
     width: var(--borderWidth);
-    height: 200px;
-    bottom: -200px;
+    height: 50px;
+    top: -50px;
     background-color: white;
 }
 

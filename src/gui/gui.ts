@@ -51,8 +51,8 @@ export class GuiLabel extends GuiElement {
         this.element.classList.add("label");
     }
     update(): void {
-        this.position = worldToScreen(this.worldPosition.result()).add(new Vector(0, -250));
-        const op = clamp((.4 - Math.abs(this.position.x / window.innerWidth - .5)) * 8);
+        this.position = worldToScreen(this.worldPosition.result()).add(new Vector(0, 100));
+        const op = clamp((.25 - Math.abs(this.position.x / window.innerWidth - .5)) * 8);
         if (this.lastOpacity != op) {
             if (op <= 0) this.element.style.display = "none";
             else {

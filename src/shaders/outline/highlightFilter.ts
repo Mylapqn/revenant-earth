@@ -49,8 +49,9 @@ export class HighlightFilter extends Filter {
         this.uniforms.uAngle = Atmosphere.settings.sunAngle;
         this.uniforms.uLightPos[0] = Atmosphere.settings.sunPosition.x;
         this.uniforms.uLightPos[1] = Atmosphere.settings.sunPosition.y;
-        this.uniforms.uLightPos[0] = (mouse.x / window.innerWidth) * Camera.width;
-        this.uniforms.uLightPos[1] = (mouse.y / window.innerHeight) * Camera.height;
+        this.uniforms.uIntensity = Atmosphere.settings.sunIntensity;
+        //this.uniforms.uLightPos[0] = (mouse.x / window.innerWidth) * Camera.width;
+        //this.uniforms.uLightPos[1] = (mouse.y / window.innerHeight) * Camera.height;
 
         filterManager.applyFilter(this, input, output, clear);
     }

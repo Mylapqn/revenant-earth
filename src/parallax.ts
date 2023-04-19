@@ -1,5 +1,5 @@
 import { HslAdjustmentFilter } from "@pixi/filter-hsl-adjustment";
-import { AnimatedSprite, Container, Graphics, Renderer, Sprite, Texture } from "pixi.js";
+import { AnimatedSprite, Container, Graphics, Rectangle, Renderer, Sprite, Texture } from "pixi.js";
 import { Camera } from "./camera";
 import { AtmosphereFilter } from "./shaders/atmosphere/atmosphereFilter";
 import { SkyFilter } from "./shaders/atmosphere/skyFilter";
@@ -29,7 +29,7 @@ export class ParallaxDrawer {
             //sprite.filters.push(new SkyFilter());
         }
         else {
-            //sprite.filters.push(new LightingFilter());
+            sprite.filters.push(new LightingFilter(sprite));
             sprite.filters.push(new HighlightFilter(1, 0xFF9955, .2));
             //sprite.filters.push(new HslAdjustmentFilter({alpha:1-depth,colorize:true,hue:17,saturation:.57,lightness:.81}));
         }
@@ -37,6 +37,7 @@ export class ParallaxDrawer {
         if (depth <= 0.0) {
             sprite.filters.push(new SkyFilter());
         }
+        sprite.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
         this.layers.push({ sprite: sprite, depth: depth });
     }
 }
