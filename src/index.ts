@@ -27,6 +27,7 @@ import { clamp } from "./utils";
 import { Stamps } from "./stamp";
 import { GrassPatch } from "./entities/passive/grassPatch";
 import { Sign } from "./entities/passive/sign";
+import { log } from "console";
 let seed = parseInt(window.location.toString().split('?')[1]);
 if (!seed) seed = Math.floor(Math.random() * 1000);
 Math.random = mulberry32(seed);
@@ -39,7 +40,7 @@ export enum DebugMode {
 }
 export const preferences = { debugMode: DebugMode.off, selectedTerrainType: terrainType.water3, penSize: 4, showDebug: false }
 console.log(status);
-export let app = new PIXI.Application<HTMLCanvasElement>();
+export let app = new PIXI.Application<HTMLCanvasElement>({ sharedTicker: false, autoStart: false});
 //PIXI.settings.SCALE_MODE = SCALE_MODES.NEAREST;
 //PIXI.settings.ROUND_PIXELS = true;
 PIXI.BaseTexture.defaultOptions.scaleMode = SCALE_MODES.NEAREST;
@@ -177,7 +178,7 @@ Camera.position.y = 400;
 Camera.position.x = 3000;
 
 Stamps.loadStamps().then(() => {
-    const pos = Stamps.stamp("stamp", new Vector(2500, 0), {useDirtFrom: generator});
+    const pos = Stamps.stamp("stamp", new Vector(2500, 0), { useDirtFrom: generator });
     new Sign(pos.add(new Vector(184, 92)));
 });
 
@@ -186,13 +187,38 @@ PixelDrawer.update();
 
 let printText = "";
 export function debugPrint(s: string) { printText += s + "\n" };
+let lastTime = new Date();
+let dtAvg = new Array(10).fill(60);
+let tpsMeter = 0;
+let showTps = 0;
+let updateInfo = 0;
+
 
 const camspeed = 50;
 let seedCooldown = 0;
 let currentBiome = 0;
-app.ticker.add((delta) => {
-    delta = .5;//REMOVE
-    const dt = Math.min(.1, delta / app.ticker.FPS);
+let ticker = new Ticker();
+ticker.add((delta) => {
+    if (terrainScore < 80){
+        return;
+    }
+    debugPrint("terrainScore:" + terrainScore.toFixed(1));
+    terrainScore *= 0.98;
+    let diff = new Date().valueOf() - lastTime.valueOf();
+    const dt = Math.min(.1, diff/2000);
+    lastTime = new Date();
+    dtAvg.shift();
+    dtAvg.push(diff);
+    tpsMeter += diff;
+
+    updateInfo -= diff;
+
+    if (updateInfo <= 0) {
+        updateInfo = 250;
+        debugText.text = printText;
+    }
+
+
 
     Atmosphere.settings.sunAngle += dt / 20;
     //Atmosphere.settings.sunAngle = new Vector(mouse.x/window.innerWidth-.5, mouse.y/window.innerHeight-.5).toAngle();
@@ -203,9 +229,6 @@ app.ticker.add((delta) => {
     Atmosphere.settings.ambientLight = Color.fromHsl(lerp(0, 20, clamp(sunFac * 5)), clamp(1 - sunFac), clamp(sunFac + .5));
     Atmosphere.settings.ambientLight = Atmosphere.settings.ambientLight.add(Color.fromHsl(lerp(280, 230, clamp(-sunFac / 2)), clamp(-sunFac + .3) * .6, Math.max(.1, (clamp(-sunFac + .3) * .3))))
     Atmosphere.settings.sunIntensity = clamp(clamp(sunFac + 1.2) * Math.max(.4, sunHor * 2))
-    if (terrainTick % 30 == 0) {
-        debugText.text = printText;
-    }
     printText = ""
     if (key["arrowleft"]) Camera.position.x -= camspeed;
     if (key["arrowright"]) Camera.position.x += camspeed;
@@ -287,7 +310,17 @@ app.ticker.add((delta) => {
     if (Camera.position.y < 0) Camera.position.y = 0
     if (Camera.position.y + Camera.height >= Terrain.height) Camera.position.y = Terrain.height - Camera.height - 1
     debugPrint(Camera.position.toString());
-    debugPrint("FPS: " + (1 / dt).toFixed(1));
+    debugPrint("FPS: " + (1000 / (dtAvg.reduce((accumulator, currentValue) => {
+        return accumulator + currentValue;
+    }) / dtAvg.length)).toFixed(1) + " | " + (1000 / Math.max(...dtAvg)).toFixed(1));
+    debugPrint("TPS: " + showTps);
+
+    if (tpsMeter > 1000) {
+        showTps = tps;
+        tpsMeter -= 1000;
+        tps = 0;
+    }
+
     Terrain.draw();
     PixelDrawer.update();
     ParallaxDrawer.update();
@@ -296,13 +329,23 @@ app.ticker.add((delta) => {
     for (const c of cloudList) {
         c.graphic.position.x += 15 * dt * c.depth;
     }
+    app.render();
 });
+ticker.start();
 
 export let terrainTick = 0;
-setInterval(() => {
+let tps = 0;
+let terrainScore = 100;
+function infiniteLoop() {
+    setTimeout(infiniteLoop, 7);
     Terrain.update(terrainTick);
+    terrainScore++;
     terrainTick++;
-}, 7);
+    tps++;
+}
+
+infiniteLoop();
+
 
 const key: Record<string, boolean> = {};
 export const mouse = { x: 0, y: 0, pressed: 0 };
