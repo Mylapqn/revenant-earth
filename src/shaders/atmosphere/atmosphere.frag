@@ -64,5 +64,5 @@ void main(void) {
     vec3 additive = vec3(.97, .83, .78) * day + vec3(.05, .2, .30) * (1. - day);
     //gl_FragColor = vec4(blendMultiply(blendScreen(sourceColor.xyz*0.5, uColorScatter, uDensity * sourceColor.a), uColorAbsorb, pow(uDensity, 1.)), sourceColor.a);
 
-    gl_FragColor = vec4(blendScreen(blendNormal(sourceColor.rgb, blendMultiply(uColorAbsorb,uAmbient,.6), uDensity * uAbsorbDensity), blendMultiply(uColorScatter,uAmbient,1.), uDensity)*sourceColor.a, sourceColor.a);
+    gl_FragColor = vec4(blendScreen(blendNormal(sourceColor.rgb, blendMultiply(uColorAbsorb,uAmbient,.9), uDensity * uAbsorbDensity), blendMultiply(uColorScatter,uAmbient,1.), uDensity)*sourceColor.a, sourceColor.a);
 }
