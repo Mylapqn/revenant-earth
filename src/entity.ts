@@ -15,6 +15,8 @@ export class Entity {
     graphics: Container;
     tooltip: GuiTooltip;
     hovered = false;
+    culling = false;
+    cullExtend = 100;
     constructor(graphics: Container, position: Vector, parent?: Entity, angle = 0) {
         this.graphics = graphics;
         this.position = position;
@@ -26,6 +28,11 @@ export class Entity {
             Entity.graphic.addChild(this.graphics);
         }
         this.queueUpdate();
+    }
+
+    protected cullDisplay() {
+        if (this.position.x > Camera.position.x + Camera.width+this.cullExtend || this.position.x < Camera.position.x-this.cullExtend) this.graphics.visible = false;
+        else this.graphics.visible = true;   
     }
 
     protected updatePosition() {
@@ -53,6 +60,7 @@ export class Entity {
     }
 
     update(dt: number) {
+        if (this.culling) this.cullDisplay();
         this.updatePosition();
     }
 
