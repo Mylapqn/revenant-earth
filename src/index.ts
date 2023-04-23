@@ -124,8 +124,8 @@ Terrain.init();
 
 const generator = new TerrainGenerator();
 let nextRock = randomInt(1, 10);
-const flatland = { stoneTop: 0.5, stoneBottom: 0.5, bottom: 360, top: 480, moisture: 3, minerals: 3, dirtDepth: 50, mineralDepthPenalty: 1, curveModifier: 0.5, curveLimiter: 0.1, biomeId: 1 };
-const mountains = { stoneTop: 1, stoneBottom: 2, bottom: 550, top: 660, moisture: 3, minerals: 1, dirtDepth: 10, mineralDepthPenalty: 0, curveModifier: 1.5, curveLimiter: 1, biomeId: 2 };
+const flatland = { stoneTop: 0.5, stoneBottom: 0.5, bottom: 360, top: 480, moisture: 2, minerals: 3, dirtDepth: 50, mineralDepthPenalty: 0.5, curveModifier: 0.5, curveLimiter: 0.1, biomeId: 1 };
+const mountains = { stoneTop: 1, stoneBottom: 2, bottom: 550, top: 660, moisture: 2, minerals: 1, dirtDepth: 10, mineralDepthPenalty: 0, curveModifier: 1.5, curveLimiter: 1, biomeId: 2 };
 generator.addToQueue(flatland, 1000);
 generator.addToQueue(mountains, 1000);
 generator.addToQueue(flatland, 1000);
@@ -148,12 +148,11 @@ function rockSpawner(x: number, ty: number) {
     }
 }
 
-generator.generate(0.01, undefined, rockSpawner);
-
-generator.generate(0.01, { skipPlacement: true, padding: 250 }, (x, ty) => backdrop0.setHeight(x, ty));
-generator.generate(0.01, { skipPlacement: true, padding: 500 }, (x, ty) => backdrop1.setHeight(x, ty));
-generator.generate(0.01, { skipPlacement: true, padding: 1000 }, (x, ty) => backdrop2.setHeight(x, ty));
-generator.generate(0.01, { skipPlacement: true, padding: 3000 }, (x, ty) => backdrop3.setHeight(x, ty));
+generator.generate(undefined, rockSpawner);
+generator.generate({ skipPlacement: true, padding: 250 }, (x, ty) => backdrop0.setHeight(x, ty));
+generator.generate({ skipPlacement: true, padding: 500 }, (x, ty) => backdrop1.setHeight(x, ty));
+generator.generate({ skipPlacement: true, padding: 1000 }, (x, ty) => backdrop2.setHeight(x, ty));
+generator.generate({ skipPlacement: true, padding: 3000 }, (x, ty) => backdrop3.setHeight(x, ty));
 
 export const player = new Player(new Vector(2500, 500));
 
@@ -178,7 +177,7 @@ Camera.position.y = 400;
 Camera.position.x = 3000;
 
 Stamps.loadStamps().then(() => {
-    const pos = Stamps.stamp("stamp", new Vector(2500, 0));
+    const pos = Stamps.stamp("stamp", new Vector(2500, 0), {useDirtFrom: generator});
     new Sign(pos.add(new Vector(184, 92)));
 });
 

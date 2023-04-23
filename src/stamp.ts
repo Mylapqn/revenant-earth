@@ -1,9 +1,10 @@
 import * as PIXI from "pixi.js"
 import { app } from ".";
 import { Vector } from "./vector";
-import { Terrain, lookup, terrainType } from "./terrain";
+import { Terrain, TerrainManager, lookup, terrainProperties, terrainType } from "./terrain";
 import { Color } from "./color";
 import { log } from "console";
+import { TerrainGenerator } from "./biome";
 
 
 export class Stamps {
@@ -18,7 +19,8 @@ export class Stamps {
         this.textures[name] = await PIXI.Assets.load(url);
     }
 
-    static stamp(stampName: string, position: Vector, options = { surface: true, lowest: true, replace: [terrainType.void] }): Vector {
+    static stamp(stampName: string, position: Vector, options?: { surface?: boolean, lowest?: boolean, replace?: terrainType[], useDirtFrom?: TerrainGenerator }): Vector {
+        Object.assign(options, { surface: true, lowest: true, replace: [terrainType.void, terrainType.water1, terrainType.water2, terrainType.water3] } );
         const texture = this.textures[stampName];
         const tempSprite = new PIXI.Sprite(texture);
         const data = app.renderer.extract.pixels(tempSprite);
@@ -67,9 +69,15 @@ export class Stamps {
             if (!options.replace.includes(Terrain.getPixel(x, y))) continue;
             if (a == 0) continue;
             const color = new Color(r, g, b).toPixi();
-            const terrain = terrainColors.find(t => Math.floor(t[1].color / 256) == color);
+            const terrain = terrainColors.find(t => Math.floor(t[1].color / 256) == color) as unknown as [number, terrainProperties] | undefined;
             if (terrain == undefined) continue;
-            Terrain.setAndUpdatePixel(x, y, terrain[0] as unknown as number);
+            if (TerrainManager.isDirt(terrain[0]) && options.useDirtFrom) {
+                const dirt = options.useDirtFrom.getLocalDirt(new Vector(x, y));
+                Terrain.setAndUpdatePixel(x, y, dirt);
+                
+            } else {
+                Terrain.setAndUpdatePixel(x, y, terrain[0]);
+            }
         }
 
         return new Vector(baseX, baseY)

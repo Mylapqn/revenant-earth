@@ -225,7 +225,7 @@ export enum terrainType {
     sand2,
 }
 
-type terrainProperties = {
+export type terrainProperties = {
     update?: (index: number) => void
     defferedUpdate?: (index: number) => void
     color: number
