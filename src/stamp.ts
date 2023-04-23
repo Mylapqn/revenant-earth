@@ -1,0 +1,78 @@
+import * as PIXI from "pixi.js"
+import { app } from ".";
+import { Vector } from "./vector";
+import { Terrain, lookup, terrainType } from "./terrain";
+import { Color } from "./color";
+import { log } from "console";
+
+
+export class Stamps {
+    static textures: Record<string, PIXI.Texture> = {}
+    static async loadStamps() {
+        await Promise.all([
+            this.loadTexture("stamp", "stamp/stamp.png"),
+        ]);
+    }
+
+    static async loadTexture(name: string, url: string) {
+        this.textures[name] = await PIXI.Assets.load(url);
+    }
+
+    static stamp(stampName: string, position: Vector, options = { surface: true, lowest: true, replace: [terrainType.void] }): Vector {
+        const texture = this.textures[stampName];
+        const tempSprite = new PIXI.Sprite(texture);
+        const data = app.renderer.extract.pixels(tempSprite);
+        tempSprite.destroy();
+
+        const terrainColors = Array.from(Object.entries(lookup));
+        let surfaceLevel = options.lowest ? Terrain.height - 1 : 0;
+
+
+        if (options.surface) {
+            for (let i = 0; i < texture.width; i++) {
+                const x = Math.floor(position.x - texture.width / 2 + i);
+                if (options.lowest) {
+                    for (let y = surfaceLevel; y > 0; y--) {
+                        if (Terrain.getPixel(x, y) != terrainType.void) {
+                            surfaceLevel = y;
+                            break;
+                        }
+                    }
+                } else {
+                    for (let y = surfaceLevel; y < Terrain.height; y++) {
+                        if (Terrain.getPixel(x, y) == terrainType.void) {
+                            surfaceLevel = y;
+                            break;
+                        }
+                    }
+                }
+
+            }
+        }
+
+        const baseX = Math.floor(position.x - texture.width / 2);
+        const baseY = Math.floor((options.surface ? surfaceLevel : 0) + position.y);
+
+
+        for (let i = 0; i < data.length; i += 4) {
+            const index = i / 4;
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+            const a = data[i + 3];
+
+            const x = Math.floor(baseX + index % texture.width);
+            const y = Math.floor(baseY + Math.ceil(texture.height - index / texture.width));
+
+            if (!options.replace.includes(Terrain.getPixel(x, y))) continue;
+            if (a == 0) continue;
+            const color = new Color(r, g, b).toPixi();
+            const terrain = terrainColors.find(t => Math.floor(t[1].color / 256) == color);
+            if (terrain == undefined) continue;
+            Terrain.setAndUpdatePixel(x, y, terrain[0] as unknown as number);
+        }
+
+        return new Vector(baseX, baseY)
+    }
+
+}

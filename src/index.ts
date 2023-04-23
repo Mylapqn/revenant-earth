@@ -24,6 +24,9 @@ import { SkyFilter } from "./shaders/atmosphere/skyFilter";
 import { GUI, GuiLabel, GuiSplash } from "./gui/gui";
 import { Color } from "./color";
 import { clamp } from "./utils";
+import { Stamps } from "./stamp";
+import { GrassPatch } from "./entities/passive/grassPatch";
+import { Sign } from "./entities/passive/sign";
 let seed = parseInt(window.location.toString().split('?')[1]);
 if (!seed) seed = Math.floor(Math.random() * 1000);
 Math.random = mulberry32(seed);
@@ -36,7 +39,7 @@ export enum DebugMode {
 }
 export const preferences = { debugMode: DebugMode.off, selectedTerrainType: terrainType.water3, penSize: 4, showDebug: false }
 console.log(status);
-let app = new PIXI.Application<HTMLCanvasElement>();
+export let app = new PIXI.Application<HTMLCanvasElement>();
 //PIXI.settings.SCALE_MODE = SCALE_MODES.NEAREST;
 //PIXI.settings.ROUND_PIXELS = true;
 PIXI.BaseTexture.defaultOptions.scaleMode = SCALE_MODES.NEAREST;
@@ -89,7 +92,7 @@ const backdrop1 = new Backdrop(.38);
 const backdrop2 = new Backdrop(.22);
 const backdrop3 = new Backdrop(.1);
 app.stage.addChild(pixelContainer);
-PixelDrawer.graphic.filters = [new LightingFilter(PixelDrawer.graphic), new HighlightFilter(4, 0xFF9955, .45), new AtmosphereFilter(.85)];
+PixelDrawer.graphic.filters = [new LightingFilter(PixelDrawer.graphic), new HighlightFilter(1, 0xFF9955, .45), new AtmosphereFilter(.85)];
 PixelDrawer.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
 Entity.graphic.filters = [new LightingFilter(Entity.graphic), new HighlightFilter(1, 0xFF9955, .2), new AtmosphereFilter(.85)];
 Entity.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
@@ -158,6 +161,11 @@ for (let i = 0; i <= 12; i++) {
 
 Camera.position.y = 400;
 Camera.position.x = 3000;
+
+Stamps.loadStamps().then(()=>{
+    const pos = Stamps.stamp("stamp", new Vector(2500, 0) );
+    new Sign(pos.add(new Vector(184,92))) ;
+});
 
 Terrain.draw();
 PixelDrawer.update();
@@ -244,8 +252,8 @@ app.ticker.add((delta) => {
             Entity.graphic.filters = [];
             PixelDrawer.graphic.filters = [];
         } else {
-            Entity.graphic.filters = [new HighlightFilter(2, 0xFF9955, .1)];
-            PixelDrawer.graphic.filters = [new HighlightFilter(4, 0xFF9955, .2)];
+            Entity.graphic.filters = [new HighlightFilter(1, 0xFF9955, .1)];
+            PixelDrawer.graphic.filters = [new HighlightFilter(1, 0xFF9955, .2)];
         }
     }
     if (key["r"]) {

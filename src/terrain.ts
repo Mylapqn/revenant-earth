@@ -714,7 +714,7 @@ export class TerrainManager {
     }
 
     static isDirt(terrain: terrainType) {
-        return (terrain & 0b11111000) == 64
+        return (terrain & 0b11110000) == 64
     }
 
     static isWater(terrain: terrainType) {
@@ -760,7 +760,6 @@ function grassBehaviour(index: number, waterLevel: number) {
                     let newCheckIndex = index + newDir;
                     if (Terrain.getPixelByIndex(newCheckIndex) == terrainType.void) newEnclosed = false;
                 }
-
                 if (!newEnclosed) {
                     grassExp++;
                     if (grassExp > 5) {
