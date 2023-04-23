@@ -7,6 +7,7 @@ import { LightingFilter } from "./shaders/lighting/lightingFilter";
 import { HighlightFilter } from "./shaders/outline/highlightFilter";
 import { Terrain } from "./terrain";
 import { Vector } from "./vector";
+import { onResize } from ".";
 
 export class ParallaxDrawer {
     static container = new Container();
@@ -38,7 +39,11 @@ export class ParallaxDrawer {
             sprite.filters.push(new SkyFilter());
         }
         sprite.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
+        const sprt = sprite;
         this.layers.push({ sprite: sprite, depth: depth });
+
+
+        onResize(sprt, () => sprt.filterArea = new Rectangle(0, 0, Camera.width, Camera.height));
     }
 }
 

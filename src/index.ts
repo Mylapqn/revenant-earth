@@ -43,6 +43,7 @@ export let app = new PIXI.Application<HTMLCanvasElement>();
 //PIXI.settings.SCALE_MODE = SCALE_MODES.NEAREST;
 //PIXI.settings.ROUND_PIXELS = true;
 PIXI.BaseTexture.defaultOptions.scaleMode = SCALE_MODES.NEAREST;
+const resizeSubscribers = new Map<any, () => void>();
 function resize() {
     Camera.aspectRatio = window.innerWidth / window.innerHeight;
     Camera.width = Math.ceil(Camera.height * Camera.aspectRatio);
@@ -50,7 +51,21 @@ function resize() {
     Entity.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
     PixelDrawer.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
     app.renderer.resize(Camera.width, Camera.height);
+    for (const [subscriber, action] of resizeSubscribers) {
+        action();
+    }
 }
+
+
+export function onResize(caller: any, action: () => void) {
+    resizeSubscribers.set(caller, action);
+}
+
+export function offResize(caller: any) {
+    resizeSubscribers.delete(caller);
+}
+
+
 
 PixelDrawer.init();
 const bg = new PIXI.Graphics();
@@ -162,9 +177,9 @@ for (let i = 0; i <= 12; i++) {
 Camera.position.y = 400;
 Camera.position.x = 3000;
 
-Stamps.loadStamps().then(()=>{
-    const pos = Stamps.stamp("stamp", new Vector(2500, 0) );
-    new Sign(pos.add(new Vector(184,92))) ;
+Stamps.loadStamps().then(() => {
+    const pos = Stamps.stamp("stamp", new Vector(2500, 0));
+    new Sign(pos.add(new Vector(184, 92)));
 });
 
 Terrain.draw();
@@ -182,13 +197,13 @@ app.ticker.add((delta) => {
 
     Atmosphere.settings.sunAngle += dt / 20;
     //Atmosphere.settings.sunAngle = new Vector(mouse.x/window.innerWidth-.5, mouse.y/window.innerHeight-.5).toAngle();
-    
-    Atmosphere.settings.sunPosition = Vector.fromAngle(Atmosphere.settings.sunAngle).mult(Camera.width/2*.6).add(new Vector(Camera.width/2, Camera.height*.63));
+
+    Atmosphere.settings.sunPosition = Vector.fromAngle(Atmosphere.settings.sunAngle).mult(Camera.width / 2 * .6).add(new Vector(Camera.width / 2, Camera.height * .63));
     let sunFac = (-Vector.fromAngle(Atmosphere.settings.sunAngle).y - .5) * 2;
-    let sunHor = 1-Math.abs(Vector.fromAngle(Atmosphere.settings.sunAngle).y);
-    Atmosphere.settings.ambientLight = Color.fromHsl(lerp(0, 20, clamp(sunFac*5)), clamp(1 - sunFac), clamp(sunFac + .5));
-    Atmosphere.settings.ambientLight = Atmosphere.settings.ambientLight.add(Color.fromHsl(lerp(280, 230, clamp(-sunFac/2)), clamp(-sunFac+.3)*.6, Math.max(.1, (clamp(-sunFac+.3)*.3))))
-    Atmosphere.settings.sunIntensity = clamp(clamp(sunFac+1.2)*Math.max(.4,sunHor*2))
+    let sunHor = 1 - Math.abs(Vector.fromAngle(Atmosphere.settings.sunAngle).y);
+    Atmosphere.settings.ambientLight = Color.fromHsl(lerp(0, 20, clamp(sunFac * 5)), clamp(1 - sunFac), clamp(sunFac + .5));
+    Atmosphere.settings.ambientLight = Atmosphere.settings.ambientLight.add(Color.fromHsl(lerp(280, 230, clamp(-sunFac / 2)), clamp(-sunFac + .3) * .6, Math.max(.1, (clamp(-sunFac + .3) * .3))))
+    Atmosphere.settings.sunIntensity = clamp(clamp(sunFac + 1.2) * Math.max(.4, sunHor * 2))
     if (terrainTick % 30 == 0) {
         debugText.text = printText;
     }
