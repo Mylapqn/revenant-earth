@@ -79,7 +79,7 @@ for (let y = 0; y < 256; y++) {
 
 const pixelContainer = new Container();
 
-bg.tint = 0xF0E0DD;
+bg.tint = 0xC0D0ED;
 bg.scale.set(10, 1);
 bg.filters = [new SkyFilter()];
 const debugText = new PIXI.Text();
@@ -226,9 +226,9 @@ ticker.add((delta) => {
     Atmosphere.settings.sunPosition = Vector.fromAngle(Atmosphere.settings.sunAngle).mult(Camera.width / 2 * .6).add(new Vector(Camera.width / 2, Camera.height * .63));
     let sunFac = (-Vector.fromAngle(Atmosphere.settings.sunAngle).y - .5) * 2;
     let sunHor = 1 - Math.abs(Vector.fromAngle(Atmosphere.settings.sunAngle).y);
-    Atmosphere.settings.ambientLight = Color.fromHsl(lerp(0, 20, clamp(sunFac * 5)), clamp(1 - sunFac), clamp(sunFac + .5));
+    Atmosphere.settings.ambientLight = Color.fromHsl(lerp(10, 20, clamp(sunFac * 5)), clamp(.8 - sunFac), clamp(sunFac + .5));
     Atmosphere.settings.ambientLight = Atmosphere.settings.ambientLight.add(Color.fromHsl(lerp(280, 230, clamp(-sunFac / 2)), clamp(-sunFac + .3) * .6, Math.max(.1, (clamp(-sunFac + .3) * .3))))
-    Atmosphere.settings.sunIntensity = clamp(clamp(sunFac + 1.2) * Math.max(.4, sunHor * 2))
+    Atmosphere.settings.sunIntensity = clamp(clamp(sunFac + .8) * Math.max(.4, sunHor * 2))
     printText = ""
     if (key["arrowleft"]) Camera.position.x -= camspeed;
     if (key["arrowright"]) Camera.position.x += camspeed;

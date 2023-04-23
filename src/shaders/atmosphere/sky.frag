@@ -48,15 +48,15 @@ vec3 blendMultiply(vec3 base, vec3 blend, float opacity) {
 
 void main(void) {
     vec4 sourceColor = texture2D(uSampler, vTextureCoord);
-    float hor = (pow(max(0., 1. - (length((HORIZON_Y - vTextureCoord.y) / uPixelSize / 200.))), 2.) * .5);
+    float hor = (pow(max(0., 1. - (length((HORIZON_Y - vTextureCoord.y) / uPixelSize / 200.))), 2.) * 1.);
     hor*=clamp(HORIZON_Y-(uSunPos.y-.5),0.,1.);
-    float len = (pow(max(0., 1. - (length((uSunPos - vTextureCoord.xy) / uPixelSize / 50.))), 2.) * .5);
-    if(len > .35)
+    float len = (pow(max(0., 1. - (length((uSunPos - vTextureCoord.xy) / uPixelSize / 70.))), 2.) * .5);
+    if(len > .39)
         len = 1.;
     else
-        len *= 1.5 * (hor + .3);
-    vec3 horizon = vec3(1., .6, .1) * hor;
-    vec3 sun = vec3(1., .7, .3) * len;
+        len *= 1.8 * (hor + .25);
+    vec3 horizon = vec3(1., .5, .1) * hor;
+    vec3 sun = vec3(1., .6, .1) * len;
     sun = blendMultiply(sun, vec3(.8, .1, 0), hor);
     gl_FragColor = vec4((tonemap(sourceColor.rgb*uAmbient + horizon + sun)), 1.);
 
