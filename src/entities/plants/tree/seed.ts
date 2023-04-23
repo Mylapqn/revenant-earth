@@ -29,13 +29,14 @@ export class Seed extends Entity {
         this.settings = settings;
         this.label = new GuiLabel(position.result().add(new Vector(0,20)),settings.name);
         this.label.addChild(new GuiButton(new Vector(100,100),"remobe 💀",()=>{this.remove();}));
+        this.culling = true;
     }
 
-    update() {
+    update(dt:number) {
         //debugPrint("L: " + this.l);
         //debugPrint("B: " + this.b);
         this.energy += 1;
-        this.updatePosition();
+        super.update(dt);
         if (this.age == 0) {
             new Root(new Vector(0, 0), this, this, Math.PI);
             this.branch = new Branch(new Vector(0, 0), this, this, 0, this.settings);
@@ -55,6 +56,7 @@ export class Seed extends Entity {
         }
     }
     remove(): void {
+        this.branch.remove();
         this.label.remove();
         super.remove();
     }

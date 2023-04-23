@@ -300,7 +300,7 @@ ticker.add((delta) => {
     }
     seedCooldown -= dt;
     if (key["f"] && seedCooldown <= 0) {
-        seedCooldown = 1;
+        seedCooldown = .2;
         new Seed(player.position.result(), null, 0, randomBool() ? coniferousSettings : defaultTreeSettings);
         console.log("ds");
 

@@ -58,24 +58,29 @@ export class Leaf extends Entity {
     }
 
     update() {
-        if (this.parent instanceof Branch) {
-            if (this.parent.removed) return;
-            this.position = this.parent.endPos.result().add(this.posOffset);
-            if (!this.parent.leafy) {
-                this.baseAngle = this.parent.growAngle;
-            }
+        let posUpdate = false;
+        if (this.seed.graphics.visible) {
+            this.angleDelta = Math.cos(this.phase) * .8 * this.rigidity;
+            this.phase += .2 * this.rigidity;
+            this.angle = this.baseAngle + this.angleDelta;
+            posUpdate = true;
         }
-        this.angleDelta = Math.cos(this.phase) * .8 * this.rigidity;
-        this.phase += .2 * this.rigidity;
-        this.angle = this.baseAngle + this.angleDelta
-        this.updatePosition();
-        this.graphics.scale.set(lerp(1, 1, Math.min(1, this.age / 300)));
-
         if (this.parent instanceof Branch) {
-            if (this.parent.settings.main.growSpeed == 0) {
+            if (this.age <= 300) {
+                this.graphics.scale.set(lerp(1, 1, Math.min(1, this.age / 300)));
+            }
+            if (this.parent.removed) return;
+            if (this.parent.settings.main.growSpeed > 0) {
+                this.position = this.parent.endPos.result().add(this.posOffset);
+                if (!this.parent.leafy) {
+                    this.baseAngle = this.parent.growAngle;
+                }
+                posUpdate = true;
                 //return;
             }
         }
+        if (posUpdate)
+            this.updatePosition();
         this.queueUpdate();
         this.age++;
         if (this.age == 1000) {

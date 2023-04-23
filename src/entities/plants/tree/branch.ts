@@ -67,20 +67,25 @@ export class Branch extends Entity {
     }
 
     update(dt: number) {
-        this.angleSpeed += random(-1, 1) * .003;
-        this.deltaAngle += this.angleSpeed * .1 / Math.pow(this.points[0].thickness, 1.5)
-        this.angleSpeed -= this.deltaAngle * .1;
-        this.angleSpeed *= .999;
-        this.angle = this.baseAngle + this.deltaAngle + this.angleOffset;
-        this.trueAngle = this.worldAngle();
-        if (!this.main) {
-            this.angleOffset = Math.max(-this.settings.main.gravityBend.limit, Math.min(this.settings.main.gravityBend.limit, this.angleOffset + angleDiff(this.trueAngle, -Math.PI) * .0001 * this.settings.main.gravityBend.speed));
-        }
+        if (this.removed) return;
         if (this.parent instanceof Branch) {
             if (this.parent.removed) {
                 this.remove();
                 return;
             }
+        }
+        let posUpdate = false;
+        if (this.seed.graphics.visible) {
+            this.angleSpeed += random(-1, 1) * .003;
+            this.deltaAngle += this.angleSpeed * .1 / Math.pow(this.points[0].thickness, 1.5)
+            this.angleSpeed -= this.deltaAngle * .1;
+            this.angleSpeed *= .999;
+            this.angle = this.baseAngle + this.deltaAngle + this.angleOffset;
+            posUpdate = true;
+        }
+        this.trueAngle = this.worldAngle();
+        if (!this.main && this.age < 1000) {
+            this.angleOffset = Math.max(-this.settings.main.gravityBend.limit, Math.min(this.settings.main.gravityBend.limit, this.angleOffset + angleDiff(this.trueAngle, -Math.PI) * .0001 * this.settings.main.gravityBend.speed));
         }
         if (this.age == 0) {
             if (this.leafy) {
@@ -100,14 +105,6 @@ export class Branch extends Entity {
         }
         this.age++;
         //this.growSpeed *= .9995;
-        if (this.main) {
-            //debugPrint("rot:" + this.angleSpeed)
-            //debugPrint("Energy: " + this.energy);
-            //debugPrint("Leafiness: " + this.leafy);
-            //debugPrint("Growth: " + this.growth);
-            //debugPrint("NextSplit: " + this.nextSplit);
-            //console.log(angleDiff(this.growAngle + this.trueAngle, 0));
-        }
         if (this.energy > 1 || true) {
             this.energy -= 1;
             if (this.parent instanceof Branch) {
@@ -118,6 +115,7 @@ export class Branch extends Entity {
                 }
             }
             if (this.settings.main.growSpeed > 0) {
+                posUpdate = true;
                 if (this.growth < this.settings.main.maxGrowth) {
                     this.growAngle += random(-this.settings.main.angleWarping, this.settings.main.angleWarping) * this.settings.main.growSpeed;
                     this.growAngle += angleDiff(this.growAngle + this.trueAngle, 0) * this.settings.main.angleRising * this.settings.main.growSpeed;
@@ -143,14 +141,14 @@ export class Branch extends Entity {
                 if (this.growth >= this.settings.main.maxGrowth) {
                     this.finalSplit();
                 }
-                if (this.growth >= this.nextSplit) {
+                else if (this.growth >= this.nextSplit) {
                     this.split();
                     this.nextSplit += random(1.0, 1.5) * this.settings.split.requiredGrowth;
                 }
             }
         }
-
-        this.updatePosition();
+        if (posUpdate)
+            this.updatePosition();
         if (this.growth < this.settings.main.maxGrowth)
             this.draw();
         this.queueUpdate();
@@ -235,6 +233,7 @@ export class Branch extends Entity {
 
     }
     remove() {
+        //console.log("rem");
         this.removed = true;
         if (this.parent instanceof Branch && !this.parent.removed) {
             let f = new Falling(this);
@@ -242,8 +241,11 @@ export class Branch extends Entity {
             //console.log(f.rotSpeed);
         }
         this.seed.b--;
-        for (const b of this.childBranches) {
+        let b = this.childBranches[0];
+        while (b) {
+            //console.log("remchild "+this.childBranches.length);
             b.remove();
+            b = this.childBranches[0];
         }
         for (const l of this.childLeaves) {
             l.remove();
@@ -255,6 +257,10 @@ export class Branch extends Entity {
             }
         }
         super.remove();
+    }
+    worldAngle(): number {
+        if (this.parent instanceof Branch) return this.parent.trueAngle + this.angle;
+        else return super.worldAngle();
     }
 }
 
@@ -316,4 +322,5 @@ class BranchPoint {
     rPos(): [number, number] {
         return [Math.floor(this.position.x), Math.floor(this.position.y)];
     }
+
 }

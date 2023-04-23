@@ -36,6 +36,7 @@ export class Root extends Entity {
     }
 
     update() {
+        return;
         if (this.growth < this.seed.branch.growth / 10 / this.depth && this.age % 40 == 0) {
             this.graph.moveTo(this.points[0][0], this.points[0][1]);
             let newPoint = [this.lastPoint[0] + randomInt(-2, 2), this.lastPoint[1] - 5];
