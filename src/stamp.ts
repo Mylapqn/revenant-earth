@@ -12,6 +12,7 @@ export class Stamps {
     static async loadStamps() {
         await Promise.all([
             this.loadTexture("stamp", "stamp/stamp.png"),
+            this.loadTexture("stamp2", "stamp/stamp2.png")
         ]);
     }
 

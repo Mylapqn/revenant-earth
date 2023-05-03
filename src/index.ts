@@ -179,6 +179,7 @@ Camera.position.x = 3000;
 Stamps.loadStamps().then(() => {
     const pos = Stamps.stamp("stamp", new Vector(2500, 0), {useDirtFrom: generator});
     new Sign(pos.add(new Vector(184, 92)));
+    Stamps.stamp("stamp2", new Vector(3050, 0), {useDirtFrom: generator});
 });
 
 Terrain.draw();
