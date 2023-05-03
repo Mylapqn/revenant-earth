@@ -40,7 +40,7 @@ export enum DebugMode {
 }
 export const preferences = { debugMode: DebugMode.off, selectedTerrainType: terrainType.water3, penSize: 4, showDebug: false }
 console.log(status);
-export let app = new PIXI.Application<HTMLCanvasElement>({ sharedTicker: false, autoStart: false});
+export let app = new PIXI.Application<HTMLCanvasElement>({ sharedTicker: false, autoStart: false });
 //PIXI.settings.SCALE_MODE = SCALE_MODES.NEAREST;
 //PIXI.settings.ROUND_PIXELS = true;
 PIXI.BaseTexture.defaultOptions.scaleMode = SCALE_MODES.NEAREST;
@@ -159,9 +159,9 @@ export const player = new Player(new Vector(2500, 500));
 
 new Cloud(new Vector(100, 500));
 backdrop3.placeSprite(2050, 0, (() => { const a = Sprite.from("building.png"); return a })(), false, 100);
-backdrop0.placeSprite(2200, 0, (() => { const a = Sprite.from("building2.png"); return a })(), false, 70);
+backdrop0.placeSprite(2300, 0, (() => { const a = Sprite.from("building2.png"); return a })(), false, 70);
 backdrop0.placeSprite(2600, 0, (() => { const a = Sprite.from("building3.png"); return a })(), false, 70);
-backdrop1.placeSprite(2150, 0, (() => { const a = Sprite.from("building4.png"); return a })(), false, 70);
+backdrop1.placeSprite(2050, 0, (() => { const a = Sprite.from("building4.png"); return a })(), false, 70);
 backdrop1.placeSprite(2850, 0, (() => { const a = Sprite.from("building4.png"); return a })(), true, 70);
 backdrop0.placeSprite(2900, 0, (() => { const a = Sprite.from("dump1.png"); return a })(), false, 120);
 let cloudList: BackdropProp[];
@@ -178,9 +178,12 @@ Camera.position.y = 400;
 Camera.position.x = 3000;
 
 Stamps.loadStamps().then(() => {
-    const pos = Stamps.stamp("stamp", new Vector(2500, 0), { useDirtFrom: generator });
-    new Sign(pos.add(new Vector(184, 92)));
-    Stamps.stamp("stamp2", new Vector(3050, 0), {useDirtFrom: generator});
+    //const pos = Stamps.stamp("stamp", new Vector(2500, 0), { useDirtFrom: generator });
+    //new Sign(pos.add(new Vector(184, 92)));
+    Stamps.stamp("stamp2", new Vector(2800, 0), { useDirtFrom: generator, bitmaskReplace: 0 });
+    Stamps.stamp("stamp5", new Vector(2650, 0), { useDirtFrom: generator, bitmaskReplace: 0 });
+    Stamps.stamp("stamp3", new Vector(2450, -36), { useDirtFrom: generator, bitmaskReplace: 0b11110000, replace: [terrainType.void] });
+    Stamps.stamp("stamp4", new Vector(2200, -36), { useDirtFrom: generator, bitmaskReplace: 0b11110000, replace: [terrainType.void] });
 });
 
 Terrain.draw();
@@ -200,13 +203,13 @@ let seedCooldown = 0;
 let currentBiome = 0;
 let ticker = new Ticker();
 ticker.add((delta) => {
-    if (terrainScore < 80){
+    if (terrainScore < 80) {
         return;
     }
     debugPrint("terrainScore:" + terrainScore.toFixed(1));
     terrainScore *= 0.98;
     let diff = new Date().valueOf() - lastTime.valueOf();
-    const dt = Math.min(.1, diff/2000);
+    const dt = Math.min(.1, diff / 2000);
     lastTime = new Date();
     dtAvg.shift();
     dtAvg.push(diff);

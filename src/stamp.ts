@@ -12,7 +12,10 @@ export class Stamps {
     static async loadStamps() {
         await Promise.all([
             this.loadTexture("stamp", "stamp/stamp.png"),
-            this.loadTexture("stamp2", "stamp/stamp2.png")
+            this.loadTexture("stamp2", "stamp/stamp2.png"),
+            this.loadTexture("stamp3", "stamp/stamp3.png"),
+            this.loadTexture("stamp4", "stamp/stamp4.png"),
+            this.loadTexture("stamp5", "stamp/stamp5.png")
         ]);
     }
 
@@ -67,7 +70,7 @@ export class Stamps {
             const x = Math.floor(baseX + index % texture.width);
             const y = Math.floor(baseY + Math.ceil(texture.height - index / texture.width));
             const target = Terrain.getPixel(x, y);
-            if (!options.replace.includes(target) || (options.bitmaskReplace & target) != 0) continue;
+            if (!options.replace.includes(target) && (options.bitmaskReplace & target) != 0) continue;
             if (a == 0) continue;
             const color = new Color(r, g, b).toPixi();
             const terrain = terrainColors.find(t => Math.floor(t[1].color / 256) == color) as unknown as [number, terrainProperties] | undefined;
