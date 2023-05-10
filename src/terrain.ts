@@ -76,43 +76,14 @@ export class Terrain {
     static draw() {
         const camX = Camera.position.x;
         const camY = Camera.position.y;
+        const useWidth = Math.ceil((Camera.width) / 4) * 4;
+        const buffers: Uint8Array[] = [];
         for (let y = 0; y < Camera.height; y++) {
-            for (let x = 0; x < Camera.width; x++) {
-                const index = x + camX + (y + camY) * this.width;
-                const type = this.view.getUint8(index) as terrainType;
-                //PixelDrawer.setPixel(x, y, 0x000000ff + 0x01010100 * Math.floor(Math.abs(noise(x, y, 0.01) * 255)))//lookup[type].color);
-                PixelDrawer.setPixel(x, y, lookup[type].color);
-                if (preferences.debugMode == DebugMode.updates) {
-                    let [mx, my] = indexSplit(index, Terrain.width);
-
-                    mx = ((mx - 1) >> 1) << 1;
-                    my = ((my - 1) >> 1) << 1;
-                    const quindex = mx + my * Terrain.width;
-                    if (this.toUpdate.has(quindex)) {
-                        PixelDrawer.setPixel(x, y, 0x55ff55ff);
-                    }
-                    if (this.defferedUpdate.has(index)) {
-                        PixelDrawer.setPixel(x, y, 0x00aa00ff);
-                    }
-                } else if (preferences.debugMode == DebugMode.water) {
-                    if (TerrainManager.isWaterable(type)) {
-                        switch (TerrainManager.getWater(type)) {
-                            case 3:
-                                PixelDrawer.setPixel(x, y, 0xFF2000ff);
-                                break;
-                            case 2:
-                                PixelDrawer.setPixel(x, y, 0xFFF900ff);
-                                break;
-                            case 1:
-                                PixelDrawer.setPixel(x, y, 0x2CFF00ff);
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-                }
-            }
+            const h = (camY + y) * this.width;
+            buffers.unshift(Terrain.pixels.slice(camX + h, useWidth + camX + h));
         }
+        PixelDrawer.setPixels(Buffer.concat(buffers)
+        );
     }
 
     static getPixel(x: number, y: number) {
