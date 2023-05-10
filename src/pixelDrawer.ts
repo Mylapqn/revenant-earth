@@ -1,8 +1,8 @@
 
 const fs = require("fs");
-import { DRAW_MODES, FORMATS, Filter, Geometry, Mesh, Shader, Sprite, TYPES, Texture } from "pixi.js";
+import { DRAW_MODES, FORMATS, Filter, Geometry, Mesh, RenderTexture, Shader, Sprite, TYPES, Texture } from "pixi.js";
 import { Camera } from "./camera";
-import { terrainTick } from ".";
+import { background, terrainTick } from ".";
 
 let fragment: string = fs.readFileSync(__dirname + '/shaders/terrain/terrain.frag', 'utf8');
 let vertex: string = fs.readFileSync(__dirname + '/shaders/terrain/terrain.vert', 'utf8');
@@ -11,7 +11,7 @@ let vertex: string = fs.readFileSync(__dirname + '/shaders/terrain/terrain.vert'
 export class PixelDrawer {
     static array: Uint8Array;
     static graphic: Mesh;
-    static uniforms: { terrain: Texture, colorMap: Texture };
+    static uniforms: { terrain: Texture, colorMap: Texture, tick: number, viewport: [number, number, number, number], render: RenderTexture };
     static init() {
         this.array = new Uint8Array(Camera.width * Camera.height);
         this.array.fill(255);
@@ -19,6 +19,9 @@ export class PixelDrawer {
         this.uniforms = {
             terrain: null,
             colorMap: Texture.from("output.png"),
+            tick: terrainTick,
+            viewport: [0, 0, 0, 0],
+            render: background
         }
         const material = Shader.from(vertex, fragment, this.uniforms)
         const geometry = new Geometry()
@@ -41,7 +44,7 @@ export class PixelDrawer {
     static resize() {
         this.array = new Uint8Array(Camera.width * Camera.height);
         const geometry = new Geometry();
-        const useWidth = Math.ceil((Camera.width)/4)*4;
+        const useWidth = Math.ceil((Camera.width) / 4) * 4;
         geometry.addIndex([0, 1, 2, 0, 2, 3])
         geometry.addAttribute('aVertexPosition', // the attribute name
             [0, 0, useWidth, 0, useWidth, Camera.height, 0, Camera.height], // x, y
@@ -53,6 +56,11 @@ export class PixelDrawer {
     }
 
     static update() {
+        const useWidth = Math.ceil((Camera.width) / 4) * 4;
+
         this.uniforms.terrain.update();
+        this.uniforms.tick = terrainTick;
+        this.uniforms.render = background;
+        this.uniforms.viewport = [...Camera.position.xy(), useWidth, Camera.height];
     }
 }

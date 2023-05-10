@@ -51,6 +51,8 @@ function resize() {
     PixelDrawer.resize();
     Entity.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
     //PixelDrawer.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
+    const useWidth = Math.ceil((Camera.width) / 4) * 4;
+    background = PIXI.RenderTexture.create({width: useWidth, height: Camera.height});
     app.renderer.resize(Camera.width, Camera.height);
     for (const [subscriber, action] of resizeSubscribers) {
         action();
@@ -108,8 +110,8 @@ const backdrop1 = new Backdrop(.38);
 const backdrop2 = new Backdrop(.22);
 const backdrop3 = new Backdrop(.1);
 app.stage.addChild(pixelContainer);
-//PixelDrawer.graphic.filters = [new LightingFilter(PixelDrawer.graphic), new HighlightFilter(1, 0xFF9955, .45), new AtmosphereFilter(.85)];
-//PixelDrawer.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
+PixelDrawer.graphic.filters = [new LightingFilter(PixelDrawer.graphic), new HighlightFilter(1, 0xFF9955, .45), new AtmosphereFilter(.85)];
+PixelDrawer.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
 Entity.graphic.filters = [new LightingFilter(Entity.graphic), new HighlightFilter(1, 0xFF9955, .2), new AtmosphereFilter(.85)];
 Entity.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
 console.log(app.renderer);
@@ -197,6 +199,8 @@ let tpsMeter = 0;
 let showTps = 0;
 let updateInfo = 0;
 
+export let background = PIXI.RenderTexture.create({width: Camera.width, height: Camera.height});
+
 
 const camspeed = 50;
 let seedCooldown = 0;
@@ -206,6 +210,9 @@ ticker.add((delta) => {
     if (terrainScore < 80) {
         return;
     }
+
+    app.renderer.render(ParallaxDrawer.container, {renderTexture: background});
+
     debugPrint("terrainScore:" + terrainScore.toFixed(1));
     terrainScore *= 0.98;
     let diff = new Date().valueOf() - lastTime.valueOf();
@@ -291,10 +298,10 @@ ticker.add((delta) => {
         preferences.debugMode %= Object.keys(DebugMode).length / 2;
         if (preferences.debugMode != DebugMode.off) {
             Entity.graphic.filters = [];
-            //PixelDrawer.graphic.filters = [];
+            PixelDrawer.graphic.filters = [];
         } else {
             Entity.graphic.filters = [new HighlightFilter(1, 0xFF9955, .1)];
-            //PixelDrawer.graphic.filters = [new HighlightFilter(1, 0xFF9955, .2)];
+            PixelDrawer.graphic.filters = [new HighlightFilter(1, 0xFF9955, .2)];
         }
     }
     if (key["r"]) {
