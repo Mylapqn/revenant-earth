@@ -50,7 +50,7 @@ function resize() {
     Camera.width = Math.ceil(Camera.height * Camera.aspectRatio);
     PixelDrawer.resize();
     Entity.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
-    //PixelDrawer.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
+    PixelDrawer.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
     const useWidth = Math.ceil((Camera.width) / 4) * 4;
     background = PIXI.RenderTexture.create({width: useWidth, height: Camera.height});
     app.renderer.resize(Camera.width, Camera.height);
