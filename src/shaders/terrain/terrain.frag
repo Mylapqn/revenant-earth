@@ -113,7 +113,10 @@ void main(void) {
         float lightAngle = atan(off.y, off.x);
         float dis = length(off);
         color = vec4(vec3(.7, .9, 1.) * renderTexture(vTextureCoord + vTextureCoord * 0.03 * ((octaveNoise(gPosScaled * .3 + tick / 1000.) - .5) * 2.)).rgb, 1.);
-        color += vec4(vec3(1., .8, .6) * vec3(sunStrength * clamp(dis * 2. - .3, 0., 2.) * posterise(noise(vec2(lightAngle * .05 * viewport.z - viewport.x / viewport.z * 50., tick / 180.)), 3.) + 1.) / 8., 0.);
+        color += vec4(clamp(vec3(1., .8, .6) *
+            vec3(sunStrength * .2 *
+            clamp(min(min((1. - dis*.8) * .3, (dis - .1)*.3), (vTextureCoord.y - sunPos.y)) * 10., 0., 1.) *
+            posterise(max(0., noise(vec2(lightAngle * .035 * viewport.z - viewport.x / viewport.z * 20., tick / 180.)) + 1.), 3.)), 0., 1.), 0.);
         //for(float i = 0.; i <= 6. + 2. * (noise(vec2(globalPos.x * .05, tick / 80.)) + 1.); i++) {
         for(float i = 0.; i <= min(20., 3. + 18. * abs(vTextureCoord.y - .22)); i++) {
             vec2 displacedPos = vec2(vTextureCoord.x, vTextureCoord.y - (1. / viewport.w) * i * 1.);
