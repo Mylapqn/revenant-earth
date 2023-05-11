@@ -23,7 +23,7 @@ export class Stamps {
         this.textures[name] = await PIXI.Assets.load(url);
     }
 
-    static stamp(stampName: string, position: Vector, options?: { surface?: boolean, lowest?: boolean, replace?: terrainType[], useDirtFrom?: TerrainGenerator, replaceMatching?: (replace:terrainType,using:terrainType)=>boolean }): Vector {
+    static stamp(stampName: string, position: Vector, options?: { surface?: boolean, lowest?: boolean, replace?: terrainType[], useDirtFrom?: TerrainGenerator, replaceMatching?: (replace: terrainType, using: terrainType) => boolean }): Vector {
         Object.assign(options, { surface: true, lowest: true, replace: [terrainType.void, terrainType.water1, terrainType.water2, terrainType.water3] });
         const texture = this.textures[stampName];
         const tempSprite = new PIXI.Sprite(texture);
@@ -33,6 +33,7 @@ export class Stamps {
         const terrainColors = Array.from(Object.entries(lookup));
         let surfaceLevel = options.lowest ? Terrain.height - 1 : 0;
 
+        const heightAt: Record<number, number> = {};
 
         if (options.surface) {
             for (let i = 0; i < texture.width; i++) {
@@ -52,7 +53,6 @@ export class Stamps {
                         }
                     }
                 }
-
             }
         }
 
@@ -76,7 +76,7 @@ export class Stamps {
             if (terrain == undefined) continue;
             if (!options.replace.includes(target) && !(options.replaceMatching && options.replaceMatching(target, terrain[0]))) continue;
             if (TerrainManager.isDirt(terrain[0]) && options.useDirtFrom) {
-                const dirt = options.useDirtFrom.getLocalDirt(new Vector(x, y), y-baseY);
+                const dirt = options.useDirtFrom.getLocalDirt(new Vector(x, y));
                 Terrain.setAndUpdatePixel(x, y, dirt);
 
             } else {

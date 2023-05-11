@@ -1,11 +1,12 @@
 import { TerrainManager, Terrain, terrainType } from "./terrain";
-import { lerp, noise, random } from "./utils";
+import { clamp, lerp, noise, random } from "./utils";
 import { Vector } from "./vector";
 
 
 export class TerrainGenerator {
     queue = new Array<{ width: number, biome: BiomeData }>();
     transitionRate = 0.01;
+    heights: Record<number, number> = {};
 
     addToQueue(biome: BiomeData, width: number) {
         this.queue.push({ width, biome });
@@ -19,59 +20,42 @@ export class TerrainGenerator {
     }
 
     getInterpolatedBiome(x: number): BiomeData | undefined {
-        const previous = this.queue[0];
+        let previous = this.queue[0];
         for (const item of this.queue) {
             x -= item.width;
             if (x < 0) {
-                if (Math.abs(x) > 1 / this.transitionRate) {
+                let lastX =  x + item.width;
+                if (lastX * this.transitionRate > 1) {
                     return { ...item.biome }
                 } else {
                     const newData = {} as BiomeData;
-                    for (let key in previous.biome) {
+                    for (let key in item.biome) {
                         let k = key as keyof BiomeData;
-                        newData[k] = lerp(previous.biome[k], item.biome[k], Math.abs(x) * this.transitionRate);
+                        newData[k] = lerp(previous.biome[k], item.biome[k], lastX * this.transitionRate);
                     }
                     return newData;
                 }
             }
+            previous = item;
         }
     }
 
-    getLocalDirt(position: Vector, surface?: number): terrainType {
+    getLocalDirt(position: Vector): terrainType {
         const currentState = this.getInterpolatedBiome(position.x);
-        const dirtDepthRatio = (surface ? surface : position.y - (position.y - currentState.dirtDepth)) / currentState.dirtDepth;
-        return TerrainManager.dirtByStats(Math.floor(currentState.moisture), Math.floor((noise(position.x, position.y, 0.05) + 1) / 2 * (currentState.minerals - currentState.mineralDepthPenalty * dirtDepthRatio)))
+        const dirtDepthRatio = (position.y - (this.heights[position.x] - currentState.dirtDepth)) / currentState.dirtDepth;
+
+        return TerrainManager.dirtByStats(Math.floor(currentState.moisture), clamp(Math.floor((noise(position.x, position.y, 0.05) + 1) / 2 * (currentState.minerals - currentState.mineralDepthPenalty * dirtDepthRatio)), 0, 3))
     }
 
 
     generate(settings = { skipPlacement: false, padding: 0 }, surfaceSpawner?: (x: number, y: number) => void) {
-        let widthCountdown = this.queue[0].width + settings.padding;
         let currentState = { ...this.queue[0].biome };
-        let startingState = this.queue[0].biome;
-
 
         let ty = 470;
         let trend = 0;
-        let i = 0;
-        let interpolation = 0;
         for (let x = -settings.padding; x < Terrain.width + settings.padding; x++) {
-            widthCountdown--;
 
-            if (widthCountdown == 0) {
-                startingState = this.queue[i].biome;
-                i++;
-                widthCountdown = this.queue[i].width;
-                interpolation = 0;
-            }
-            const targetState = this.queue[i].biome;
-
-            if (interpolation < 1) {
-                interpolation += this.transitionRate;
-                for (let key in currentState) {
-                    let k = key as keyof BiomeData;
-                    currentState[k] = lerp(startingState[k], targetState[k], interpolation);
-                }
-            }
+            currentState = this.getInterpolatedBiome(x);
 
             trend += random(-currentState.curveModifier, currentState.curveModifier);
             trend = trend / 1.2;
@@ -79,14 +63,15 @@ export class TerrainGenerator {
             if (ty < currentState.bottom) trend += currentState.curveLimiter;
             ty += trend;
             if (!settings.skipPlacement) {
+                this.heights[x] = ty;
                 for (let y = 0; y < ty; y++) {
                     if (y + currentState.dirtDepth > ty) {
                         const dirtDepthRatio = (y - (ty - currentState.dirtDepth)) / currentState.dirtDepth;
-                        const stoneBonus = lerp(currentState.stoneBottom, currentState.stoneTop, dirtDepthRatio)
+                        const stoneBonus = lerp(currentState.stoneBottom, currentState.stoneTop, dirtDepthRatio);
                         if (Math.abs(noise(x, y, 0.2)) < (ty - y) / currentState.dirtDepth * stoneBonus) {
                             Terrain.setPixel(x, y, terrainType.stone);
                         } else {
-                            Terrain.setAndUpdatePixel(x, y, TerrainManager.dirtByStats(Math.floor(currentState.moisture), Math.floor((noise(x, y, 0.05) + 1) / 2 * (currentState.minerals - currentState.mineralDepthPenalty * dirtDepthRatio))));
+                            Terrain.setAndUpdatePixel(x, y, this.getLocalDirt(new Vector(x, y)));
                         }
 
                     } else {
