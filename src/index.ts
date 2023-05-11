@@ -1,7 +1,7 @@
 import { mulberry32, status } from "./mod";
 import * as PIXI from "pixi.js"
 import { PixelDrawer } from "./pixelDrawer";
-import { Terrain, terrainType } from "./terrain";
+import { Terrain, TerrainManager, terrainType } from "./terrain";
 import { Camera } from "./camera";
 import { Entity } from "./entity";
 import { AnimatedSprite, Container, Rectangle, SCALE_MODES, Sprite, Texture, Ticker } from "pixi.js";
@@ -52,7 +52,7 @@ function resize() {
     Entity.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
     PixelDrawer.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
     const useWidth = Math.ceil((Camera.width) / 4) * 4;
-    background = PIXI.RenderTexture.create({width: useWidth, height: Camera.height});
+    background = PIXI.RenderTexture.create({ width: useWidth, height: Camera.height });
     app.renderer.resize(Camera.width, Camera.height);
     for (const [subscriber, action] of resizeSubscribers) {
         action();
@@ -182,10 +182,10 @@ Camera.position.x = 3000;
 Stamps.loadStamps().then(() => {
     //const pos = Stamps.stamp("stamp", new Vector(2500, 0), { useDirtFrom: generator });
     //new Sign(pos.add(new Vector(184, 92)));
-    Stamps.stamp("stamp2", new Vector(2800, 0), { useDirtFrom: generator, bitmaskReplace: 0 });
-    Stamps.stamp("stamp5", new Vector(2650, 0), { useDirtFrom: generator, bitmaskReplace: 0 });
-    Stamps.stamp("stamp3", new Vector(2450, -36), { useDirtFrom: generator, bitmaskReplace: 0b11110000, replace: [terrainType.void] });
-    Stamps.stamp("stamp4", new Vector(2200, -36), { useDirtFrom: generator, bitmaskReplace: 0b11110000, replace: [terrainType.void] });
+    Stamps.stamp("stamp2", new Vector(2800, 0), { useDirtFrom: generator });
+    Stamps.stamp("stamp5", new Vector(2650, 0), { useDirtFrom: generator });
+    Stamps.stamp("stamp3", new Vector(2450, -36), { useDirtFrom: generator, replace: [terrainType.void], replaceMatching: (r, w) => TerrainManager.isDirt(r) });
+    Stamps.stamp("stamp4", new Vector(2200, -36), { useDirtFrom: generator, replace: [terrainType.void], replaceMatching: (r, w) => TerrainManager.isDirt(r) });
 });
 
 Terrain.draw();
@@ -199,7 +199,7 @@ let tpsMeter = 0;
 let showTps = 0;
 let updateInfo = 0;
 
-export let background = PIXI.RenderTexture.create({width: Camera.width, height: Camera.height});
+export let background = PIXI.RenderTexture.create({ width: Camera.width, height: Camera.height });
 
 
 const camspeed = 50;
@@ -211,7 +211,7 @@ ticker.add((delta) => {
         return;
     }
 
-    app.renderer.render(ParallaxDrawer.container, {renderTexture: background});
+    app.renderer.render(ParallaxDrawer.container, { renderTexture: background });
 
     debugPrint("terrainScore:" + terrainScore.toFixed(1));
     terrainScore *= 0.98;
