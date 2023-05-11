@@ -22,9 +22,8 @@ float outlineMaxAlphaAtPos(vec4 sourceColor) {
     float maxAlpha = 0.;
 
     vec2 off = uLightPos - vFragCoord;
-    float dis = length(off);
-
     float lightAngle = atan(off.y, off.x);
+    float dis = length(off);
     //vec2 totalOffset = uThickness * sgn * max(uPixelSize * 500., abs);
     for(float angleOffset = -MAX_ANGLE; angleOffset <= MAX_ANGLE; angleOffset += ANGLE_STEP) {
         for(float i = 0.0; i < DEPTH_STEPS+.1; i += 1.) {

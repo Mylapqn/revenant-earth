@@ -7,6 +7,8 @@ uniform sampler2D colorMap;
 uniform sampler2D render;
 uniform vec4 viewport;
 uniform float tick;
+uniform vec2 sunPos;
+uniform float sunStrength;
 out vec4 color;
 
 float threshold(float x, float threshold) {
@@ -68,8 +70,6 @@ float noise(in vec2 p) {
     return mix(mix(hash(i + vec2(0.0, 0.0)), hash(i + vec2(1.0, 0.0)), u.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
 }
 
-// -----------------------------------------------
-
 float octaveNoise(in vec2 uv) {
 
     float f = 0.0;
@@ -85,8 +85,18 @@ float octaveNoise(in vec2 uv) {
     f += 0.0625 * noise(uv);
     uv = m * uv;
 
-    //f = 0.5 + 0.5 * f;
+    f = 0.5 + 0.5 * f;
     return f;
+}
+
+float posterise(float x, float steps) {
+    return floor((x) * steps) / steps;
+}
+
+vec4 renderTexture(vec2 uv) {
+    vec4 t = texture(render, uv);
+    t += vec4(1.) * (1. - t.a);
+    return t;
 }
 
 void main(void) {
@@ -97,11 +107,29 @@ void main(void) {
     vec4 modify = vec4(0);
 
     if(i == 1 || i == 2 || i == 3) {
+
         modify.a = 1.;
-        color = vec4(texture(render, vTextureCoord + vTextureCoord * 0.03 * (sin(tick / 100. + (vTextureCoord.x - 0.5) * 5.))).rgb, 1.);
+        vec2 off = sunPos - vTextureCoord;
+        float lightAngle = atan(off.y, off.x);
+        float dis = length(off);
+        color = vec4(vec3(.7, .9, 1.) * renderTexture(vTextureCoord + vTextureCoord * 0.03 * ((octaveNoise(gPosScaled * .3 + tick / 1000.) - .5) * 2.)).rgb, 1.);
+        color += vec4(vec3(1., .8, .6) * vec3(sunStrength * clamp(dis * 2. - .3, 0., 2.) * posterise(noise(vec2(lightAngle * .05 * viewport.z - viewport.x / viewport.z * 50., tick / 180.)), 3.) + 1.) / 8., 0.);
+        //for(float i = 0.; i <= 6. + 2. * (noise(vec2(globalPos.x * .05, tick / 80.)) + 1.); i++) {
+        for(float i = 0.; i <= min(20., 3. + 18. * abs(vTextureCoord.y - .22)); i++) {
+            vec2 displacedPos = vec2(vTextureCoord.x, vTextureCoord.y - (1. / viewport.w) * i * 1.);
+            float di = texture(terrain, displacedPos).a;
+            int d = int(di * 255.);
+            if(d == 0) {
+                float waves = noise(vec2(globalPos.x * .2, globalPos.y * 3. + tick / 80.));
+                vec2 uv = vec2(vTextureCoord.x + waves * .005, vTextureCoord.y - (1. / viewport.w) * i * 2.);
+                color = mix(color, renderTexture(uv), .9);
+                color += vec4(vec3(1., .8, .6) * (posterise(clamp(sunStrength, 0., .5) * 2. * pow(1. - abs(sunPos.x - vTextureCoord.x + waves * .04), 40.), 5.) + .02), 1.);
+                return;
+            }
+        }
         return;
     } else if(i == 128) {
-        float n = octaveNoise(gPosScaled * .3);
+        float n = (octaveNoise(gPosScaled * .3) - .5) * 2.;
         float f = voronoi(gPosScaled * 2. + n * .4);
 
         modify.rgb += (1. - threshold(mix(1., f, n * .4 + .9), .15)) * vec3(.4, .8, .9) * -.08;

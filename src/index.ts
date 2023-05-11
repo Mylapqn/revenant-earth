@@ -96,9 +96,9 @@ debugText.position.set(4, 4);
 debugText.visible = preferences.showDebug;
 app.stage.addChild(bg);
 pixelContainer.addChild(ParallaxDrawer.container);
-pixelContainer.addChild(PixelDrawer.graphic);
 Entity.graphic = new Container();
 pixelContainer.addChild(Entity.graphic);
+pixelContainer.addChild(PixelDrawer.graphic);
 
 
 //ParallaxDrawer.addLayer("BG/Test/1.png", 0);
@@ -182,10 +182,10 @@ Camera.position.x = 3000;
 Stamps.loadStamps().then(() => {
     //const pos = Stamps.stamp("stamp", new Vector(2500, 0), { useDirtFrom: generator });
     //new Sign(pos.add(new Vector(184, 92)));
-    Stamps.stamp("stamp2", new Vector(2800, 0), { useDirtFrom: generator });
-    Stamps.stamp("stamp5", new Vector(2650, 0), { useDirtFrom: generator });
-    Stamps.stamp("stamp3", new Vector(2450, -36), { useDirtFrom: generator, replace: [terrainType.void], replaceMatching: (r, w) => TerrainManager.isDirt(r) });
-    Stamps.stamp("stamp4", new Vector(2200, -36), { useDirtFrom: generator, replace: [terrainType.void], replaceMatching: (r, w) => TerrainManager.isDirt(r) });
+    Stamps.stamp("stamp2", new Vector(2800, 0), { useDirtFrom: generator, replaceMatching: (r, w) => TerrainManager.isDirt(r) });
+    Stamps.stamp("stamp5", new Vector(2650, 0), { useDirtFrom: generator, replaceMatching: (r, w) => TerrainManager.isDirt(r) });
+    Stamps.stamp("stamp3", new Vector(2450, -36), { useDirtFrom: generator, replaceMatching: (r, w) => TerrainManager.isDirt(r) });
+    Stamps.stamp("stamp4", new Vector(2200, -36), { useDirtFrom: generator, replaceMatching: (r, w) => TerrainManager.isDirt(r) });
 });
 
 Terrain.draw();
@@ -200,6 +200,7 @@ let showTps = 0;
 let updateInfo = 0;
 
 export let background = PIXI.RenderTexture.create({ width: Camera.width, height: Camera.height });
+export let entityRender = PIXI.RenderTexture.create({ width: Camera.width, height: Camera.height });
 
 
 const camspeed = 50;
@@ -210,8 +211,9 @@ ticker.add((delta) => {
     if (terrainScore < 80) {
         return;
     }
-
-    app.renderer.render(ParallaxDrawer.container, { renderTexture: background });
+    app.renderer.render(bg, { renderTexture: background });
+    app.renderer.render(ParallaxDrawer.container, { renderTexture: background, clear: false });
+    app.renderer.render(Entity.graphic, { renderTexture: background, clear: false });
 
     debugPrint("terrainScore:" + terrainScore.toFixed(1));
     terrainScore *= 0.98;

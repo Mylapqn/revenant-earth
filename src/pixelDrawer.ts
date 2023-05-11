@@ -3,6 +3,7 @@ const fs = require("fs");
 import { DRAW_MODES, FORMATS, Filter, Geometry, Mesh, RenderTexture, Shader, Sprite, TYPES, Texture } from "pixi.js";
 import { Camera } from "./camera";
 import { background, terrainTick } from ".";
+import { Atmosphere } from "./atmosphere";
 
 let fragment: string = fs.readFileSync(__dirname + '/shaders/terrain/terrain.frag', 'utf8');
 let vertex: string = fs.readFileSync(__dirname + '/shaders/terrain/terrain.vert', 'utf8');
@@ -11,7 +12,7 @@ let vertex: string = fs.readFileSync(__dirname + '/shaders/terrain/terrain.vert'
 export class PixelDrawer {
     static array: Uint8Array;
     static graphic: Mesh;
-    static uniforms: { terrain: Texture, colorMap: Texture, tick: number, viewport: [number, number, number, number], render: RenderTexture };
+    static uniforms: { terrain: Texture, colorMap: Texture, tick: number, viewport: [number, number, number, number], render: RenderTexture, sunPos: [number, number], sunStrength: number };
     static init() {
         this.array = new Uint8Array(Camera.width * Camera.height);
         this.array.fill(255);
@@ -21,7 +22,9 @@ export class PixelDrawer {
             colorMap: Texture.from("output.png"),
             tick: terrainTick,
             viewport: [0, 0, 0, 0],
-            render: background
+            render: background,
+            sunPos: [0, 0],
+            sunStrength: 0,
         }
         const material = Shader.from(vertex, fragment, this.uniforms)
         const geometry = new Geometry()
@@ -62,5 +65,8 @@ export class PixelDrawer {
         this.uniforms.tick = terrainTick;
         this.uniforms.render = background;
         this.uniforms.viewport = [...Camera.position.xy(), useWidth, Camera.height];
+        this.uniforms.sunPos = [Atmosphere.settings.sunPosition.x / Camera.width, Atmosphere.settings.sunPosition.y / Camera.height];
+        this.uniforms.sunStrength = Atmosphere.settings.sunIntensity;
+
     }
 }
