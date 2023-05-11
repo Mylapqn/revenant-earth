@@ -127,17 +127,18 @@ Terrain.init();
 
 const generator = new TerrainGenerator();
 let nextRock = randomInt(1, 10);
-const flatland = { stoneTop: 0.5, stoneBottom: 0.5, bottom: 360, top: 480, moisture: 2, minerals: 3, dirtDepth: 50, mineralDepthPenalty: 0.5, curveModifier: 0.5, curveLimiter: 0.1, biomeId: 1 };
+const flatland = { stoneTop: 0.5, stoneBottom: 0.5, bottom: 360, top: 480, moisture: 2, minerals: 3, dirtDepth: 50, mineralDepthPenalty: -2, curveModifier: 0.5, curveLimiter: 0.1, biomeId: 1 };
 const mountains = { stoneTop: 1, stoneBottom: 2, bottom: 550, top: 660, moisture: 2, minerals: 1, dirtDepth: 10, mineralDepthPenalty: 0, curveModifier: 1.5, curveLimiter: 1, biomeId: 2 };
-generator.addToQueue(flatland, 1000);
+const swamp = { stoneTop: 2, stoneBottom: 0.5, bottom: 360, top: 400, moisture: 3, minerals: 0, dirtDepth: 80, mineralDepthPenalty: 0, curveModifier: 0.5, curveLimiter: 0.1, biomeId: 3 };
+generator.addToQueue(swamp, 1000);
 generator.addToQueue(mountains, 1000);
 generator.addToQueue(flatland, 1000);
 generator.addToQueue(mountains, 1000);
-generator.addToQueue(flatland, 1000);
+generator.addToQueue(swamp, 1000);
 generator.addToQueue(mountains, 1000);
 generator.addToQueue(flatland, 1000);
 generator.addToQueue(mountains, 1000);
-generator.addToQueue(flatland, 1000);
+generator.addToQueue(swamp, 1000);
 
 
 generator.addToQueue(flatland, Terrain.width);
@@ -259,14 +260,15 @@ ticker.add((delta) => {
     debugPrint(screenToWorld(mouse).toString());
     let newBiome = generator.getBiome(player.position.x).biomeId;
     if (newBiome != currentBiome) {
-        new GuiSplash(newBiome == 1 ? "Urban Ruins" : "Melted Mountains")
+        new GuiSplash(["Urban Ruins", "Melted Mountains", "Swampy Lowlands"][newBiome - 1])
         currentBiome = newBiome;
     }
-    debugPrint(generator.getBiome(player.position.x).biomeId == 1 ? "flatlands" : "not-flatlands")
     if (mouse.pressed == 1) {
         for (let x = 0; x < preferences.penSize; x++) {
             for (let y = 0; y < preferences.penSize; y++) {
-                Terrain.setAndUpdatePixel(Math.floor(wx + x - preferences.penSize / 2), Math.floor(wy + y - preferences.penSize / 2), preferences.selectedTerrainType);
+                Terrain.setAndUpdatePixel(Math.floor(wx + x - preferences.penSize / 2), Math.floor(wy + y - preferences.penSize / 2), preferences.selectedTerrainType != terrainType.dirt00 ? preferences.selectedTerrainType : generator.getLocalDirt(
+                    new Vector(Math.floor(wx + x - preferences.penSize / 2), Math.floor(wy + y - preferences.penSize / 2))
+                ));
             }
         }
     } else if (mouse.pressed == 2) {

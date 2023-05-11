@@ -82,6 +82,6 @@ function isObject(val: any): val is object {
     return (typeof val === 'object')
 }
 
-export function clamp(x: number) {
-    return Math.min(1, Math.max(0, x));
+export function clamp(x: number, min: number = 0, max: number = 1) {
+    return Math.min(max, Math.max(min, x));
 }
