@@ -43,13 +43,13 @@ vec3 blendNormal(vec3 base, vec3 blend, float opacity) {
     return (blend * opacity + base * (1.0 - opacity));
 }
 vec3 blendMultiply(vec3 base, vec3 blend, float opacity) {
-    return (base*blend * opacity + base * (1.0 - opacity));
+    return (base * blend * opacity + base * (1.0 - opacity));
 }
 
 void main(void) {
     vec4 sourceColor = texture2D(uSampler, vTextureCoord);
     float hor = (pow(max(0., 1. - (length((HORIZON_Y - vTextureCoord.y) / uPixelSize / 200.))), 2.) * 1.);
-    hor*=clamp(HORIZON_Y-(uSunPos.y-.5),0.,1.);
+    hor *= clamp(HORIZON_Y - (uSunPos.y - .5), 0., 1.);
     float len = (pow(max(0., 1. - (length((uSunPos - vTextureCoord.xy) / uPixelSize / 70.))), 2.) * .5);
     if(len > .39)
         len = 1.;
@@ -58,6 +58,6 @@ void main(void) {
     vec3 horizon = vec3(1., .5, .1) * hor;
     vec3 sun = vec3(1., .6, .1) * len;
     sun = blendMultiply(sun, vec3(.8, .1, 0), hor);
-    gl_FragColor = vec4((tonemap(sourceColor.rgb*uAmbient + horizon + sun)), 1.);
+    gl_FragColor = vec4((tonemap((uAmbient + horizon + sun) * .8)), 1.);
 
 }

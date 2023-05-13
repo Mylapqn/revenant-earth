@@ -5,6 +5,7 @@ uniform vec4 filterClamp;
 
 uniform vec2 uLightPos;
 uniform vec2 uPixelSize;
+uniform float uTargetAngle;
 uniform vec3 uAmbient;
 
 const float DOUBLE_PI = 2. * 3.14159265358979323846264;
@@ -36,13 +37,22 @@ void main(void) {
     vec3 lightMap = vec3(.8, .6, .4);
     //lightMap = vec3(1.);
     lightMap = uAmbient;
-    lightMap += pow(max(1. - length((vTextureCoord - uLightPos) / uPixelSize / 40.), 0.), 2.) * vec3(.6,1.,.9)*2.;
+    vec2 off = (uLightPos - vTextureCoord) / uPixelSize / 200.;
+    float dis = length(off);
+    float targetAngle = uTargetAngle;
+    float angleTolerance = .8;
+    vec2 targetDir = vec2(cos(targetAngle), sin(targetAngle));
+    float angle = (acos(clamp(dot(normalize(off), (targetDir)), -1., 1.)));
+    float angularFalloff = clamp(smoothstep(angleTolerance, -angleTolerance, angle), 0.0, 1.0);
+    float disLinear = clamp(1. - dis, 0., 1.);
+    float distanceFalloff = disLinear * disLinear;
+    lightMap += distanceFalloff * angularFalloff * vec3(.35, .8, 1.) * 6.;
     //lightMap += (pow(max(1. - length((vTextureCoord - vec2(0.5, .8)) / uPixelSize / 40.), 0.), 2.) *1.) * vec3(.0, .0, 1.);
     //lightMap += (pow(max(1. - length((vTextureCoord - vec2(0.4, .8)) / uPixelSize / 40.), 0.), 2.) * 1.) * vec3(.0, 1.0, 0.);
     //lightMap += (pow(max(1. - length((vTextureCoord - vec2(0.45, .85)) / uPixelSize /40.), 0.), 2.) * 1.) * vec3(1.0, 0.0, 0.);
     //lightMap = pow(lightMap, vec3(1. / 2.2));
-    lightMap = tonemap(lightMap);
+    //lightMap = tonemap(lightMap);
     //lightMap = min(lightMap, 2.);
-    gl_FragColor = vec4(min(sourceColor.rgb * lightMap, 1.)*sourceColor.a, sourceColor.a);
+    gl_FragColor = vec4(min(tonemap(sourceColor.rgb * lightMap), 1.) * sourceColor.a, sourceColor.a);
     //gl_FragColor = sourceColor;
 }

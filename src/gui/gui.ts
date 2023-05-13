@@ -14,16 +14,15 @@ export class GUI {
 
 class GuiElement {
     position: Vector;
-    content: string;
     element: HTMLElement;
     moving = false;
+    removed = false;
     constructor(position: Vector, content = "none") {
         this.position = position;
-        this.content = content;
         this.element = document.createElement("div");
         GUI.container.appendChild(this.element);
         this.element.classList.add("ui", "absolute");
-        this.element.innerText = this.content;
+        this.content = content;
         GuiElement.list.push(this);
     }
     update() {
@@ -31,6 +30,8 @@ class GuiElement {
         this.element.style.top = this.position.y + "px";
     }
     remove() {
+        if (this.removed) return;
+        this.removed = true;
         GUI.container.removeChild(this.element);
         GuiElement.list.splice(GuiElement.list.indexOf(this), 1);
     }
@@ -38,6 +39,15 @@ class GuiElement {
         this.element.appendChild(child.element);
         child.element.classList.remove("absolute");
     }
+    private _content = "text";
+
+    public set content(content) {
+        this.element.innerText = content;
+    }
+    public get content() {
+        return this._content;
+    }
+
     static list: GuiElement[] = [];
 }
 
@@ -95,6 +105,6 @@ export class GuiSplash {
         this.element.style.animationDuration = duration + "s";
         setTimeout(() => {
             this.element.remove();
-        }, duration*1000);
+        }, duration * 1000);
     }
 }

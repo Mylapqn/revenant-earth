@@ -49,9 +49,9 @@ export class AtmosphereFilter extends Filter {
         //this.uniforms.uColorAbsorb = new Float32Array([.7, .8, .6]);
         //this.uniforms.uAbsorbDensity = 0.5;
 //
-        this.uniforms.uColorScatter = new Float32Array([0.04, 0.5, .75]);
-        this.uniforms.uColorAbsorb = new Float32Array([.7, .55, .3]);
-        this.uniforms.uAbsorbDensity = 0.8;
+        this.uniforms.uColorScatter = new Float32Array([0.4, 0.4, .8]);
+        this.uniforms.uColorAbsorb = new Float32Array([.8, .8, .4]);
+        this.uniforms.uAbsorbDensity =1;
         this.uniforms.uAmbient = new Float32Array([0, 0, 0]);
 
 

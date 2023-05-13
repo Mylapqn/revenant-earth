@@ -87,8 +87,13 @@ export class Terrain {
     }
 
     static getPixel(x: number, y: number) {
-        const i = x + y * this.width
-        return this.view.getUint8(i) as terrainType;
+        const i = x + y * this.width;
+        try {
+            return this.view.getUint8(i) as terrainType;
+        } catch (error) {
+            error.message+=`, getting x: ${x} y: ${y}, dimensions x: ${this.width} y: ${this.height},\n`
+            throw error;
+        }
     }
 
     static getPixelByIndex(i: number) {

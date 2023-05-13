@@ -17,13 +17,19 @@ export class Entity {
     hovered = false;
     culling = false;
     cullExtend = 100;
-    constructor(graphics: Container, position: Vector, parent?: Entity, angle = 0) {
+    removed = false;
+    constructor(graphics: Container, position: Vector, parent?: Entity | Container, angle = 0) {
         this.graphics = graphics;
         this.position = position;
         this.angle = angle;
         if (parent) {
-            this.parent = parent;
-            this.parent.graphics.addChild(this.graphics);
+            if (parent instanceof Entity) {
+                this.parent = parent;
+                this.parent.graphics.addChild(this.graphics);
+            }
+            else {
+                parent.addChild(this.graphics);
+            }
         } else {
             Entity.graphic.addChild(this.graphics);
         }
@@ -31,11 +37,12 @@ export class Entity {
     }
 
     protected cullDisplay() {
-        if (this.position.x > Camera.position.x + Camera.width+this.cullExtend || this.position.x < Camera.position.x-this.cullExtend) this.graphics.visible = false;
-        else this.graphics.visible = true;   
+        if (this.position.x > Camera.position.x + Camera.width + this.cullExtend || this.position.x < Camera.position.x - this.cullExtend) this.graphics.visible = false;
+        else this.graphics.visible = true;
     }
 
     protected updatePosition() {
+        if (this.removed) return;
         const pos = this.position.result().round();
         if (this.parent)
             this.graphics.position.set(pos.x, pos.y);
@@ -45,6 +52,7 @@ export class Entity {
     }
 
     protected queueUpdate() {
+        if (this.removed) return;
         Entity.tempToUpdate.add(this);
     }
 
@@ -65,8 +73,10 @@ export class Entity {
     }
 
     remove() {
+        this.removed = true;
         this.parent?.graphics.removeChild(this.graphics);
         this.graphics.destroy();
+        this.tooltip?.remove();
         Entity.tempToUpdate.delete(this);
         Entity.toUpdate.delete(this);
     }

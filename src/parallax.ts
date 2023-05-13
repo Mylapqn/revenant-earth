@@ -8,6 +8,8 @@ import { HighlightFilter } from "./shaders/outline/highlightFilter";
 import { Terrain } from "./terrain";
 import { Vector } from "./vector";
 import { onResize } from ".";
+import { Color } from "./color";
+import { clamp } from "./utils";
 
 export class ParallaxDrawer {
     static container = new Container();
@@ -30,11 +32,12 @@ export class ParallaxDrawer {
             //sprite.filters.push(new SkyFilter());
         }
         else {
-            sprite.filters.push(new LightingFilter(sprite));
-            sprite.filters.push(new HighlightFilter(1, 0xFF9955, .4));
+            sprite.filters.push(new LightingFilter(sprite, new Color(120,120,120)));
+            //sprite.filters.push(new HighlightFilter(1, 0xFF9955, .4));
             //sprite.filters.push(new HslAdjustmentFilter({alpha:1-depth,colorize:true,hue:17,saturation:.57,lightness:.81}));
         }
-        sprite.filters.push(new AtmosphereFilter(depth / 1.2));
+        //sprite.filters.push(new AtmosphereFilter(clamp(1.2 - Math.pow(1 - depth*.9, 1.2))));
+        sprite.filters.push(new AtmosphereFilter(clamp(depth*1)));
         if (depth <= 0.0) {
             sprite.filters.push(new SkyFilter());
         }

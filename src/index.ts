@@ -28,6 +28,10 @@ import { Stamps } from "./stamp";
 import { GrassPatch } from "./entities/passive/grassPatch";
 import { Sign } from "./entities/passive/sign";
 import { log } from "console";
+import { Cable } from "./entities/passive/cable";
+import { Buildable } from "./entities/buildable/buildable";
+import { Pole } from "./entities/buildable/pole";
+import { Sapling } from "./entities/buildable/sapling";
 let seed = parseInt(window.location.toString().split('?')[1]);
 if (!seed) seed = Math.floor(Math.random() * 1000);
 Math.random = mulberry32(seed);
@@ -99,6 +103,8 @@ pixelContainer.addChild(ParallaxDrawer.container);
 Entity.graphic = new Container();
 pixelContainer.addChild(Entity.graphic);
 pixelContainer.addChild(PixelDrawer.graphic);
+Buildable.graphic = new Container();
+pixelContainer.addChild(Buildable.graphic);
 
 
 //ParallaxDrawer.addLayer("BG/Test/1.png", 0);
@@ -110,9 +116,9 @@ const backdrop1 = new Backdrop(.38);
 const backdrop2 = new Backdrop(.22);
 const backdrop3 = new Backdrop(.1);
 app.stage.addChild(pixelContainer);
-PixelDrawer.graphic.filters = [new LightingFilter(PixelDrawer.graphic), new HighlightFilter(1, 0xFF9955, .45), new AtmosphereFilter(.85)];
+PixelDrawer.graphic.filters = [new LightingFilter(PixelDrawer.graphic, new Color(150, 150, 150)), new HighlightFilter(1, 0xFF9955, .45), new AtmosphereFilter(.9)];
 PixelDrawer.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
-Entity.graphic.filters = [new LightingFilter(Entity.graphic), new HighlightFilter(1, 0xFF9955, .2), new AtmosphereFilter(.85)];
+Entity.graphic.filters = [new LightingFilter(Entity.graphic, new Color(200, 200, 200)), new HighlightFilter(1, 0xFF9955, .2), new AtmosphereFilter(.9)];
 Entity.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
 console.log(app.renderer);
 
@@ -158,7 +164,7 @@ generator.generate({ skipPlacement: true, padding: 500 }, (x, ty) => backdrop1.s
 generator.generate({ skipPlacement: true, padding: 1000 }, (x, ty) => backdrop2.setHeight(x, ty));
 generator.generate({ skipPlacement: true, padding: 3000 }, (x, ty) => backdrop3.setHeight(x, ty));
 
-export const player = new Player(new Vector(2500, 500));
+export const player = new Player(new Vector(2500, 600));
 
 new Cloud(new Vector(100, 500));
 backdrop3.placeSprite(2050, 0, (() => { const a = Sprite.from("building.png"); return a })(), false, 100);
@@ -236,6 +242,7 @@ ticker.add((delta) => {
 
     Atmosphere.settings.sunAngle += dt / 20;
     //Atmosphere.settings.sunAngle = new Vector(mouse.x/window.innerWidth-.5, mouse.y/window.innerHeight-.5).toAngle();
+    //Atmosphere.settings.sunAngle = -1.5;
 
     Atmosphere.settings.sunPosition = Vector.fromAngle(Atmosphere.settings.sunAngle).mult(Camera.width / 2 * .6).add(new Vector(Camera.width / 2, Camera.height * .63));
     let sunFac = (-Vector.fromAngle(Atmosphere.settings.sunAngle).y - .5) * 2;
@@ -263,7 +270,7 @@ ticker.add((delta) => {
         new GuiSplash(["Urban Ruins", "Melted Mountains", "Swampy Lowlands"][newBiome - 1])
         currentBiome = newBiome;
     }
-    if (mouse.pressed == 1) {
+    if (mouse.pressed == 1 && preferences.selectedTerrainType != 0) {
         for (let x = 0; x < preferences.penSize; x++) {
             for (let y = 0; y < preferences.penSize; y++) {
                 Terrain.setAndUpdatePixel(Math.floor(wx + x - preferences.penSize / 2), Math.floor(wy + y - preferences.penSize / 2), preferences.selectedTerrainType != terrainType.dirt00 ? preferences.selectedTerrainType : generator.getLocalDirt(
@@ -278,7 +285,7 @@ ticker.add((delta) => {
             }
         }
     }
-
+    if (key["0"]) preferences.selectedTerrainType = terrainType.void;
     if (key["1"]) preferences.selectedTerrainType = terrainType.dirt00;
     if (key["2"]) preferences.selectedTerrainType = terrainType.sand;
     if (key["3"]) preferences.selectedTerrainType = terrainType.water3;
@@ -314,11 +321,15 @@ ticker.add((delta) => {
         debugText.visible = preferences.showDebug;
     }
     seedCooldown -= dt;
-    if (key["f"] && seedCooldown <= 0) {
-        seedCooldown = .2;
-        new Seed(player.position.result(), null, 0, randomBool() ? coniferousSettings : defaultTreeSettings);
-        console.log("ds");
-
+    if (!Buildable.currentBuildable) {
+        if (key["f"] && seedCooldown <= 0) {
+            seedCooldown = .2;
+            new Sapling(player.position.result(), randomBool() ? coniferousSettings : defaultTreeSettings);
+        }
+        if (key["g"] && seedCooldown <= 0) {
+            seedCooldown = .2;
+            new Pole(player.position.result(),false);
+        }
     }
     if (Camera.position.x < 0) Camera.position.x = 0
     if (Camera.position.x + Camera.width >= Terrain.width) Camera.position.x = Terrain.width - Camera.width - 1
@@ -340,6 +351,7 @@ ticker.add((delta) => {
     PixelDrawer.update();
     ParallaxDrawer.update();
     Entity.update(dt);
+    Buildable.update(dt);
     GUI.update(dt);
     for (const c of cloudList) {
         c.graphic.position.x += 15 * dt * c.depth;
@@ -363,7 +375,7 @@ infiniteLoop();
 
 
 const key: Record<string, boolean> = {};
-export const mouse = { x: 0, y: 0, pressed: 0 };
+export const mouse = { x: .5, y: .5, pressed: 0 };
 
 window.addEventListener("keydown", (e) => { key[e.key.toLowerCase()] = true });
 window.addEventListener("keyup", (e) => { key[e.key.toLowerCase()] = false });

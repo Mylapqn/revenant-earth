@@ -35,9 +35,12 @@ export class Color {
         ratio = Math.min(1, Math.max(0, ratio));
         return new Color(lerp(this.r, color.r, ratio), lerp(this.g, color.g, ratio), lerp(this.b, color.b, ratio))
     }
-    add(color:Color,ratio=1){
+    add(color: Color, ratio = 1) {
         ratio = clamp(ratio);
-        return new Color(this.r + color.r*ratio,this.g + color.g*ratio,this.b + color.b*ratio);
+        return new Color(this.r + color.r * ratio, this.g + color.g * ratio, this.b + color.b * ratio);
+    }
+    mult(color: Color) {
+        return new Color(this.r * color.r/255, this.g * color.g/255, this.b * color.b/255,);
     }
     copy() {
         return new Color(this.r, this.g, this.b);

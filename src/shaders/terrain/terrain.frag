@@ -116,7 +116,7 @@ void main(void) {
         color += vec4(clamp(vec3(1., .8, .6) *
             vec3(sunStrength * .2 *
             clamp(min(min((1. - dis*.8) * .3, (dis - .1)*.3), (vTextureCoord.y - sunPos.y)) * 10., 0., 1.) *
-            posterise(max(0., noise(vec2(lightAngle * .035 * viewport.z - viewport.x / viewport.z * 20., tick / 180.)) + 1.), 3.)), 0., 1.), 0.);
+            posterise(max(0., noise(vec2(lightAngle * .035 * viewport.z - viewport.x / viewport.z * 15., tick / 180.)) + 1.), 3.)), 0., 1.), 0.);
         //for(float i = 0.; i <= 6. + 2. * (noise(vec2(globalPos.x * .05, tick / 80.)) + 1.); i++) {
         for(float i = 0.; i <= min(20., 3. + 18. * abs(vTextureCoord.y - .22)); i++) {
             vec2 displacedPos = vec2(vTextureCoord.x, vTextureCoord.y - (1. / viewport.w) * i * 1.);
