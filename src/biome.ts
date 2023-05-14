@@ -24,7 +24,7 @@ export class TerrainGenerator {
         for (const item of this.queue) {
             x -= item.width;
             if (x < 0) {
-                let lastX =  x + item.width;
+                let lastX = x + item.width;
                 if (lastX * this.transitionRate > 1) {
                     return { ...item.biome }
                 } else {
@@ -48,19 +48,22 @@ export class TerrainGenerator {
     }
 
 
-    generate(settings = { skipPlacement: false, padding: 0 }, surfaceSpawner?: (x: number, y: number) => void) {
+    generate(settings: { skipPlacement: boolean, padding: number, scale?: number } = { skipPlacement: false, padding: 0, scale: 1 }, surfaceSpawner?: (x: number, y: number) => void) {
         let currentState = { ...this.queue[0].biome };
 
         let ty = 470;
         let trend = 0;
+        if (!settings.scale) settings.scale = 1;
+        let scaledX = -settings.padding;
+        let lastY;
         for (let x = -settings.padding; x < Terrain.width + settings.padding; x++) {
-
             currentState = this.getInterpolatedBiome(x);
 
             trend += random(-currentState.curveModifier, currentState.curveModifier);
             trend = trend / 1.2;
             if (ty > currentState.top) trend -= currentState.curveLimiter;
             if (ty < currentState.bottom) trend += currentState.curveLimiter;
+            lastY = ty;
             ty += trend;
             if (!settings.skipPlacement) {
                 this.heights[x] = ty;
@@ -80,7 +83,17 @@ export class TerrainGenerator {
 
                 }
             }
-            surfaceSpawner && surfaceSpawner(x, ty);
+            if (surfaceSpawner) {
+                if (settings.scale >= 1) {
+                    surfaceSpawner(x, ty);
+                }
+                else {
+                    while (scaledX < x) {
+                        scaledX += settings.scale;
+                        surfaceSpawner(scaledX, lerp(ty, lastY, scaledX % 1));
+                    }
+                }
+            }
         }
     }
 }

@@ -1,6 +1,6 @@
 
 import { AnimatedSprite, Sprite } from "pixi.js";
-import { debugPrint } from "../..";
+import { debugPrint, worldToScreen } from "../..";
 import { Camera } from "../../camera";
 import { Entity } from "../../entity";
 import { lookup, Terrain, terrainType } from "../../terrain";
@@ -40,6 +40,8 @@ export class Player extends Entity {
     run = false;
     animState = 0;
     step = 0;
+    screenCenterNorm = new Vector();
+    screenDimensionsNorm = new Vector();
 
     constructor(position: Vector) {
         const graph = new AnimatedSprite(playerSprites.stand.textures);
@@ -83,8 +85,8 @@ export class Player extends Entity {
         if (highestDensity == 1) {
             this.grounded = true;
             if (this.velocity.y < -250) {
-                for (let index = 0; index < Math.abs(this.velocity.y)/20; index++) {
-                    new Cloud(this.position.result(), Math.abs(this.velocity.x), new Vector(random(-1, 1) * 80+this.velocity.x/4, 10));
+                for (let index = 0; index < Math.abs(this.velocity.y) / 20; index++) {
+                    new Cloud(this.position.result(), Math.abs(this.velocity.x), new Vector(random(-1, 1) * 80 + this.velocity.x / 4, 10));
                 }
             }
         }
@@ -129,6 +131,11 @@ export class Player extends Entity {
             this.step = 0;
             new Cloud(this.position.result(), Math.abs(this.velocity.x), new Vector(this.velocity.x * random(-.5, .1), -5));
         }
+        const screenDims = (new Vector(this.graphics.width / Camera.width, this.graphics.height / Camera.height));
+        this.screenDimensionsNorm = screenDims;
+        const screenPos = worldToScreen(this.position.result().add(new Vector(0, this.graphics.height / 2)));
+        this.screenCenterNorm = new Vector(screenPos.x / window.innerWidth, screenPos.y / window.innerHeight);
+        
         this.updatePosition();
         this.queueUpdate();
     }

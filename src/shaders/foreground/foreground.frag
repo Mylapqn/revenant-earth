@@ -4,6 +4,7 @@ uniform sampler2D uSampler;
 uniform vec4 filterClamp;
 
 uniform vec2 uLightPos;
+uniform vec2 uPlayerPos;
 uniform vec2 uPixelSize;
 uniform float uTargetAngle;
 uniform vec3 uAmbient;
@@ -60,8 +61,13 @@ vec4 blur() {
     return Color;
 }
 
+float map(float value, float fromMin, float fromMax, float toMin, float toMax) {
+    return toMin + (value - fromMin) * (toMax - toMin) / (fromMax - fromMin);
+}
+
 void main(void) {
     vec4 sourceColor = demult(texture2D(uSampler, vTextureCoord));
+    float playerDist = map(length((uPlayerPos - vTextureCoord) / uPixelSize / 200.), .2, 1., 0., 1.);
     vec4 b = blur();
-    gl_FragColor = b;
+    gl_FragColor = vec4(vec3(0.), b.a * playerDist);
 }

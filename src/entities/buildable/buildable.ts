@@ -51,6 +51,8 @@ export class Buildable extends Entity {
         this.tooltip?.remove();
         Buildable.placeCooldown = .2;
         this.placing = false;
+        Buildable.graphic.removeChild(this.graphics);
+        Entity.graphic.addChild(this.graphics);
         this.graphics.tint = 0xffffff;
         this.graphics.alpha = 1;
     }

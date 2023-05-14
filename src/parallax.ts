@@ -21,7 +21,7 @@ export class ParallaxDrawer {
     static update() {
         for (let i = 0; i < this.layers.length; i++) {
             const layer = this.layers[i];
-            let camPos = Camera.position.result().add(new Vector(Camera.width / 2, -450)).mult(-1 * layer.depth);
+            let camPos = Camera.position.result().add(new Vector(Camera.width / 2, (layer.depth<=1)?-450:-530)).mult(-1 * layer.depth);
             layer.sprite.position.set(Math.floor(Camera.width / 2 + camPos.x), Math.floor(-camPos.y));
         }
     }
@@ -46,7 +46,6 @@ export class ParallaxDrawer {
         else {
             this.fgContainer.addChild(sprite);
             console.log("dod");
-
         }
         //sprite.filters.push(new AtmosphereFilter(clamp(1.2 - Math.pow(1 - depth*.9, 1.2))));
         sprite.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);

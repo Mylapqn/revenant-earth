@@ -107,6 +107,7 @@ pixelContainer.addChild(PixelDrawer.graphic);
 Buildable.graphic = new Container();
 pixelContainer.addChild(Buildable.graphic);
 pixelContainer.addChild(ParallaxDrawer.fgContainer);
+onResize(ParallaxDrawer.fgContainer, () => ParallaxDrawer.fgContainer.filterArea = new Rectangle(0, 0, Camera.width, Camera.height));
 
 
 //ParallaxDrawer.addLayer("BG/Test/1.png", 0);
@@ -117,10 +118,11 @@ const backdrop0 = new Backdrop(.65);
 const backdrop1 = new Backdrop(.38);
 const backdrop2 = new Backdrop(.22);
 const backdrop3 = new Backdrop(.1);
+const foredrop = new Backdrop(2);
 app.stage.addChild(pixelContainer);
-PixelDrawer.graphic.filters = [new LightingFilter(PixelDrawer.graphic, new Color(150, 150, 150)), new HighlightFilter(1, 0xFF9955, .45), new AtmosphereFilter(.9)];
+PixelDrawer.graphic.filters = [new LightingFilter(PixelDrawer.graphic, new Color(150, 150, 150), true), new HighlightFilter(1, 0xFF9955, .45), new AtmosphereFilter(.9)];
 PixelDrawer.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
-Entity.graphic.filters = [new LightingFilter(Entity.graphic, new Color(200, 200, 200)), new HighlightFilter(1, 0xFF9955, .2), new AtmosphereFilter(.9)];
+Entity.graphic.filters = [new LightingFilter(Entity.graphic, new Color(200, 200, 200), true), new HighlightFilter(1, 0xFF9955, .2), new AtmosphereFilter(.9)];
 Entity.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
 ParallaxDrawer.fgContainer.filters = [new ForegroundFilter()];
 ParallaxDrawer.fgContainer.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
@@ -163,10 +165,11 @@ function rockSpawner(x: number, ty: number) {
 }
 
 generator.generate(undefined, rockSpawner);
-generator.generate({ skipPlacement: true, padding: 250 }, (x, ty) => backdrop0.setHeight(x, ty));
-generator.generate({ skipPlacement: true, padding: 500 }, (x, ty) => backdrop1.setHeight(x, ty));
-generator.generate({ skipPlacement: true, padding: 1000 }, (x, ty) => backdrop2.setHeight(x, ty));
-generator.generate({ skipPlacement: true, padding: 3000 }, (x, ty) => backdrop3.setHeight(x, ty));
+generator.generate({ skipPlacement: true, padding: 250, scale: 1 / backdrop0.depth }, (x, ty) => backdrop0.setHeight(x, ty));
+generator.generate({ skipPlacement: true, padding: 500, scale: 1 / backdrop1.depth }, (x, ty) => backdrop1.setHeight(x, ty));
+generator.generate({ skipPlacement: true, padding: 1000, scale: 1 / backdrop2.depth }, (x, ty) => backdrop2.setHeight(x, ty));
+generator.generate({ skipPlacement: true, padding: 3000, scale: 1 / backdrop3.depth }, (x, ty) => backdrop3.setHeight(x, ty));
+generator.generate({ skipPlacement: true, padding: 0, scale: .5 }, (x, ty) => { foredrop.setHeight(x, ty); });
 
 export const player = new Player(new Vector(2500, 600));
 
@@ -181,7 +184,7 @@ let cloudList: BackdropProp[];
 cloudList = [];
 
 for (let i = 0; i <= 12; i++) {
-    const c = new BackdropProp(new Vector(randomInt(0, 1500), randomInt(80, 120)), random(.02, .7), (() => { const a = new Sprite(Texture.from("cloud.png")); a.alpha = .4; return a })(), 2, true);
+    const c = new BackdropProp(new Vector(randomInt(500, 2500), randomInt(80, 120)), random(.02, .7), (() => { const a = new Sprite(Texture.from("cloud.png")); a.alpha = .4; return a })(), 2, true);
     cloudList.push(c);
 }
 /* CURSED 3D
@@ -190,7 +193,8 @@ for (let i = 0; i <= 500; i++) {
     new BackdropProp(new Vector(2500 + Math.sin(Math.sqrt(i/500) * 20) * 30, 70 + Math.pow(i / 60, 2)), Math.pow(i / 500, 2), (() => { const a = Sprite.from("shit.png");a.angle=Math.sqrt(i/500) * 4000; a.anchor.set(.5); a.alpha = 1; return a })(), 3, true);
 }
 */
-new BackdropProp(new Vector(2500, 240), 1.8, (() => { const a = Sprite.from("building.png"); a.alpha = 1; a.tint = 0; return a })(), 1, true);
+foredrop.placeSprite(2500, 0, (() => { const a = Sprite.from("FG/urban1.png"); a.alpha = 1; a.tint = 0; return a })(), false,512);
+foredrop.placeSprite(2200, 0, (() => { const a = Sprite.from("FG/urban2.png"); a.alpha = 1; a.tint = 0; return a })(), false,512);
 
 //new Robot(new Vector(2500, 600), undefined, 0);
 
