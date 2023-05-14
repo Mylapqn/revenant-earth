@@ -13,6 +13,7 @@ import { clamp } from "./utils";
 
 export class ParallaxDrawer {
     static container = new Container();
+    static fgContainer = new Container();
     static {
         this.container.sortableChildren = true;
     }
@@ -26,26 +27,31 @@ export class ParallaxDrawer {
     }
     static addLayer(sprite: Container | string, depth: number) {
         if (!(sprite instanceof Container)) sprite = Sprite.from(sprite);
-        this.container.addChild(sprite);
         sprite.filters = [];
-        if (depth <= 0.0) {
-            //sprite.filters.push(new SkyFilter());
+        if (depth <= 1.0) {
+            this.container.addChild(sprite);
+            if (depth <= 0.0) {
+                //sprite.filters.push(new SkyFilter());
+            }
+            else {
+                sprite.filters.push(new LightingFilter(sprite, new Color(120, 120, 120)));
+                //sprite.filters.push(new HighlightFilter(1, 0xFF9955, .4));
+                //sprite.filters.push(new HslAdjustmentFilter({alpha:1-depth,colorize:true,hue:17,saturation:.57,lightness:.81}));
+            }
+            sprite.filters.push(new AtmosphereFilter(clamp(depth * 1)));
+            if (depth <= 0.0) {
+                sprite.filters.push(new SkyFilter());
+            }
         }
         else {
-            sprite.filters.push(new LightingFilter(sprite, new Color(120,120,120)));
-            //sprite.filters.push(new HighlightFilter(1, 0xFF9955, .4));
-            //sprite.filters.push(new HslAdjustmentFilter({alpha:1-depth,colorize:true,hue:17,saturation:.57,lightness:.81}));
+            this.fgContainer.addChild(sprite);
+            console.log("dod");
+
         }
         //sprite.filters.push(new AtmosphereFilter(clamp(1.2 - Math.pow(1 - depth*.9, 1.2))));
-        sprite.filters.push(new AtmosphereFilter(clamp(depth*1)));
-        if (depth <= 0.0) {
-            sprite.filters.push(new SkyFilter());
-        }
         sprite.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
         const sprt = sprite;
         this.layers.push({ sprite: sprite, depth: depth });
-
-
         onResize(sprt, () => sprt.filterArea = new Rectangle(0, 0, Camera.width, Camera.height));
     }
 }
@@ -96,15 +102,17 @@ export class BackdropProp {
     graphic: Container;
     depthScaling: boolean;
     scaleMult: number;
-    constructor(depth: number, graphic: Container, scale = 1, depthScaling = true) {
+    constructor(position: Vector, depth: number, graphic: Container, scale = 1, depthScaling = true) {
         this.scaleMult = scale;
         this.depthScaling = depthScaling;
         this.depth = depth;
         this.container = new Container();
         this.graphic = graphic;
+        this.graphic.position = new Vector(Math.floor(position.x * depth), position.y);
         this.container.zIndex = depth;
         this.container.addChild(graphic);
         if (this.depthScaling) graphic.scale.set(depth * this.scaleMult);
+        else graphic.scale.set(this.scaleMult)
         ParallaxDrawer.addLayer(this.container, depth);
     }
 }

@@ -32,6 +32,7 @@ import { Cable } from "./entities/passive/cable";
 import { Buildable } from "./entities/buildable/buildable";
 import { Pole } from "./entities/buildable/pole";
 import { Sapling } from "./entities/buildable/sapling";
+import { ForegroundFilter } from "./shaders/foreground/foregroundFilter";
 let seed = parseInt(window.location.toString().split('?')[1]);
 if (!seed) seed = Math.floor(Math.random() * 1000);
 Math.random = mulberry32(seed);
@@ -105,6 +106,7 @@ pixelContainer.addChild(Entity.graphic);
 pixelContainer.addChild(PixelDrawer.graphic);
 Buildable.graphic = new Container();
 pixelContainer.addChild(Buildable.graphic);
+pixelContainer.addChild(ParallaxDrawer.fgContainer);
 
 
 //ParallaxDrawer.addLayer("BG/Test/1.png", 0);
@@ -120,6 +122,8 @@ PixelDrawer.graphic.filters = [new LightingFilter(PixelDrawer.graphic, new Color
 PixelDrawer.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
 Entity.graphic.filters = [new LightingFilter(Entity.graphic, new Color(200, 200, 200)), new HighlightFilter(1, 0xFF9955, .2), new AtmosphereFilter(.9)];
 Entity.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
+ParallaxDrawer.fgContainer.filters = [new ForegroundFilter()];
+ParallaxDrawer.fgContainer.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
 console.log(app.renderer);
 
 app.stage.addChild(debugText);
@@ -177,11 +181,18 @@ let cloudList: BackdropProp[];
 cloudList = [];
 
 for (let i = 0; i <= 12; i++) {
-    const c = new BackdropProp(random(.02, .7), (() => { const a = new Sprite(Texture.from("cloud.png")); a.position.set(randomInt(0, 1500), randomInt(80, 120)); a.alpha = .3; return a })(), 2, true);
+    const c = new BackdropProp(new Vector(randomInt(0, 1500), randomInt(80, 120)), random(.02, .7), (() => { const a = new Sprite(Texture.from("cloud.png")); a.alpha = .4; return a })(), 2, true);
     cloudList.push(c);
 }
+/* CURSED 3D
+for (let i = 0; i <= 500; i++) {
+    let si = i * i
+    new BackdropProp(new Vector(2500 + Math.sin(Math.sqrt(i/500) * 20) * 30, 70 + Math.pow(i / 60, 2)), Math.pow(i / 500, 2), (() => { const a = Sprite.from("shit.png");a.angle=Math.sqrt(i/500) * 4000; a.anchor.set(.5); a.alpha = 1; return a })(), 3, true);
+}
+*/
+new BackdropProp(new Vector(2500, 240), 1.8, (() => { const a = Sprite.from("building.png"); a.alpha = 1; a.tint = 0; return a })(), 1, true);
 
-//new Robot(new Vector(900, 900), undefined, 0);
+//new Robot(new Vector(2500, 600), undefined, 0);
 
 Camera.position.y = 400;
 Camera.position.x = 3000;
@@ -328,7 +339,7 @@ ticker.add((delta) => {
         }
         if (key["g"] && seedCooldown <= 0) {
             seedCooldown = .2;
-            new Pole(player.position.result(),false);
+            new Pole(player.position.result(), false);
         }
     }
     if (Camera.position.x < 0) Camera.position.x = 0
