@@ -1,4 +1,4 @@
-import { DebugDraw } from "../../DebugDraw";
+import { DebugDraw } from "../../debugDraw";
 import { Terrain, terrainType } from "../../terrain";
 import { Vector } from "../../vector";
 

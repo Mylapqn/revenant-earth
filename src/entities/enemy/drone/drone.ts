@@ -5,7 +5,7 @@ import { Entity } from "../../../entity";
 import { Terrain, terrainType } from "../../../terrain";
 import { Vector } from "../../../vector";
 import { FlyingPatrolRobotTask, IFlyingPatrolRobot, RobotTask, collisionAvoidance, flyPatrol, flyTo } from "../robotBehaviour";
-import { DebugDraw } from "../../../DebugDraw";
+import { DebugDraw } from "../../../debugDraw";
 import { Light } from "../../../shaders/lighting/light";
 import { Color } from "../../../color";
 

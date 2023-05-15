@@ -68,13 +68,8 @@ void main(void) {
 
         lightMap += distanceFalloff * angularFalloff * l.color * 6.;
     }
-    //lightMap += (pow(max(1. - length((vTextureCoord - vec2(0.5, .8)) / uPixelSize / 40.), 0.), 2.) *1.) * vec3(.0, .0, 1.);
-    //lightMap += (pow(max(1. - length((vTextureCoord - vec2(0.4, .8)) / uPixelSize / 40.), 0.), 2.) * 1.) * vec3(.0, 1.0, 0.);
-    //lightMap += (pow(max(1. - length((vTextureCoord - vec2(0.45, .85)) / uPixelSize /40.), 0.), 2.) * 1.) * vec3(1.0, 0.0, 0.);
-    //lightMap = pow(lightMap, vec3(1. / 2.2));
-    //lightMap = tonemap(lightMap);
-    //lightMap = min(lightMap, 2.);
-    color = vec4(min(tonemap(sourceColor.rgb * (lightMap + uAmbient)), 1.) * sourceColor.a + tonemap(lightMap * .05), clamp(sourceColor.a + min(vec3(0.01), length(lightMap)*.2), 0., 1.));
-    //color = vec4(uLights[0].position, 0., 1.);
-    //gl_FragColor = sourceColor;
+
+    //TODO ISSUE: Light over void/air applies multiple times if more layers have filter    V here                                         V here
+    color = vec4(min(tonemap(sourceColor.rgb * (lightMap + uAmbient)), 1.) * sourceColor.a + tonemap(lightMap * .05), clamp(sourceColor.a + min(vec3(0.01), length(lightMap) * .2), 0., 1.));
+
 }
