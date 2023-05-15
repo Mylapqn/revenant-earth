@@ -5,7 +5,6 @@ import { Assets, Color } from 'pixi.js';
 import { Atmosphere } from '../../atmosphere';
 import { Camera } from '../../camera';
 import { mouse } from '../..';
-import { Light, Lightmap } from '../lighting/light';
 
 let vertex: string = fs.readFileSync(__dirname + '/highlight.vert', 'utf8');
 let fragment: string = fs.readFileSync(__dirname + '/highlight.frag', 'utf8');
@@ -30,25 +29,22 @@ export class HighlightFilter extends Filter {
      * @param {boolean} [knockout=false] - Only render outline, not the contents.
      */
     constructor(thickness: number = 1, color: number = 0x000000, alpha: number = 1.0) {
-        super(vertex, fragment);
+        super(vertex, fragment.replace(/(DEPTH_STEPS = )([\d.]+)/g, `$1${thickness.toFixed(1)}`));
 
         this.uniforms.uLightPos = new Float32Array([0, 0]);
         this.uniforms.uColor = new Float32Array([0, 0, 0, 1]);
-        this.uniforms.uAlpha = alpha;       
-        this.uniforms.uLightMap = Lightmap.texture;
-        this.uniforms.uPixelSize = [0, 0];
-
+        this.uniforms.uAlpha = alpha;
+        
 
         Object.assign(this, { thickness, color, alpha });
     }
 
     apply(filterManager: FilterSystem, input: RenderTexture, output: RenderTexture, clear: CLEAR_MODES): void {
-        this.uniforms.uPixelSize[0] = 1 / Camera.width;
-        this.uniforms.uPixelSize[1] = 1 / Camera.height;
         this.uniforms.uAlpha = this._alpha;
+        this.uniforms.uKnockout = this._knockout;
         this.uniforms.uAngle = Atmosphere.settings.sunAngle;
-        this.uniforms.uLightPos[0] = Atmosphere.settings.sunPosition.x / Camera.width;
-        this.uniforms.uLightPos[1] = Atmosphere.settings.sunPosition.y / Camera.height;
+        this.uniforms.uLightPos[0] = Atmosphere.settings.sunPosition.x;
+        this.uniforms.uLightPos[1] = Atmosphere.settings.sunPosition.y;
         this.uniforms.uIntensity = Atmosphere.settings.sunIntensity;
         //this.uniforms.uLightPos[0] = (mouse.x / window.innerWidth) * Camera.width;
         //this.uniforms.uLightPos[1] = (mouse.y / window.innerHeight) * Camera.height;

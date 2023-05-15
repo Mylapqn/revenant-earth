@@ -21,7 +21,7 @@ import { LightingFilter } from "./shaders/lighting/lightingFilter";
 import { FilmicFilter } from "./shaders/filmic/filmicFilter";
 import { TerrainGenerator } from "./biome";
 import { SkyFilter } from "./shaders/atmosphere/skyFilter";
-import { GUI, GuiLabel, GuiSplash } from "./gui/gui";
+import { GUI, GuiButton, GuiLabel, GuiSplash } from "./gui/gui";
 import { Color } from "./color";
 import { clamp } from "./utils";
 import { Stamps } from "./stamp";
@@ -35,7 +35,7 @@ import { Sapling } from "./entities/buildable/sapling";
 import { ForegroundFilter } from "./shaders/foreground/foregroundFilter";
 import { Drone } from "./entities/enemy/drone/drone";
 import { DebugDraw } from "./debugDraw";
-import { Light } from "./shaders/lighting/light";
+import { Light, Lightmap } from "./shaders/lighting/light";
 let seed = parseInt(window.location.toString().split('?')[1]);
 if (!seed) seed = Math.floor(Math.random() * 1000);
 Math.random = mulberry32(seed);
@@ -77,7 +77,7 @@ export function offResize(caller: any) {
 }
 
 
-
+Lightmap.init();
 PixelDrawer.init();
 const bg = new PIXI.Graphics();
 for (let y = 0; y < 256; y++) {
@@ -123,9 +123,9 @@ const backdrop2 = new Backdrop(.22);
 const backdrop3 = new Backdrop(.1);
 const foredrop = new Backdrop(2);
 app.stage.addChild(pixelContainer);
-PixelDrawer.graphic.filters = [new LightingFilter(PixelDrawer.graphic, new Color(150, 150, 150), true), new HighlightFilter(1, 0xFF9955, .45), new AtmosphereFilter(.9)];
+PixelDrawer.graphic.filters = [new HighlightFilter(1, 0xFF9955, .6), new AtmosphereFilter(.9)];
 PixelDrawer.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
-Entity.graphic.filters = [new LightingFilter(Entity.graphic, new Color(200, 200, 200), true), new HighlightFilter(1, 0xFF9955, .2), new AtmosphereFilter(.9)];
+Entity.graphic.filters = [new LightingFilter(Entity.graphic, new Color(200, 200, 200), true), new HighlightFilter(1, 0xFF9955, .6), new AtmosphereFilter(.9)];
 Entity.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
 ParallaxDrawer.fgContainer.filters = [new ForegroundFilter()];
 ParallaxDrawer.fgContainer.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
@@ -200,7 +200,10 @@ foredrop.placeSprite(2500, 0, (Sprite.from("FG/urban1.png")), false, 512);
 foredrop.placeSprite(2200, 0, (Sprite.from("FG/urban2.png")), false, 512);
 foredrop.placeSprite(2300, 0, (Sprite.from("FG/urban3.png")), false, 200);
 
-new Light(player, new Vector(0, 25), Math.PI+.2, 1, undefined, 100);
+new Light(player, new Vector(0, 25), Math.PI + .2, 1, undefined, 100);
+
+new GuiButton(new Vector(50, 50), "/time set day", () => { Atmosphere.settings.sunAngle = -2 })
+new GuiButton(new Vector(200, 50), "/time set night", () => { Atmosphere.settings.sunAngle = 1})
 
 //new Robot(new Vector(2500, 600), undefined, 0);
 
@@ -237,6 +240,8 @@ export let entityRender = PIXI.RenderTexture.create({ width: Camera.width, heigh
 
 
 new Drone(new Vector(2500, 600), undefined);
+
+//const mainRenderTexture = new PIXI.RenderTexture(new PIXI.BaseRenderTexture({ type: PIXI.TYPES.FLOAT, width: Camera.width, height: Camera.height }));
 
 const camspeed = 50;
 let seedCooldown = 0;
@@ -378,7 +383,6 @@ ticker.add((delta) => {
     }
 
     Terrain.draw();
-    PixelDrawer.update();
     ParallaxDrawer.update();
     Entity.update(dt);
     Buildable.update(dt);
@@ -386,11 +390,16 @@ ticker.add((delta) => {
     for (const c of cloudList) {
         c.graphic.position.x += 15 * dt * c.depth;
     }
+    Lightmap.update();
+    app.renderer.render(Lightmap.graphic, { renderTexture: Lightmap.texture, clear: true });
+    PixelDrawer.update();
+    //app.renderer.render(app.stage,{ renderTexture: mainRenderTexture, clear: true });
     app.render();
     DebugDraw.clear()
     Camera.position.x = Math.floor(player.camTarget.x);
     Camera.position.y = Math.floor(player.camTarget.y);
 });
+
 ticker.start();
 
 export let terrainTick = 0;

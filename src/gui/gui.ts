@@ -12,6 +12,7 @@ export class GUI {
     static container = document.getElementById("guiContainer");
 }
 
+
 class GuiElement {
     position: Vector;
     element: HTMLElement;
@@ -24,6 +25,8 @@ class GuiElement {
         this.element.classList.add("ui", "absolute");
         this.content = content;
         GuiElement.list.push(this);
+        this.element.style.left = this.position.x + "px";
+        this.element.style.top = this.position.y + "px";
     }
     update() {
         this.element.style.left = this.position.x + "px";
@@ -92,6 +95,7 @@ export class GuiButton extends GuiElement {
         super(position, content);
         this.element.classList.add("button");
         this.element.onclick = callback;
+        this.element.addEventListener("mousedown", (e) => { e.stopPropagation(); });
     }
 }
 

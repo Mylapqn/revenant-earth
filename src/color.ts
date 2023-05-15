@@ -9,6 +9,9 @@ export class Color {
         this.g = Math.floor(g);
         this.b = Math.floor(b);
     }
+    toShader(): [number, number, number] {
+        return [this.r / 255, this.g / 255, this.b / 255];
+    }
     toPixi(): number {
         return (this.r << 16) + (this.g << 8) + this.b
     }
@@ -40,7 +43,7 @@ export class Color {
         return new Color(this.r + color.r * ratio, this.g + color.g * ratio, this.b + color.b * ratio);
     }
     mult(color: Color) {
-        return new Color(this.r * color.r/255, this.g * color.g/255, this.b * color.b/255,);
+        return new Color(this.r * color.r / 255, this.g * color.g / 255, this.b * color.b / 255,);
     }
     copy() {
         return new Color(this.r, this.g, this.b);
