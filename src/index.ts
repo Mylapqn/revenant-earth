@@ -33,6 +33,8 @@ import { Buildable } from "./entities/buildable/buildable";
 import { Pole } from "./entities/buildable/pole";
 import { Sapling } from "./entities/buildable/sapling";
 import { ForegroundFilter } from "./shaders/foreground/foregroundFilter";
+import { Drone } from "./entities/enemy/drone/drone";
+import { DebugDraw } from "./DebugDraw";
 import { Light } from "./shaders/lighting/light";
 let seed = parseInt(window.location.toString().split('?')[1]);
 if (!seed) seed = Math.floor(Math.random() * 1000);
@@ -216,6 +218,12 @@ Stamps.loadStamps().then(() => {
 
 Terrain.draw();
 PixelDrawer.update();
+
+DebugDraw.graphics = new PIXI.Graphics();
+DebugDraw.graphics.visible = false;
+
+app.stage.addChild(DebugDraw.graphics);
+
 let printText = "";
 export function debugPrint(s: string) { printText += s + "\n" };
 let lastTime = new Date();
@@ -227,6 +235,8 @@ let updateInfo = 0;
 export let background = PIXI.RenderTexture.create({ width: Camera.width, height: Camera.height });
 export let entityRender = PIXI.RenderTexture.create({ width: Camera.width, height: Camera.height });
 
+
+new Drone(new Vector(2500, 600), undefined);
 
 const camspeed = 50;
 let seedCooldown = 0;
@@ -328,7 +338,9 @@ ticker.add((delta) => {
         if (preferences.debugMode != DebugMode.off) {
             Entity.graphic.filters = [];
             PixelDrawer.graphic.filters = [];
+            DebugDraw.graphics.visible = true;
         } else {
+            DebugDraw.graphics.visible = false;
             Entity.graphic.filters = [new HighlightFilter(1, 0xFF9955, .1)];
             PixelDrawer.graphic.filters = [new HighlightFilter(1, 0xFF9955, .2)];
         }
@@ -375,6 +387,7 @@ ticker.add((delta) => {
         c.graphic.position.x += 15 * dt * c.depth;
     }
     app.render();
+    DebugDraw.clear()
     Camera.position.x = Math.floor(player.camTarget.x);
     Camera.position.y = Math.floor(player.camTarget.y);
 });
@@ -392,6 +405,7 @@ function infiniteLoop() {
 }
 
 infiniteLoop();
+
 
 
 const key: Record<string, boolean> = {};
