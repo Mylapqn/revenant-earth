@@ -10,7 +10,7 @@ export class Light {
     color = new Color(255, 100, 255);
     parent: Entity;
     constructor(parent: Entity = null, position: Vector, angle = 0, width = 1, color = new Color(255, 255, 255), range = 100) {
-        
+
         this._position = position;
         this._angle = angle;
         this.width = width;
@@ -29,6 +29,12 @@ export class Light {
     public get position(): Vector {
         if (!this.parent) return this._position;
         return this._position.result().add(this.parent.position);
+    }
+    public set angle(angle) {
+        this._angle = angle;
+    }
+    public set position(position) {
+        this._position = position;
     }
 
     static list: Light[] = [];

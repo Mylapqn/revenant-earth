@@ -45,6 +45,9 @@ vec3 tonemap(vec3 x) {
 vec4 demult(vec4 color) {
     return vec4(vec3(color.rgb) / color.a, color.a);
 }
+float map(float value, float fromMin, float fromMax, float toMin, float toMax) {
+    return toMin + (value - fromMin) * (toMax - toMin) / (fromMax - fromMin);
+}
 
 void main(void) {
     vec4 sourceColor = demult(texture(uSampler, vTextureCoord));
@@ -71,7 +74,7 @@ void main(void) {
     //lightMap = pow(lightMap, vec3(1. / 2.2));
     //lightMap = tonemap(lightMap);
     //lightMap = min(lightMap, 2.);
-    color = vec4(min(tonemap(sourceColor.rgb * (lightMap+uAmbient)), 1.) * sourceColor.a+lightMap*.15, sourceColor.a+lightMap*.15);
+    color = vec4(min(tonemap(sourceColor.rgb * (lightMap + uAmbient)), 1.) * sourceColor.a + tonemap(lightMap * .05), clamp(sourceColor.a + min(vec3(0.01), length(lightMap)*.2), 0., 1.));
     //color = vec4(uLights[0].position, 0., 1.);
     //gl_FragColor = sourceColor;
 }

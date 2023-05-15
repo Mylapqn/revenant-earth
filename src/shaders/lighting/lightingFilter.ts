@@ -34,7 +34,7 @@ export class LightingFilter extends Filter {
             this.uniforms[`uLights[${i}].position`] = [.5, .5];
             this.uniforms[`uLights[${i}].color`] = [1, 1, 1];
             for (const prop of ["angle", "range", "width"]) {
-                this.uniforms[`uLights[${i}].${prop}`] = 1;
+                this.uniforms[`uLights[${i}].${prop}`] = .1;
             }
         }
 
