@@ -216,6 +216,8 @@ Terrain.draw();
 PixelDrawer.update();
 
 DebugDraw.graphics = new PIXI.Graphics();
+DebugDraw.graphics.visible = false;
+
 app.stage.addChild(DebugDraw.graphics);
 
 let printText = "";
