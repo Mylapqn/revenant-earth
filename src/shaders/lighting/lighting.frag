@@ -1,12 +1,26 @@
+#version 300 es
+
+const int maxLightAmount = 16;
+uniform int lightAmount;
+
 precision mediump float;
-varying vec2 vTextureCoord;
+in vec2 vTextureCoord;
 uniform sampler2D uSampler;
 uniform vec4 filterClamp;
 
-uniform vec2 uLightPos;
 uniform vec2 uPixelSize;
-uniform float uTargetAngle;
+
 uniform vec3 uAmbient;
+struct Light {
+    vec2 position;
+    float angle;
+    float width;
+    float range;
+    vec3 color;
+};
+uniform Light[maxLightAmount] uLights;
+
+out vec4 color;
 
 const float DOUBLE_PI = 2. * 3.14159265358979323846264;
 
@@ -33,26 +47,31 @@ vec4 demult(vec4 color) {
 }
 
 void main(void) {
-    vec4 sourceColor = demult(texture2D(uSampler, vTextureCoord));
+    vec4 sourceColor = demult(texture(uSampler, vTextureCoord));
     vec3 lightMap = vec3(.8, .6, .4);
     //lightMap = vec3(1.);
-    lightMap = uAmbient;
-    vec2 off = (uLightPos - vTextureCoord) / uPixelSize / 200.;
-    float dis = length(off);
-    float targetAngle = uTargetAngle;
-    float angleTolerance = .8;
-    vec2 targetDir = vec2(cos(targetAngle), sin(targetAngle));
-    float angle = (acos(clamp(dot(normalize(off), (targetDir)), -1., 1.)));
-    float angularFalloff = clamp(smoothstep(angleTolerance, -angleTolerance, angle), 0.0, 1.0);
-    float disLinear = clamp(1. - dis, 0., 1.);
-    float distanceFalloff = disLinear * disLinear;
-    lightMap += distanceFalloff * angularFalloff * vec3(.35, .8, 1.) * 6.;
+    lightMap = vec3(0.);
+    for(int i = 0; i < lightAmount; i++) {
+        Light l = uLights[i];
+        vec2 off = (l.position - vTextureCoord) / uPixelSize / l.range;
+
+        float dis = length(off);
+        float disLinear = clamp(1. - dis, 0., 1.);
+        float distanceFalloff = disLinear * disLinear;
+
+        vec2 targetDir = vec2(cos(l.angle), sin(l.angle));
+        float angle = (acos(clamp(dot(normalize(off), (targetDir)), -1., 1.)));
+        float angularFalloff = clamp(smoothstep(l.width, -l.width, angle), 0.0, 1.0);
+
+        lightMap += distanceFalloff * angularFalloff * l.color * 6.;
+    }
     //lightMap += (pow(max(1. - length((vTextureCoord - vec2(0.5, .8)) / uPixelSize / 40.), 0.), 2.) *1.) * vec3(.0, .0, 1.);
     //lightMap += (pow(max(1. - length((vTextureCoord - vec2(0.4, .8)) / uPixelSize / 40.), 0.), 2.) * 1.) * vec3(.0, 1.0, 0.);
     //lightMap += (pow(max(1. - length((vTextureCoord - vec2(0.45, .85)) / uPixelSize /40.), 0.), 2.) * 1.) * vec3(1.0, 0.0, 0.);
     //lightMap = pow(lightMap, vec3(1. / 2.2));
     //lightMap = tonemap(lightMap);
     //lightMap = min(lightMap, 2.);
-    gl_FragColor = vec4(min(tonemap(sourceColor.rgb * lightMap), 1.) * sourceColor.a, sourceColor.a);
+    color = vec4(min(tonemap(sourceColor.rgb * (lightMap+uAmbient)), 1.) * sourceColor.a+lightMap*.15, sourceColor.a+lightMap*.15);
+    //color = vec4(uLights[0].position, 0., 1.);
     //gl_FragColor = sourceColor;
 }

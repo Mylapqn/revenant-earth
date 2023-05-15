@@ -33,13 +33,13 @@ vec4 demult(vec4 color) {
     return vec4(vec3(color.rgb) / color.a, color.a);
 }
 
-vec4 blur() {
+vec4 blur(float Size) {
     const float Pi = 6.28318530718; // Pi*2
 
     // GAUSSIAN BLUR SETTINGS {{{
     const float Directions = 16.0; // BLUR DIRECTIONS (Default 16.0 - More is better but slower)
-    const float Quality = 4.0; // BLUR QUALITY (Default 4.0 - More is better but slower)
-    const float Size = 5.0; // BLUR SIZE (Radius)
+    const float Quality = 5.0; // BLUR QUALITY (Default 4.0 - More is better but slower)
+    //const float Size = 5.0; // BLUR SIZE (Radius)
     // GAUSSIAN BLUR SETTINGS }}}
 
     vec2 Radius = Size * uPixelSize;
@@ -67,7 +67,9 @@ float map(float value, float fromMin, float fromMax, float toMin, float toMax) {
 
 void main(void) {
     vec4 sourceColor = demult(texture2D(uSampler, vTextureCoord));
-    float playerDist = map(length((uPlayerPos - vTextureCoord) / uPixelSize / 200.), .2, 1., 0., 1.);
-    vec4 b = blur();
-    gl_FragColor = vec4(vec3(0.), b.a * playerDist);
+    float playerDist = map(clamp(length((uPlayerPos - vTextureCoord) / uPixelSize / 150.), 0., 1.), .5, 1., 0., 1.);
+    vec4 b = blur((1. - playerDist) * 10. + 5.);
+    float alpha = b.a * playerDist;
+    vec3 color = vec3(0.15, 0.1, 0.1) * uAmbient;
+    gl_FragColor = vec4(color * alpha, alpha * (1.));
 }

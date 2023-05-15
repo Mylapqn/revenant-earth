@@ -33,6 +33,7 @@ import { Buildable } from "./entities/buildable/buildable";
 import { Pole } from "./entities/buildable/pole";
 import { Sapling } from "./entities/buildable/sapling";
 import { ForegroundFilter } from "./shaders/foreground/foregroundFilter";
+import { Light } from "./shaders/lighting/light";
 let seed = parseInt(window.location.toString().split('?')[1]);
 if (!seed) seed = Math.floor(Math.random() * 1000);
 Math.random = mulberry32(seed);
@@ -193,8 +194,11 @@ for (let i = 0; i <= 500; i++) {
     new BackdropProp(new Vector(2500 + Math.sin(Math.sqrt(i/500) * 20) * 30, 70 + Math.pow(i / 60, 2)), Math.pow(i / 500, 2), (() => { const a = Sprite.from("shit.png");a.angle=Math.sqrt(i/500) * 4000; a.anchor.set(.5); a.alpha = 1; return a })(), 3, true);
 }
 */
-foredrop.placeSprite(2500, 0, (() => { const a = Sprite.from("FG/urban1.png"); a.alpha = 1; a.tint = 0; return a })(), false,512);
-foredrop.placeSprite(2200, 0, (() => { const a = Sprite.from("FG/urban2.png"); a.alpha = 1; a.tint = 0; return a })(), false,512);
+foredrop.placeSprite(2500, 0, (Sprite.from("FG/urban1.png")), false, 512);
+foredrop.placeSprite(2200, 0, (Sprite.from("FG/urban2.png")), false, 512);
+foredrop.placeSprite(2300, 0, (Sprite.from("FG/urban3.png")), false, 200);
+
+new Light(player, new Vector(0, 25), Math.PI+.2, 1, undefined, 100);
 
 //new Robot(new Vector(2500, 600), undefined, 0);
 
@@ -212,7 +216,6 @@ Stamps.loadStamps().then(() => {
 
 Terrain.draw();
 PixelDrawer.update();
-
 let printText = "";
 export function debugPrint(s: string) { printText += s + "\n" };
 let lastTime = new Date();
@@ -372,6 +375,8 @@ ticker.add((delta) => {
         c.graphic.position.x += 15 * dt * c.depth;
     }
     app.render();
+    Camera.position.x = Math.floor(player.camTarget.x);
+    Camera.position.y = Math.floor(player.camTarget.y);
 });
 ticker.start();
 

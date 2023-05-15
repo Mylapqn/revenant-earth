@@ -38,11 +38,6 @@ export class HighlightFilter extends Filter {
         Object.assign(this, { thickness, color, alpha });
     }
 
-    /**
-     * Get the angleStep by quality
-     * @private
-     */
-
     apply(filterManager: FilterSystem, input: RenderTexture, output: RenderTexture, clear: CLEAR_MODES): void {
         this.uniforms.uAlpha = this._alpha;
         this.uniforms.uKnockout = this._knockout;
