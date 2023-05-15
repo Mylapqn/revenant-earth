@@ -25,6 +25,11 @@ export class Vector {
         return v.length();
     }
 
+    distanceSquared(vector: Vector): number {
+        let v = new Vector(Math.abs(this.x - vector.x), Math.abs(this.y - vector.y));
+        return v.lengthSquared();
+    }
+
     add(vector: Vector): Vector {
         this.x = this.x + vector.x;
         this.y = this.y + vector.y;
@@ -47,8 +52,8 @@ export class Vector {
         return this;
     }
 
-    normalize(length: number): Vector {
-        length = length || 1;
+    normalize(length: number = 1): Vector {
+        length = length;
         let total = this.length();
         this.x = (this.x / total) * length;
         this.y = (this.y / total) * length;

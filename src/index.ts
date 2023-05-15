@@ -33,6 +33,8 @@ import { Buildable } from "./entities/buildable/buildable";
 import { Pole } from "./entities/buildable/pole";
 import { Sapling } from "./entities/buildable/sapling";
 import { ForegroundFilter } from "./shaders/foreground/foregroundFilter";
+import { Drone } from "./entities/enemy/drone/drone";
+import { DebugDraw } from "./DebugDraw";
 let seed = parseInt(window.location.toString().split('?')[1]);
 if (!seed) seed = Math.floor(Math.random() * 1000);
 Math.random = mulberry32(seed);
@@ -193,8 +195,8 @@ for (let i = 0; i <= 500; i++) {
     new BackdropProp(new Vector(2500 + Math.sin(Math.sqrt(i/500) * 20) * 30, 70 + Math.pow(i / 60, 2)), Math.pow(i / 500, 2), (() => { const a = Sprite.from("shit.png");a.angle=Math.sqrt(i/500) * 4000; a.anchor.set(.5); a.alpha = 1; return a })(), 3, true);
 }
 */
-foredrop.placeSprite(2500, 0, (() => { const a = Sprite.from("FG/urban1.png"); a.alpha = 1; a.tint = 0; return a })(), false,512);
-foredrop.placeSprite(2200, 0, (() => { const a = Sprite.from("FG/urban2.png"); a.alpha = 1; a.tint = 0; return a })(), false,512);
+foredrop.placeSprite(2500, 0, (() => { const a = Sprite.from("FG/urban1.png"); a.alpha = 1; a.tint = 0; return a })(), false, 512);
+foredrop.placeSprite(2200, 0, (() => { const a = Sprite.from("FG/urban2.png"); a.alpha = 1; a.tint = 0; return a })(), false, 512);
 
 //new Robot(new Vector(2500, 600), undefined, 0);
 
@@ -213,6 +215,9 @@ Stamps.loadStamps().then(() => {
 Terrain.draw();
 PixelDrawer.update();
 
+DebugDraw.graphics = new PIXI.Graphics();
+app.stage.addChild(DebugDraw.graphics);
+
 let printText = "";
 export function debugPrint(s: string) { printText += s + "\n" };
 let lastTime = new Date();
@@ -224,6 +229,8 @@ let updateInfo = 0;
 export let background = PIXI.RenderTexture.create({ width: Camera.width, height: Camera.height });
 export let entityRender = PIXI.RenderTexture.create({ width: Camera.width, height: Camera.height });
 
+
+new Drone(new Vector(2500, 600), undefined);
 
 const camspeed = 50;
 let seedCooldown = 0;
@@ -325,7 +332,9 @@ ticker.add((delta) => {
         if (preferences.debugMode != DebugMode.off) {
             Entity.graphic.filters = [];
             PixelDrawer.graphic.filters = [];
+            DebugDraw.graphics.visible = true;
         } else {
+            DebugDraw.graphics.visible = false;
             Entity.graphic.filters = [new HighlightFilter(1, 0xFF9955, .1)];
             PixelDrawer.graphic.filters = [new HighlightFilter(1, 0xFF9955, .2)];
         }
@@ -371,7 +380,10 @@ ticker.add((delta) => {
     for (const c of cloudList) {
         c.graphic.position.x += 15 * dt * c.depth;
     }
+    Camera.position.x = Math.floor(player.camTarget.x);
+    Camera.position.y = Math.floor(player.camTarget.y);
     app.render();
+    DebugDraw.clear()
 });
 ticker.start();
 
@@ -387,6 +399,7 @@ function infiniteLoop() {
 }
 
 infiniteLoop();
+
 
 
 const key: Record<string, boolean> = {};
