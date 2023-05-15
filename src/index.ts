@@ -34,7 +34,7 @@ import { Pole } from "./entities/buildable/pole";
 import { Sapling } from "./entities/buildable/sapling";
 import { ForegroundFilter } from "./shaders/foreground/foregroundFilter";
 import { Drone } from "./entities/enemy/drone/drone";
-import { DebugDraw } from "./DebugDraw";
+import { DebugDraw } from "./debugDraw";
 import { Light } from "./shaders/lighting/light";
 let seed = parseInt(window.location.toString().split('?')[1]);
 if (!seed) seed = Math.floor(Math.random() * 1000);
