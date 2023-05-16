@@ -4,6 +4,8 @@ import { DRAW_MODES, FORMATS, Filter, Geometry, Mesh, RenderTexture, Shader, Spr
 import { Camera } from "./camera";
 import { background, terrainTick } from ".";
 import { Atmosphere } from "./atmosphere";
+import { Light, Lightmap } from "./shaders/lighting/light";
+import { Color } from "./color";
 
 let fragment: string = fs.readFileSync(__dirname + '/shaders/terrain/terrain.frag', 'utf8');
 let vertex: string = fs.readFileSync(__dirname + '/shaders/terrain/terrain.vert', 'utf8');
@@ -12,7 +14,7 @@ let vertex: string = fs.readFileSync(__dirname + '/shaders/terrain/terrain.vert'
 export class PixelDrawer {
     static array: Uint8Array;
     static graphic: Mesh;
-    static uniforms: { terrain: Texture, colorMap: Texture, tick: number, viewport: [number, number, number, number], render: RenderTexture, sunPos: [number, number], sunStrength: number };
+    static uniforms: { terrain: Texture, colorMap: Texture, tick: number, viewport: [number, number, number, number], render: RenderTexture, uLightmap: RenderTexture, sunPos: [number, number], sunStrength: number, ambient: [number, number, number] };
     static init() {
         this.array = new Uint8Array(Camera.width * Camera.height);
         this.array.fill(255);
@@ -23,8 +25,10 @@ export class PixelDrawer {
             tick: terrainTick,
             viewport: [0, 0, 0, 0],
             render: background,
+            uLightmap: Lightmap.texture,
             sunPos: [0, 0],
             sunStrength: 0,
+            ambient: [0, 0, 0]
         }
         const material = Shader.from(vertex, fragment, this.uniforms)
         const geometry = new Geometry()
@@ -64,9 +68,11 @@ export class PixelDrawer {
         this.uniforms.terrain.update();
         this.uniforms.tick = terrainTick;
         this.uniforms.render = background;
+        this.uniforms.uLightmap = Lightmap.texture;
         this.uniforms.viewport = [...Camera.position.xy(), useWidth, Camera.height];
         this.uniforms.sunPos = [Atmosphere.settings.sunPosition.x / Camera.width, Atmosphere.settings.sunPosition.y / Camera.height];
         this.uniforms.sunStrength = Atmosphere.settings.sunIntensity;
+        this.uniforms.ambient = Atmosphere.settings.ambientLight.toShader();
 
     }
 }

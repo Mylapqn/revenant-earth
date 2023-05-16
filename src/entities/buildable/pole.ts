@@ -1,5 +1,5 @@
 import { Container, Sprite } from "pixi.js";
-import { screenToWorld, mouse, player } from "../..";
+import { screenToWorld, mouse, player, terrainTick } from "../..";
 import { Camera } from "../../camera";
 import { Entity } from "../../entity";
 import { Terrain, terrainType } from "../../terrain";
@@ -8,10 +8,12 @@ import { Buildable } from "./buildable";
 import { Cable } from "../passive/cable";
 import { Light } from "../../shaders/lighting/light";
 import { Color } from "../../color";
+import { random } from "../../utils";
 
 export class Pole extends Buildable {
     graphics: Sprite;
     cable: Cable;
+    light: Light;
     constructor(position: Vector, cable = true, placeInstantly = false) {
         const graph = Sprite.from("buildable/pole.png");
         graph.anchor.set(0.5, 1);
@@ -30,6 +32,9 @@ export class Pole extends Buildable {
                 this.cable.graphics.tint = this.graphics.tint;
             }
         }
+        if (this.light) {
+            this.light.color = new Color(255, 240, 220).mult(Color.fromHsl(0, 0, random(.5, 1)));
+        }
     }
     checkValidPlace(): boolean {
         if (this.cable?.targetLength > this.cable?.length) return false;
@@ -42,7 +47,7 @@ export class Pole extends Buildable {
             this.cable.graphics.alpha = this.graphics.alpha;
         }
 
-        new Light(this, new Vector(0, this.graphics.height-3), -Math.PI / 2, 1, undefined, 100);
+        this.light = new Light(this, new Vector(0, this.graphics.height - 3), -Math.PI / 2, 1, undefined, 100);
         new Pole(this.position)
     }
     remove(): void {

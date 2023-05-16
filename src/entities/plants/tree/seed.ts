@@ -27,9 +27,9 @@ export class Seed extends Entity {
         graph.anchor.set(0.5);
         super(graph, position, parent, angle);
         this.interactive = true;
-        this.settings = settings;
-        this.label = new GuiLabel(position.result().add(new Vector(0, 20)), settings.name);
-        this.label.addChild(new GuiButton(new Vector(100, 100), "remobe 💀", () => { this.remove(); }));
+        this.settings = settings;        
+        this.label = new GuiLabel(position.result().add(new Vector(0,20)),settings.name);
+        this.label.addChild(new GuiButton(new Vector(100,100),"remobe 💀",()=>{this.remove();}));
         this.culling = true;
     }
 

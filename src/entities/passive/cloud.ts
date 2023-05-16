@@ -28,7 +28,7 @@ export class Cloud extends Entity {
         this.graphics.scale.set((lerp(.7, 2, ageRatio)));
         this.velocity.mult(1 - (dt));
         this.velocity.y += dt * 10
-        this.graphics.alpha = lerp(.2, 0, ageRatio);
+        this.graphics.alpha = lerp(.04, 0, ageRatio);
         if (this.age >= this.maxAge) {
             this.remove();
             return;

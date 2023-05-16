@@ -5,10 +5,12 @@ in vec2 vTextureCoord;
 uniform sampler2D terrain;
 uniform sampler2D colorMap;
 uniform sampler2D render;
+uniform sampler2D uLightmap;
 uniform vec4 viewport;
 uniform float tick;
 uniform vec2 sunPos;
 uniform float sunStrength;
+uniform vec3 ambient;
 out vec4 color;
 
 float threshold(float x, float threshold) {
@@ -100,22 +102,29 @@ vec4 renderTexture(vec2 uv) {
 }
 
 void main(void) {
+    vec3 lightmap = texture(uLightmap, vTextureCoord).rgb;
     float index = texture(terrain, vTextureCoord).a;
     vec2 globalPos = (viewport.xy + vec2(vTextureCoord.x * viewport.z, -vTextureCoord.y * viewport.w));
     vec2 gPosScaled = globalPos * .02;
     int i = int(index * 255.);
     vec4 modify = vec4(0);
-
-    if(i == 1 || i == 2 || i == 3) {
+    //color = texture(lightmap, vTextureCoord) * vec4(vec3(.1), 1.);
+    //return;
+    if(i == 0) {
+        color = vec4(lightmap * .1, .005);
+        return;
+    } else if(i == 1 || i == 2 || i == 3) {
 
         modify.a = 1.;
         vec2 off = sunPos - vTextureCoord;
         float lightAngle = atan(off.y, off.x);
         float dis = length(off);
-        color = vec4(vec3(.7, .9, 1.) * renderTexture(vTextureCoord + vTextureCoord * 0.03 * ((octaveNoise(gPosScaled * .3 + tick / 1000.) - .5) * 2.)).rgb, 1.);
+        vec2 refractionUv = vTextureCoord + vTextureCoord * 0.03 * ((octaveNoise(gPosScaled * .3 + tick / 1000.) - .5) * 2.);
+        vec3 lightmapRefract = texture(uLightmap, refractionUv).rgb;
+        color = vec4(vec3(.7, .9, 1.) * (renderTexture(refractionUv).rgb + lightmapRefract * lightmapRefract * .1 * vec3(.2, .9, 1.)), 1.);
         color += vec4(clamp(vec3(1., .8, .6) *
             vec3(sunStrength * .2 *
-            clamp(min(min((1. - dis*.8) * .3, (dis - .1)*.3), (vTextureCoord.y - sunPos.y)) * 10., 0., 1.) *
+            clamp(min(min((1. - dis * .8) * .3, (dis - .1) * .3), (vTextureCoord.y - sunPos.y)) * 10., 0., 1.) *
             posterise(max(0., noise(vec2(lightAngle * .035 * viewport.z - viewport.x / viewport.z * 15., tick / 180.)) + 1.), 3.)), 0., 1.), 0.);
         //for(float i = 0.; i <= 6. + 2. * (noise(vec2(globalPos.x * .05, tick / 80.)) + 1.); i++) {
         for(float i = 0.; i <= min(20., 3. + 18. * abs(vTextureCoord.y - .22)); i++) {
@@ -124,9 +133,11 @@ void main(void) {
             int d = int(di * 255.);
             if(d == 0) {
                 float waves = noise(vec2(globalPos.x * .2, globalPos.y * 3. + tick / 80.));
-                vec2 uv = vec2(vTextureCoord.x + waves * .005, vTextureCoord.y - (1. / viewport.w) * i * 2.);
-                color = mix(color, renderTexture(uv), .9);
+                vec2 reflectionUv = vec2(vTextureCoord.x + waves * .005, vTextureCoord.y - (1. / viewport.w) * i * 2.);
+                vec3 lightmapReflect = texture(uLightmap, reflectionUv).rgb;
+                color = mix(color, renderTexture(reflectionUv), .9);
                 color += vec4(vec3(1., .8, .6) * (posterise(clamp(sunStrength, 0., .5) * 2. * pow(1. - abs(sunPos.x - vTextureCoord.x + waves * .04), 40.), 5.) + .02), 1.);
+                color += vec4(lightmapReflect*.2, .0);
                 return;
             }
         }
@@ -139,4 +150,5 @@ void main(void) {
     }
 
     color = texelFetch(colorMap, ivec2(i % 16, i / 16), 0) + modify;
+    color *= vec4(ambient + lightmap, 1.);
 }
