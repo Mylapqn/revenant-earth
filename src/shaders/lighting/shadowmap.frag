@@ -1,7 +1,7 @@
 #version 300 es
 
 const int maxLightAmount = 16;
-const int angleRes = 64;
+const int angleRes = 512;
 uniform int lightAmount;
 
 precision mediump float;
@@ -51,17 +51,22 @@ float map(float value, float fromMin, float fromMax, float toMin, float toMax) {
 }
 
 void main(void) {
-    float shadowMap = 0.;
-    int lightIndex = int(vTextureCoord.y);
-    int testingAngle = int(vTextureCoord.x);
-    float actualAngle = float(testingAngle) / float(angleRes) * DOUBLE_PI;
-    vec2 dir = vec2(cos(actualAngle), sin(actualAngle));
+    float shadowMap = 1.;
+    int lightIndex = int(vTextureCoord.y * float(maxLightAmount));
+    float testingAngle = (vTextureCoord.x * float(angleRes));
+    float actualAngle = vTextureCoord.x * DOUBLE_PI;
+    vec2 dir = vec2(cos(actualAngle), sin(actualAngle)) * uPixelSize;
     Light l = uLights[lightIndex];
-    for(float i = 0.; i < 255.; i++) {
-        float a = texture(occluder,l.position+dir*i).a;
-        if(a > 0.) shadowMap = i;
-    }
+    if(l.range > .1)
+        for(float i = 0.; i < 1.; i += 1. / l.range) {
+            int a = int(texture(occluder, l.position + dir * (i * l.range)).a * 255.);
+            if(a > 3) {
+                shadowMap = i;
+                break;
+            }
+        }
 
     color = vec4(vec3(shadowMap), 1.);
-
+    color = vec4(float(lightIndex) / float(maxLightAmount), shadowMap, 0., 1.);
+    //color = vec4(vec3(texture(occluder, vTextureCoord).a > 0.), 1.);
 }

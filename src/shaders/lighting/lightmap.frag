@@ -1,6 +1,12 @@
 #version 300 es
 
+precision mediump float;
+
 const int maxLightAmount = 16;
+const int angleRes = 512;
+
+const float shadowStrength = .8;
+
 uniform int lightAmount;
 
 precision mediump float;
@@ -23,6 +29,7 @@ uniform Light[maxLightAmount] uLights;
 out vec4 color;
 
 const float DOUBLE_PI = 2. * 3.14159265358979323846264;
+const float PI = 3.14159265358979323846264;
 
 vec3 filmic(vec3 x) {
     vec3 X = max(vec3(0.0), x - 0.004);
@@ -48,25 +55,34 @@ vec4 demult(vec4 color) {
 float map(float value, float fromMin, float fromMax, float toMin, float toMax) {
     return toMin + (value - fromMin) * (toMax - toMin) / (fromMax - fromMin);
 }
+float nClamp(float value) {
+    return clamp(value, 0.0, 1.0);
+}
 
 void main(void) {
     vec3 lightMap = vec3(.0);
     for(int i = 0; i < lightAmount; i++) {
         Light l = uLights[i];
+
         vec2 off = (l.position - vTextureCoord) / uPixelSize / l.range;
+        float angle = map(atan(off.y, off.x), -PI, PI, 0., 1.);
+        float shadowDist = texelFetch(shadowMap, ivec2(int(angle * float(angleRes)), i), 0).g;
+        //float shadowDist = texture(shadowMap, vec2((angle), (i))).g;
 
         float dis = length(off);
-        float disLinear = clamp(1. - dis, 0., 1.);
+        float disLinear = nClamp(1. - dis);
         float distanceFalloff = disLinear * disLinear;
 
         vec2 targetDir = vec2(cos(l.angle), sin(l.angle));
-        float angle = (acos(clamp(dot(normalize(off), (targetDir)), -1., 1.)));
-        float angularFalloff = clamp(smoothstep(l.width, -l.width, angle), 0.0, 1.0);
+        float angleOffset = (acos(clamp(dot(normalize(off), (targetDir)), -1., 1.)));
+        float angularFalloff = nClamp(smoothstep(l.width, -l.width, angleOffset));
 
-        lightMap += distanceFalloff * angularFalloff * l.color * 6.;
+        vec3 addition = distanceFalloff * angularFalloff * l.color * 6.;
+        addition *= 1. - nClamp((dis - shadowDist) * .1 * l.range) * shadowStrength;
+
+        lightMap += addition;
     }
 
     color = vec4(lightMap, 1.);
-    //color = texture(shadowMap, vTextureCoord);
 
 }

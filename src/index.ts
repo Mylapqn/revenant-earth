@@ -36,7 +36,7 @@ import { ForegroundFilter } from "./shaders/foreground/foregroundFilter";
 import { Drone } from "./entities/enemy/drone/drone";
 import { DebugDraw } from "./debugDraw";
 import { World } from "./world";
-import { Light, Lightmap } from "./shaders/lighting/light";
+import { Light, Lightmap, Shadowmap } from "./shaders/lighting/light";
 let seed = parseInt(window.location.toString().split('?')[1]);
 if (!seed) seed = Math.floor(Math.random() * 1000);
 Math.random = mulberry32(seed);
@@ -201,7 +201,7 @@ foredrop.placeSprite(2500, 0, (Sprite.from("FG/urban1.png")), false, 512);
 foredrop.placeSprite(2200, 0, (Sprite.from("FG/urban2.png")), false, 512);
 foredrop.placeSprite(2300, 0, (Sprite.from("FG/urban3.png")), false, 200);
 
-new Light(player, new Vector(0, 25), Math.PI + .2, 1, undefined, 100);
+new Light(player, new Vector(0, 25), Math.PI + .2, 1, undefined, 200);
 
 new GuiButton(new Vector(50, 50), "/time set day", () => { Atmosphere.settings.sunAngle = -2 })
 new GuiButton(new Vector(200, 50), "/time set night", () => { Atmosphere.settings.sunAngle = 1})
@@ -242,7 +242,7 @@ export let background = PIXI.RenderTexture.create({ width: Camera.width, height:
 export let entityRender = PIXI.RenderTexture.create({ width: Camera.width, height: Camera.height });
 
 
-new Drone(new Vector(2500, 600), undefined);
+//new Drone(new Vector(2500, 600), undefined);
 
 //const mainRenderTexture = new PIXI.RenderTexture(new PIXI.BaseRenderTexture({ type: PIXI.TYPES.FLOAT, width: Camera.width, height: Camera.height }));
 
@@ -410,6 +410,7 @@ ticker.add((delta) => {
 });
 
 ticker.start();
+DebugDraw.graphics.addChild(Shadowmap.graphic);
 
 export let terrainTick = 0;
 let tps = 0;

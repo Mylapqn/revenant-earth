@@ -84,11 +84,12 @@ export class Lightmap {
             [0, 0, 1, 0, 1, 1, 0, 1], // x, y 
             2)
         this.graphic = new Mesh(geometry, material) as any;
-
+        
     }
 
     static update() {
         Shadowmap.update();
+        this.uniforms.shadowMap.update();
         this.uniforms.uPixelSize[0] = 1 / Camera.width;
         this.uniforms.uPixelSize[1] = 1 / Camera.height;
 
@@ -109,7 +110,7 @@ export class Lightmap {
 }
 
 export class Shadowmap {
-    static angles = 64;
+    static angles = 512;
     static fragment: string = fs.readFileSync(__dirname + '/shadowmap.frag', 'utf8');
     static vertex: string = fs.readFileSync(__dirname + '/lightmap.vert', 'utf8');
     static texture = new RenderTexture(new BaseRenderTexture({ type: TYPES.FLOAT, width: this.angles, height: Light.maxAmount }));
@@ -168,7 +169,7 @@ export class Shadowmap {
         this.uniforms.lightAmount = Light.list.length;
         const useWidth = Math.ceil((Camera.width) / 4) * 4;
         this.uniforms.viewport = [...Camera.position.xy(), useWidth, Camera.height];
-        app.renderer.render(this.graphic, { renderTexture: this.texture, clear: true });
         this.uniforms.occluder = PixelDrawer.uniforms.terrain;
+        app.renderer.render(this.graphic, { renderTexture: this.texture, clear: true });
     }
 }
