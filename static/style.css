@@ -31,11 +31,11 @@ canvas {
 }
 
 .ui {
+    user-select: none;
     background-color: #00000044;
     padding: 20px;
-    border-bottom: var(--borderWidth) solid white;
     backdrop-filter: blur(10px);
-    transition: transform .1s;
+    transition: transform .1s, outline .1s;
     color: white;
     font-family: 'Bahnschrift';
     display: flex;
@@ -43,17 +43,20 @@ canvas {
     justify-content: center;
     gap: 10px;
     flex-direction: column;
+    border-radius: 5px;
+    z-index: 1;
 }
 
-.ui>.ui {
+.ui .ui {
     backdrop-filter: none;
 }
 
 .tooltip {
-    border-bottom: none;
+    outline: none;
 }
 
 .label {
+    z-index: 0;
     right: unset;
     transform: translateX(-50%);
 }
@@ -70,13 +73,41 @@ canvas {
     background-color: white;
 }
 
+.keyPrompt {
+    display: inline-block;
+    /*
+    outline: calc(var(--borderWidth)*.75) solid rgb(255, 255, 255);
+    */
+    
+    background: white;
+    color: black;
+    
+    padding: 5px;
+    margin: 0px 2px;
+    text-transform: uppercase;
+    min-width: 29px;
+    text-align: center;
+}
+
 .button {
+    outline: var(--borderWidth) solid rgba(255, 255, 255, 0.101);
     cursor: pointer;
 }
 
 .button:hover {
     background-color: #0000005d;
     transform: scale(1.06);
+    outline: var(--borderWidth) solid rgba(255, 255, 255, 0.504);
+}
+
+.center {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    right: unset;
+    bottom: unset;
+    /* bring your own prefixes */
+    transform: translate(-50%, -50%);
 }
 
 #guiContainer {
@@ -109,7 +140,8 @@ canvas {
     font-weight: 100;
     flex-direction: column;
 }
-.splash::after{
+
+.splash::after {
     content: "new biome discovered";
     font-size: .4em;
     display: block;
@@ -121,11 +153,13 @@ canvas {
         opacity: 0;
         letter-spacing: .0em;
     }
-    20%{
-        opacity:1;
+
+    20% {
+        opacity: 1;
     }
-    80%{
-        opacity:1;
+
+    80% {
+        opacity: 1;
     }
 
     to {

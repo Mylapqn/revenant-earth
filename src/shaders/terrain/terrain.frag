@@ -131,14 +131,20 @@ void main(void) {
             vec2 displacedPos = vec2(vTextureCoord.x, vTextureCoord.y - (1. / viewport.w) * i * 1.);
             float di = texture(terrain, displacedPos).a;
             int d = int(di * 255.);
+            if(d > 3)
+                break;
             if(d == 0) {
                 float waves = noise(vec2(globalPos.x * .2, globalPos.y * 3. + tick / 80.));
                 vec2 reflectionUv = vec2(vTextureCoord.x + waves * .005, vTextureCoord.y - (1. / viewport.w) * i * 2.);
-                vec3 lightmapReflect = texture(uLightmap, reflectionUv).rgb;
-                color = mix(color, renderTexture(reflectionUv), .9);
-                color += vec4(vec3(1., .8, .6) * (posterise(clamp(sunStrength, 0., .5) * 2. * pow(1. - abs(sunPos.x - vTextureCoord.x + waves * .04), 40.), 5.) + .02), 1.);
-                color += vec4(lightmapReflect*.2, .0);
-                return;
+                float ri = texture(terrain, reflectionUv).a;
+                int r = int(ri * 255.);
+                if(r == 0) {
+                    vec3 lightmapReflect = texture(uLightmap, reflectionUv).rgb;
+                    color = mix(color, renderTexture(reflectionUv), .9);
+                    color += vec4(vec3(1., .8, .6) * (posterise(clamp(sunStrength, 0., .5) * 2. * pow(1. - abs(sunPos.x - vTextureCoord.x + waves * .04), 40.), 5.) + .02), 1.);
+                    color += vec4(lightmapReflect * .2, .0);
+                    return;
+                }
             }
         }
         return;
@@ -150,5 +156,5 @@ void main(void) {
     }
 
     color = texelFetch(colorMap, ivec2(i % 16, i / 16), 0) + modify;
-    color *= vec4(ambient + lightmap, 1.);
+    color *= vec4(ambient * .5 + lightmap, 1.);
 }

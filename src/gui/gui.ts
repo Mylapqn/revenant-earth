@@ -42,6 +42,9 @@ class GuiElement {
         this.element.appendChild(child.element);
         child.element.classList.remove("absolute");
     }
+    removeChild(child: GuiElement) {
+        this.element.removeChild(child.element);
+    }
     private _content = "text";
 
     public set content(content) {
@@ -52,6 +55,10 @@ class GuiElement {
     }
 
     static list: GuiElement[] = [];
+}
+
+export class DialogBox extends GuiElement {
+    
 }
 
 export class GuiLabel extends GuiElement {

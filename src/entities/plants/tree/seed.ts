@@ -26,7 +26,7 @@ export class Seed extends Entity {
         //console.log(graph);
         graph.anchor.set(0.5);
         super(graph, position, parent, angle);
-        this.interactive = true;
+        this.hoverable = true;
         this.settings = settings;        
         this.label = new GuiLabel(position.result().add(new Vector(0,20)),settings.name);
         this.label.addChild(new GuiButton(new Vector(100,100),"remobe 💀",()=>{this.remove();}));

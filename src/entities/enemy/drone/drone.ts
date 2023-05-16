@@ -8,6 +8,7 @@ import { FlyingPatrolRobotTask, IFlyingPatrolRobot, RobotTask, collisionAvoidanc
 import { DebugDraw } from "../../../debugDraw";
 import { Light } from "../../../shaders/lighting/light";
 import { Color } from "../../../color";
+import { GuiLabel, GuiTooltip } from "../../../gui/gui";
 
 export class Drone extends Entity implements IFlyingPatrolRobot {
     task: FlyingPatrolRobotTask
@@ -15,14 +16,16 @@ export class Drone extends Entity implements IFlyingPatrolRobot {
     flightVector = new Vector();
     patrolPoints: Vector[];
     acceptableDeviation: number = 10;
+    label: GuiLabel;
     constructor(position: Vector, parent: Entity, angle = 0) {
         const graph = Sprite.from("https://cdn.discordapp.com/attachments/767355244111331338/1107461643039936603/robo.png");
         graph.anchor.set(0.5);
         super(graph, position, parent, angle);
-        new Light(this, new Vector(0, 0), Math.PI+.2, .3, new Color(230, 40, 80), 200);
+        new Light(this, new Vector(0, 0), Math.PI + .2, .3, new Color(230, 40, 80), 200);
         this.patrolPoints = [position.result(), new Vector(3000, 600), new Vector(2750, 650)]
         this.task = droneTask;
         this.queueUpdate();
+        this.label = new GuiLabel(this.position, "hi :)");
     }
 
     setFlightVector(vector: Vector) {
@@ -30,6 +33,7 @@ export class Drone extends Entity implements IFlyingPatrolRobot {
     }
 
     update(dt: number) {
+        this.label.worldPosition = this.position;
         this.graphics.scale.set(Math.sign(this.velocity.x) || 1, 1);
 
         this.angle += this.flightVector.x / 200;

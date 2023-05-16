@@ -81,11 +81,11 @@ export class Entity {
         Entity.toUpdate.delete(this);
     }
 
-    get interactive() {
+    get hoverable() {
         return this.graphics.interactive;
     }
 
-    set interactive(val: boolean) {
+    set hoverable(val: boolean) {
         this.graphics.interactive = val;
         if (val) {
             this.graphics.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);

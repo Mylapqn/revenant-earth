@@ -242,7 +242,7 @@ export let background = PIXI.RenderTexture.create({ width: Camera.width, height:
 export let entityRender = PIXI.RenderTexture.create({ width: Camera.width, height: Camera.height });
 
 
-//new Drone(new Vector(2500, 600), undefined);
+new Drone(new Vector(2500, 600), undefined);
 
 //const mainRenderTexture = new PIXI.RenderTexture(new PIXI.BaseRenderTexture({ type: PIXI.TYPES.FLOAT, width: Camera.width, height: Camera.height }));
 
