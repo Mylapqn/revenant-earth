@@ -1,10 +1,11 @@
 const fs = require("fs");
-import { BaseRenderTexture, BaseTexture, BufferResource, DRAW_MODES, Geometry, Mesh, RenderTexture, Shader, State, TYPES, Texture } from "pixi.js";
+import { BaseRenderTexture, BaseTexture, BufferResource, DRAW_MODES, FORMATS, Geometry, Mesh, RenderTexture, Shader, State, TYPES, Texture } from "pixi.js";
 import { Color } from "../../color";
 import { Entity } from "../../entity";
 import { Vector } from "../../vector";
 import { Camera } from "../../camera";
-import { worldToScreen } from "../..";
+import { app, worldToScreen } from "../..";
+import { PixelDrawer } from "../../pixelDrawer";
 
 export class Light {
     static maxAmount = 16;
@@ -52,15 +53,17 @@ export class Lightmap {
     static texture = new RenderTexture(new BaseRenderTexture({ type: TYPES.FLOAT, width: Camera.width, height: Camera.height }));
     static graphic: Mesh;
     static uniforms: {
-        uPixelSize: any;
+        uPixelSize: any,
         lightAmount: number; viewport: [number, number, number, number],
+        shadowMap: RenderTexture,
     };
     static init() {
-
+        Shadowmap.init();
         this.uniforms = {
             viewport: [0, 0, 0, 0],
             uPixelSize: [0, 0],
-            lightAmount: 0
+            lightAmount: 0,
+            shadowMap: Shadowmap.texture
         }
         for (let i = 0; i < Light.maxAmount; i++) {
 
@@ -81,23 +84,11 @@ export class Lightmap {
             [0, 0, 1, 0, 1, 1, 0, 1], // x, y 
             2)
         this.graphic = new Mesh(geometry, material) as any;
-        this.resize();
-    }
 
-    static resize() {
-        const geometry = new Geometry();
-        const useWidth = Math.ceil((Camera.width) / 4) * 4;
-        geometry.addIndex([0, 1, 2, 0, 2, 3])
-        geometry.addAttribute('aVertexPosition', // the attribute name
-            [0, 0, useWidth, 0, useWidth, Camera.height, 0, Camera.height], // x, y
-            2);
-        geometry.addAttribute('aTextureCoord', // the attribute name
-            [0, 0, 1, 0, 1, 1, 0, 1], // x, y 
-            2)
-        this.graphic.geometry = geometry;
     }
 
     static update() {
+        Shadowmap.update();
         this.uniforms.uPixelSize[0] = 1 / Camera.width;
         this.uniforms.uPixelSize[1] = 1 / Camera.height;
 
@@ -111,29 +102,30 @@ export class Lightmap {
                 (this.uniforms as any)[`uLights[${i}].${prop}`] = light[prop as keyof Light];
             }
         }
-
         this.uniforms.lightAmount = Light.list.length;
         const useWidth = Math.ceil((Camera.width) / 4) * 4;
         this.uniforms.viewport = [...Camera.position.xy(), useWidth, Camera.height];
     }
 }
-/*
+
 export class Shadowmap {
     static angles = 64;
-    static fragment: string = fs.readFileSync(__dirname + '/lightmap.frag', 'utf8');
-    static vertex: string = fs.readFileSync(__dirname + '/shadowmap.vert', 'utf8');
+    static fragment: string = fs.readFileSync(__dirname + '/shadowmap.frag', 'utf8');
+    static vertex: string = fs.readFileSync(__dirname + '/lightmap.vert', 'utf8');
     static texture = new RenderTexture(new BaseRenderTexture({ type: TYPES.FLOAT, width: this.angles, height: Light.maxAmount }));
     static graphic: Mesh;
     static uniforms: {
         uPixelSize: any;
         lightAmount: number; viewport: [number, number, number, number],
+        occluder: Texture;
     };
     static init() {
 
         this.uniforms = {
             viewport: [0, 0, 0, 0],
             uPixelSize: [0, 0],
-            lightAmount: 0
+            lightAmount: 0,
+            occluder: null
         }
         for (let i = 0; i < 16; i++) {
 
@@ -154,21 +146,9 @@ export class Shadowmap {
             [0, 0, 1, 0, 1, 1, 0, 1], // x, y 
             2)
         this.graphic = new Mesh(geometry, material) as any;
-        this.resize();
     }
 
-    static resize() {
-        const geometry = new Geometry();
-        const useWidth = Math.ceil((Camera.width) / 4) * 4;
-        geometry.addIndex([0, 1, 2, 0, 2, 3])
-        geometry.addAttribute('aVertexPosition', // the attribute name
-            [0, 0, useWidth, 0, useWidth, Camera.height, 0, Camera.height], // x, y
-            2);
-        geometry.addAttribute('aTextureCoord', // the attribute name
-            [0, 0, 1, 0, 1, 1, 0, 1], // x, y 
-            2)
-        this.graphic.geometry = geometry;
-    }
+
 
     static update() {
         this.uniforms.uPixelSize[0] = 1 / Camera.width;
@@ -188,6 +168,7 @@ export class Shadowmap {
         this.uniforms.lightAmount = Light.list.length;
         const useWidth = Math.ceil((Camera.width) / 4) * 4;
         this.uniforms.viewport = [...Camera.position.xy(), useWidth, Camera.height];
+        app.renderer.render(this.graphic, { renderTexture: this.texture, clear: true });
+        this.uniforms.occluder = PixelDrawer.uniforms.terrain;
     }
 }
-*/

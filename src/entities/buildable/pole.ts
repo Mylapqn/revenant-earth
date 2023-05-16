@@ -32,9 +32,6 @@ export class Pole extends Buildable {
                 this.cable.graphics.tint = this.graphics.tint;
             }
         }
-        if (this.light) {
-            this.light.color = new Color(255, 240, 220).mult(Color.fromHsl(0, 0, random(.5, 1)));
-        }
     }
     checkValidPlace(): boolean {
         if (this.cable?.targetLength > this.cable?.length) return false;
@@ -47,7 +44,7 @@ export class Pole extends Buildable {
             this.cable.graphics.alpha = this.graphics.alpha;
         }
 
-        this.light = new Light(this, new Vector(0, this.graphics.height - 3), -Math.PI / 2, 1, undefined, 100);
+        this.light = new Light(this, new Vector(0, this.graphics.height - 3), -Math.PI / 2, 1.2, new Color(255,200,180), 200);
         new Pole(this.position)
     }
     remove(): void {

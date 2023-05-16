@@ -1,12 +1,13 @@
 #version 300 es
 
 const int maxLightAmount = 16;
+const int angleRes = 64;
 uniform int lightAmount;
 
 precision mediump float;
 in vec2 vTextureCoord;
 uniform sampler2D uSampler;
-uniform sampler2D shadowMap;
+uniform sampler2D occluder;
 uniform vec4 filterClamp;
 
 uniform vec2 uPixelSize;
@@ -50,23 +51,17 @@ float map(float value, float fromMin, float fromMax, float toMin, float toMax) {
 }
 
 void main(void) {
-    vec3 lightMap = vec3(.0);
-    for(int i = 0; i < lightAmount; i++) {
-        Light l = uLights[i];
-        vec2 off = (l.position - vTextureCoord) / uPixelSize / l.range;
-
-        float dis = length(off);
-        float disLinear = clamp(1. - dis, 0., 1.);
-        float distanceFalloff = disLinear * disLinear;
-
-        vec2 targetDir = vec2(cos(l.angle), sin(l.angle));
-        float angle = (acos(clamp(dot(normalize(off), (targetDir)), -1., 1.)));
-        float angularFalloff = clamp(smoothstep(l.width, -l.width, angle), 0.0, 1.0);
-
-        lightMap += distanceFalloff * angularFalloff * l.color * 6.;
+    float shadowMap = 0.;
+    int lightIndex = int(vTextureCoord.y);
+    int testingAngle = int(vTextureCoord.x);
+    float actualAngle = float(testingAngle) / float(angleRes) * DOUBLE_PI;
+    vec2 dir = vec2(cos(actualAngle), sin(actualAngle));
+    Light l = uLights[lightIndex];
+    for(float i = 0.; i < 255.; i++) {
+        float a = texture(occluder,l.position+dir*i).a;
+        if(a > 0.) shadowMap = i;
     }
 
-    color = vec4(lightMap, 1.);
-    //color = texture(shadowMap, vTextureCoord);
+    color = vec4(vec3(shadowMap), 1.);
 
 }
