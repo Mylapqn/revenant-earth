@@ -35,6 +35,7 @@ import { Sapling } from "./entities/buildable/sapling";
 import { ForegroundFilter } from "./shaders/foreground/foregroundFilter";
 import { Drone } from "./entities/enemy/drone/drone";
 import { DebugDraw } from "./debugDraw";
+import { World } from "./world";
 import { Light, Lightmap } from "./shaders/lighting/light";
 let seed = parseInt(window.location.toString().split('?')[1]);
 if (!seed) seed = Math.floor(Math.random() * 1000);
@@ -219,6 +220,8 @@ Stamps.loadStamps().then(() => {
     Stamps.stamp("stamp4", new Vector(2200, -36), { useDirtFrom: generator, replaceMatching: (r, w) => TerrainManager.isDirt(r) });
 });
 
+World.init();
+
 Terrain.draw();
 PixelDrawer.update();
 
@@ -268,6 +271,11 @@ ticker.add((delta) => {
 
     if (updateInfo <= 0) {
         updateInfo = 250;
+        let data = World.getDataFrom(player.position.x);
+        debugPrint("Local Status:");
+
+        debugPrint(Object.entries(data).map(e => `\t${e[0]}: ${e[1].toFixed(1)}`).join("\n"));
+
         debugText.text = printText;
     }
 
@@ -386,6 +394,7 @@ ticker.add((delta) => {
     ParallaxDrawer.update();
     Entity.update(dt);
     Buildable.update(dt);
+    World.update(dt);
     GUI.update(dt);
     for (const c of cloudList) {
         c.graphic.position.x += 15 * dt * c.depth;
