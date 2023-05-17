@@ -21,7 +21,7 @@ import { LightingFilter } from "./shaders/lighting/lightingFilter";
 import { FilmicFilter } from "./shaders/filmic/filmicFilter";
 import { TerrainGenerator } from "./biome";
 import { SkyFilter } from "./shaders/atmosphere/skyFilter";
-import { GUI, GuiButton, GuiLabel, GuiSplash } from "./gui/gui";
+import { DialogBox, DialogChoices, GUI, GuiButton, GuiLabel, GuiSplash } from "./gui/gui";
 import { Color } from "./color";
 import { clamp } from "./utils";
 import { Stamps } from "./stamp";
@@ -37,6 +37,7 @@ import { Drone } from "./entities/enemy/drone/drone";
 import { DebugDraw } from "./debugDraw";
 import { World } from "./world";
 import { Light, Lightmap, Shadowmap } from "./shaders/lighting/light";
+import { ChoiceNode, TopNode } from "./dialogue";
 let seed = parseInt(window.location.toString().split('?')[1]);
 if (!seed) seed = Math.floor(Math.random() * 1000);
 Math.random = mulberry32(seed);
@@ -204,7 +205,7 @@ foredrop.placeSprite(2300, 0, (Sprite.from("FG/urban3.png")), false, 200);
 new Light(player, new Vector(0, 25), Math.PI + .2, 1, undefined, 200);
 
 new GuiButton(new Vector(50, 50), "/time set day", () => { Atmosphere.settings.sunAngle = -2 })
-new GuiButton(new Vector(200, 50), "/time set night", () => { Atmosphere.settings.sunAngle = 1})
+new GuiButton(new Vector(200, 50), "/time set night", () => { Atmosphere.settings.sunAngle = 1 })
 
 //new Robot(new Vector(2500, 600), undefined, 0);
 
@@ -425,14 +426,48 @@ function infiniteLoop() {
 
 infiniteLoop();
 
+let questNode1 = new TopNode("Měl bych pro vás takový quest.").chain("Potřebuji vyplantit 1 strom").choice([
+    new TopNode("Ok", 2).reply("To rád slyším.").chain("Player vyplantil 1 strom.", 0).finish(),
+    new TopNode("Nechci plantit stromy.", 2).reply("S okamžitou platností jste vyhozen z UNERA.").chain("Player byl vyhozen z UNERA.", 0).finish()
+]);
+let questNode2 = new TopNode("Měl bych pro vás takový quest.").chain("Potřebuji vyplantit 1 strom").choice([
+    new TopNode("Ok", 2).reply("To rád slyším.").chain("Player vyplantil 1 strom.", 0).finish(),
+    new TopNode("Nechci plantit stromy.", 2).reply("S okamžitou platností jste vyhozen z UNERA.").chain("Player byl vyhozen z UNERA.", 0).finish()
+]);
+let questNode3 = new TopNode("Měl bych pro vás takový quest.").chain("Potřebuji vyplantit 1 strom").choice([
+    new TopNode("Ok", 2).reply("To rád slyším.").chain("Player vyplantil 1 strom.", 0).finish(),
+    new TopNode("Nechci plantit stromy.", 2).reply("S okamžitou platností jste vyhozen z UNERA.").chain("Player byl vyhozen z UNERA.", 0).finish()
+]);
+
+let firstNode: TopNode = new TopNode("Dobrý den!").chain("Jak se máte?").choice([
+    new TopNode("Dobře", 2).reply("To rád slyším.").chainNode(questNode1).finish(),
+    new TopNode("Mám hlad", 2).reply("Máš hlad? Měl bys jít jíst. Pomůže to. Věř mi. Už jsem taky měl hlad, a zkusil jsem jít jíst, a fakt to pomohlo, nemůžu to víc doporučit.").reply("Nice").reply("Ok, teď jdi fakt jíst.").choice([
+        new TopNode("Jdu jíst.", 2).reply("Skvělé!").chainNode(questNode2).finish(),
+        new TopNode("Nemám hlad.", 2).reply("Takže mi lžeš?").reply("Uhhh...").chain("Možná?").reply("Anyway...").chainNode(questNode3).finish(),
+    ])
+]);
+
+setTimeout(() => {
+    firstNode.execute();
+}, 1000);
+
+/* setTimeout(() => {
+    new DialogBox("Good morning. Máš hlad? Měl bys jít jíst. Pomůže to. Věř mi. Už jsem taky měl hlad, a zkusil jsem jít jíst, a fakt to pomohlo, nemůžu to víc doporučit.\nOk, teď jdi fakt jíst.", 1);
+    new DialogChoices([
+        { content: "Ano", callback: () => { new DialogBox("Jdu jíst.", 2) } },
+        { content: "Ne", callback: () => { new DialogBox("Nemám hlad.", 2) } }
+    ]);
+}, 1000); */
+
+new GuiButton(null, "kok", () => { new DialogBox("sdsd") })
 
 
 const key: Record<string, boolean> = {};
-export const mouse = { x: .5, y: .5, pressed: 0 };
+export const mouse = { x: .5, y: .5, pressed: 0, gui: false };
 
 window.addEventListener("keydown", (e) => { key[e.key.toLowerCase()] = true });
 window.addEventListener("keyup", (e) => { key[e.key.toLowerCase()] = false });
-window.addEventListener("mousedown", (e) => { mouse.pressed = e.buttons; e.preventDefault() });
+window.addEventListener("mousedown", (e) => { if (!mouse.gui) { mouse.pressed = e.buttons; } e.preventDefault() });
 window.addEventListener("mouseup", (e) => { mouse.pressed = e.buttons });
 window.addEventListener("mousemove", (e) => { mouse.x = e.clientX; mouse.y = e.clientY });
 
