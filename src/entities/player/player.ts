@@ -113,7 +113,7 @@ export class Player extends Entity {
             if (this.input.y > 0 && this.velocity.y <= 0) this.velocity.y += 600 * highestDensity;
         }
         let pos = this.position.result().sub(new Vector(Camera.width, Camera.height).mult(.5));
-        let diff = pos.sub(this.camTarget).add(new Vector(this.velocity.result().mult(.7).x, 50));
+        let diff = pos.sub(this.camTarget).add(new Vector(this.velocity.result().mult(.7).x, 30));
         this.camTarget.add(diff.mult(5 * dt))
         if (lookup[terrainInFront].density == 1) this.velocity.x = 0;
 

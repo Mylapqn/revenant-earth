@@ -1,8 +1,28 @@
+import { removeAllListeners } from "process";
 import { mouse, worldToScreen } from "..";
 import { clamp } from "../utils";
 import { Vector } from "../vector";
 
 export class GUI {
+    static init() {
+        let elements = document.getElementsByClassName("ui");
+        for (let i = 0; i < elements.length; i++) {
+            const element = elements[i];
+            let p = element.parentElement;
+            let topLevel = true;
+            while (p != document.body) {
+                if (p.classList.contains("ui")) {
+                    topLevel = false;
+                    break;
+                }
+                p = p.parentElement;
+            }
+            if (topLevel) {
+                element.addEventListener("mouseenter", (e) => { mouse.gui++; });
+                element.addEventListener("mouseleave", (e) => { mouse.gui = 0; });
+            }
+        }
+    }
     static update(dt: number) {
         for (const el of GuiElement.list) {
             if (el.moving)
@@ -20,7 +40,7 @@ interface GuiElementOptions {
     content?: string,
 }
 
-class GuiElement {
+export class GuiElement {
     position: Vector;
     element: HTMLElement;
     moving = false;
@@ -29,15 +49,15 @@ class GuiElement {
         this.element = document.createElement("div");
         GUI.container.appendChild(this.element);
         this.element.classList.add("ui");
-        this.content = options.content ?? "none";
+        this.content = options.content ?? "";
         GuiElement.list.push(this);
         if (options.parent) {
             options.parent.addChild(this);
         }
         else {
             this.position = options.position;
-            this.element.addEventListener("mouseenter", (e) => { mouse.gui = true; });
-            this.element.addEventListener("mouseleave", (e) => { mouse.gui = false; });
+            this.element.addEventListener("mouseenter", (e) => { mouse.gui++; });
+            this.element.addEventListener("mouseleave", (e) => { mouse.gui = 0; });
             this.element.classList.add("absolute");
             if (options.centerX) this.element.classList.add("centerX");
             else if (options.position) this.element.style.left = this.position.x + "px";
@@ -78,6 +98,7 @@ class GuiElement {
 export class DialogBox extends GuiElement {
     static container = document.getElementById("messagesContainer");
     static wrapper = document.getElementById("dialogContainer");
+    static conversationElement = document.getElementById("conversationWrapper");
     constructor(content = "none", speaker = 0) {
         super({ content });
         this.element.classList.remove("absolute");
@@ -94,21 +115,38 @@ class DialogChoice extends DialogBox {
     constructor(content = "none", callback = () => { }, parent: DialogChoices) {
         super(content, 2);
         this.element.classList.add("button", "dialogChoice");
-        this.element.onclick = () => { parent.remove(); callback(); };
+        this.element.onclick = () => {
+            parent.remove();
+            callback();
+            DialogBox.wrapper.scrollBy({ top: -1, behavior: "smooth" })
+        };
     }
 }
 
 export class DialogChoices {
-    children: DialogChoice[]=[];
+    children: DialogChoice[] = [];
+    wrapper: HTMLDivElement;
     constructor(choices: { content: string, callback: () => void }[] = []) {
-        for (const options of choices) {
-            this.children.push(new DialogChoice(options.content, options.callback, this));
+        this.wrapper = document.createElement("div");
+        this.wrapper.classList.add("dialogChoiceWrapper", "ui");
+        for (let i = 0; i < choices.length; i++) {
+            const options = choices[i];
+            let dc = new DialogChoice(options.content, options.callback, this)
+            this.wrapper.appendChild(dc.element);
+            this.children.push(dc);
         }
+        for (const options of choices) {
+        }
+        DialogBox.container.appendChild(this.wrapper);
+        DialogBox.wrapper.scrollBy({ top: 500, behavior: "smooth" })
+
     }
     remove() {
         for (const choice of this.children) {
             choice.remove()
         }
+        this.wrapper.remove();
+
     }
 }
 
@@ -143,7 +181,7 @@ export class GuiTooltip extends GuiElement {
         this.element.classList.add("tooltip");
     }
     update(): void {
-        this.position = new Vector(mouse.x, mouse.y);
+        this.position = new Vector(mouse.x+10, mouse.y+10);
         super.update();
     }
 }

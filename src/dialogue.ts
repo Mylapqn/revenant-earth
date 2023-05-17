@@ -1,4 +1,21 @@
+import { app } from ".";
 import { DialogBox, DialogChoices } from "./gui/gui";
+
+let speakersHidden = [true, true];
+let profiles = document.getElementsByClassName("profileIcon") as any as HTMLElement[];
+let speakerProfiles = [
+    profiles[0],
+    profiles[1]
+]
+
+function showSpeaker(index: number) {
+    speakerProfiles[index].classList.remove("hidden");
+    speakersHidden[index] = false;
+}
+function hideSpeaker(index: number) {
+    speakerProfiles[index].classList.add("hidden");
+    speakersHidden[index] = true;
+}
 
 interface BaseNode {
     execute: () => void
@@ -38,13 +55,32 @@ class DialogueNode implements BaseNode {
         return this.topNode;
     }
     execute() {
+        let delay = 10;
+        if (speakersHidden[this.speaker - 1]) {
+            showSpeaker(this.speaker - 1);
+            delay += 800
+        }
+        setTimeout(this.showBox.bind(this), delay);
+    }
+    private showBox() {
         new DialogBox(this.content, this.speaker);
         if (this.nextNode) {
+            let delay = this.content.length * 20 + 800;
+            if (speakersHidden[this.nextNode.speaker - 1]) {
+                setTimeout(() => {
+                    showSpeaker(this.nextNode.speaker - 1);
+                }, 800);
+                delay += 1000;
+            }
             setTimeout(() => {
                 this.nextNode.execute();
-            }, 1000);
+            }, delay);
         }
-    };
+        else {
+            app.view.style.scale="100%";
+            DialogBox.conversationElement.classList.add("hidden");
+        }
+    }
     finish() {
         return this.topNode.getTop();
     }
@@ -60,11 +96,17 @@ export class TopNode extends DialogueNode {
         if (this.topNode != this) return this.topNode.getTop();
         else return this;
     }
+    execute(): void {
+        app.view.style.scale="200%";
+        DialogBox.conversationElement.classList.remove("hidden");
+        super.execute();
+    }
 }
 
 export class ChoiceNode implements BaseNode {
     topNode: DialogueNode;
     choices: DialogueNode[] = [];
+    speaker = 2;
     constructor(choices: DialogueNode[] = []) {
         this.choices = choices;
     }

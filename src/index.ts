@@ -21,7 +21,7 @@ import { LightingFilter } from "./shaders/lighting/lightingFilter";
 import { FilmicFilter } from "./shaders/filmic/filmicFilter";
 import { TerrainGenerator } from "./biome";
 import { SkyFilter } from "./shaders/atmosphere/skyFilter";
-import { DialogBox, DialogChoices, GUI, GuiButton, GuiLabel, GuiSplash } from "./gui/gui";
+import { DialogBox, DialogChoices, GUI, GuiButton, GuiElement, GuiLabel, GuiSplash } from "./gui/gui";
 import { Color } from "./color";
 import { clamp } from "./utils";
 import { Stamps } from "./stamp";
@@ -46,7 +46,6 @@ console.log("seed:", seed);
 export enum DebugMode {
     off,
     updates,
-    water
 }
 export const preferences = { debugMode: DebugMode.off, selectedTerrainType: terrainType.water3, penSize: 4, showDebug: false }
 console.log(status);
@@ -202,10 +201,7 @@ foredrop.placeSprite(2500, 0, (Sprite.from("FG/urban1.png")), false, 512);
 foredrop.placeSprite(2200, 0, (Sprite.from("FG/urban2.png")), false, 512);
 foredrop.placeSprite(2300, 0, (Sprite.from("FG/urban3.png")), false, 200);
 
-new Light(player, new Vector(0, 25), Math.PI + .2, 1, undefined, 200);
-
-new GuiButton(new Vector(50, 50), "/time set day", () => { Atmosphere.settings.sunAngle = -2 })
-new GuiButton(new Vector(200, 50), "/time set night", () => { Atmosphere.settings.sunAngle = 1 })
+new Light(player, new Vector(0, 25), Math.PI + .2, 1.2, undefined, 300);
 
 //new Robot(new Vector(2500, 600), undefined, 0);
 
@@ -219,6 +215,7 @@ Stamps.loadStamps().then(() => {
     Stamps.stamp("stamp5", new Vector(2650, 0), { useDirtFrom: generator, replaceMatching: (r, w) => TerrainManager.isDirt(r) });
     Stamps.stamp("stamp3", new Vector(2450, -36), { useDirtFrom: generator, replaceMatching: (r, w) => TerrainManager.isDirt(r) });
     Stamps.stamp("stamp4", new Vector(2200, -36), { useDirtFrom: generator, replaceMatching: (r, w) => TerrainManager.isDirt(r) });
+    Stamps.stamp("bigbuilding", new Vector(800, 0), { useDirtFrom: generator, replaceMatching: (r, w) => TerrainManager.isDirt(r), replace: [terrainType.stone] });
 });
 
 World.init();
@@ -356,7 +353,7 @@ ticker.add((delta) => {
         } else {
             DebugDraw.graphics.visible = false;
             Entity.graphic.filters = [new HighlightFilter(1, 0xFF9955, .1)];
-            PixelDrawer.graphic.filters = [new HighlightFilter(1, 0xFF9955, .2)];
+            PixelDrawer.graphic.filters = [new HighlightFilter(1, 0xFF9955, .6), new AtmosphereFilter(.9)];
         }
     }
     if (key["r"]) {
@@ -439,7 +436,7 @@ let questNode3 = new TopNode("Měl bych pro vás takový quest.").chain("Potřeb
     new TopNode("Nechci plantit stromy.", 2).reply("S okamžitou platností jste vyhozen z UNERA.").chain("Player byl vyhozen z UNERA.", 0).finish()
 ]);
 
-let firstNode: TopNode = new TopNode("Dobrý den!").chain("Jak se máte?").choice([
+let firstNode: TopNode = new TopNode("Dobrý den!").chain("Já jsem generální tajemník Linkin a mým úkolem je dávat vám úkoly. Doufám, že naše spolupráce bude fungovat dobře a bez problému. Mám opravdu rád stromy takže vám budu dávat hodně úkolů abyste vyplantili stromy.").chain("Jak se máte?").choice([
     new TopNode("Dobře", 2).reply("To rád slyším.").chainNode(questNode1).finish(),
     new TopNode("Mám hlad", 2).reply("Máš hlad? Měl bys jít jíst. Pomůže to. Věř mi. Už jsem taky měl hlad, a zkusil jsem jít jíst, a fakt to pomohlo, nemůžu to víc doporučit.").reply("Nice").reply("Ok, teď jdi fakt jíst.").choice([
         new TopNode("Jdu jíst.", 2).reply("Skvělé!").chainNode(questNode2).finish(),
@@ -447,9 +444,11 @@ let firstNode: TopNode = new TopNode("Dobrý den!").chain("Jak se máte?").choic
     ])
 ]);
 
-setTimeout(() => {
+GUI.init();
+
+/* setTimeout(() => {
     firstNode.execute();
-}, 1000);
+}, 1000); */
 
 /* setTimeout(() => {
     new DialogBox("Good morning. Máš hlad? Měl bys jít jíst. Pomůže to. Věř mi. Už jsem taky měl hlad, a zkusil jsem jít jíst, a fakt to pomohlo, nemůžu to víc doporučit.\nOk, teď jdi fakt jíst.", 1);
@@ -458,12 +457,14 @@ setTimeout(() => {
         { content: "Ne", callback: () => { new DialogBox("Nemám hlad.", 2) } }
     ]);
 }, 1000); */
-
-new GuiButton(null, "kok", () => { new DialogBox("sdsd") })
-
+let mainBar = new GuiElement({ position: new Vector(50, 50) })
+mainBar.element.style.flexDirection = "row";
+new GuiButton(null, "Talk", () => { firstNode.execute(); }, mainBar)
+new GuiButton(new Vector(50, 50), "/time set day", () => { Atmosphere.settings.sunAngle = -2 }, mainBar)
+new GuiButton(new Vector(200, 50), "/time set night", () => { Atmosphere.settings.sunAngle = 1 }, mainBar)
 
 const key: Record<string, boolean> = {};
-export const mouse = { x: .5, y: .5, pressed: 0, gui: false };
+export const mouse = { x: .5, y: .5, pressed: 0, gui: 0 };
 
 window.addEventListener("keydown", (e) => { key[e.key.toLowerCase()] = true });
 window.addEventListener("keyup", (e) => { key[e.key.toLowerCase()] = false });

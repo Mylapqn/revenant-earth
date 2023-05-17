@@ -101,7 +101,13 @@ vec4 renderTexture(vec2 uv) {
     return t;
 }
 
-void main(void) {
+const float logBase = log(6.);
+
+vec3 tonemap(vec3 x) {
+    return mix(pow(x, vec3(0.75)), log(x + 0.1) / logBase + 1. - log(1.1) / logBase, min(x, 1.));
+}
+
+void preMain(void) {
     vec3 lightmap = texture(uLightmap, vTextureCoord).rgb;
     float index = texture(terrain, vTextureCoord).a;
     vec2 globalPos = (viewport.xy + vec2(vTextureCoord.x * viewport.z, -vTextureCoord.y * viewport.w));
@@ -111,7 +117,7 @@ void main(void) {
     //color = texture(lightmap, vTextureCoord) * vec4(vec3(.1), 1.);
     //return;
     if(i == 0) {
-        color = vec4(lightmap * .1, .005);
+        color = vec4(lightmap * .1, .02);
         return;
     } else if(i == 1 || i == 2 || i == 3) {
 
@@ -157,4 +163,9 @@ void main(void) {
 
     color = texelFetch(colorMap, ivec2(i % 16, i / 16), 0) + modify;
     color *= vec4(ambient * .5 + lightmap, 1.);
+}
+
+void main(){
+    preMain();
+    color = vec4(tonemap(color.rgb),color.a);
 }

@@ -6,6 +6,7 @@ import { Vector } from "../../vector";
 import { Camera } from "../../camera";
 import { app, worldToScreen } from "../..";
 import { PixelDrawer } from "../../pixelDrawer";
+import { clamp } from "../../utils";
 
 export class Light {
     static maxAmount = 16;
@@ -19,7 +20,7 @@ export class Light {
 
         this._position = position;
         this._angle = angle;
-        this.width = width;
+        this.width = width
         this.range = range;
         this.color = color.copy();
         this.parent = parent;

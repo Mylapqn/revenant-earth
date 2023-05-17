@@ -15,7 +15,8 @@ export class Stamps {
             this.loadTexture("stamp2", "stamp/stamp2.png"),
             this.loadTexture("stamp3", "stamp/stamp3.png"),
             this.loadTexture("stamp4", "stamp/stamp4.png"),
-            this.loadTexture("stamp5", "stamp/stamp5.png")
+            this.loadTexture("stamp5", "stamp/stamp5.png"),
+            this.loadTexture("bigbuilding", "stamp/bigbuilding.png")
         ]);
     }
 

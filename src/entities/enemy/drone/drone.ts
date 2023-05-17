@@ -9,6 +9,8 @@ import { DebugDraw } from "../../../debugDraw";
 import { Light } from "../../../shaders/lighting/light";
 import { Color } from "../../../color";
 import { GuiLabel, GuiTooltip } from "../../../gui/gui";
+import { Cloud } from "../../passive/cloud";
+import { random, randomBool } from "../../../utils";
 
 export class Drone extends Entity implements IFlyingPatrolRobot {
     task: FlyingPatrolRobotTask
@@ -47,6 +49,16 @@ export class Drone extends Entity implements IFlyingPatrolRobot {
         this.velocity.add(this.flightVector.result().mult(3));
         this.velocity.mult(0.99);
         this.position.add(this.velocity.result().mult(dt));
+        let ty = -1;
+        for (let dy = 0; dy < 100; dy += 10) {
+            if (Terrain.getPixel(Math.round(this.position.x), Math.round(this.position.y - dy)) > 0) {
+                ty = dy;
+                break;
+            }
+        }
+        if (ty>0 && randomBool(1 - ty / 200)) {
+            new Cloud(this.position.result().add(new Vector(randomBool()?10:-10, -ty)), 20, new Vector(random(-100, 100), random(5, 10)));
+        }
 
         this.updatePosition();
         this.queueUpdate();

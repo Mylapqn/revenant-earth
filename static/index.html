@@ -11,9 +11,8 @@
 
 <body oncontextmenu="return false">
     <div id="guiContainer">
-        <div class="ui button absolute" onclick="this.innerText+='\n🧑 jdi jíst'" style="bottom:100px; left:50px">UI
-            Button</div>
-        <div class="ui absolute centerX" style="top: 50px;">
+        <div class="ui button absolute img" onclick="this.innerText+='\n🧑 jdi jíst'" style="bottom:100px; left:50px"><img src="ui/icon-night.png"></div>
+        <div class="ui absolute" style="top: 150px;right:50px;">
             <span>Press <div class="ui keyPrompt">F</div> to plant a tree </span>
             <span>Press <div class="ui keyPrompt">G</div> to plant a POWER POLE??? </span>
             <span>
@@ -22,12 +21,22 @@
             <span>Press <div class="ui keyPrompt">Alt</div>+<div class="ui keyPrompt">F4</div> to è͏̶̴̨̡͏̛͢n̴̢͘͠͏̷̢̕͘d̕͏̶̵̛́͟͢͝ ͜͟͞҉̢̨̢͠͠t̴̴̡̨͘͜͠͠͡h̀͏̵̢̀̀͘͜͜í̧̢͘͜͟͟͡͡s̶̢̀́҉̡̧̀͞
                 ̢̡̕͘͟͟͠͞͠p̀̀̕͘͞҉̶̧̡ŕ̴̵̨͘̕͘͘͠ò̵̡҉͏̛̀̕͘c̵̷͠҉̢̀̕͜͡ę̸̴̛́́͘͟͞ś̴̴̨̡̛̛͞͠s̡͜҉̵̧̡̀͢͝ </span>
         </div>
-        <div class="ui absolute" style="bottom:100px; left:250px">
+        <div class="ui absolute" style="top: 50px;right:50px;">
             <span>DO NOT press <div class="ui keyPrompt">R</div> or <div class="ui keyPrompt">E</div> it will break your game
             </span>
         </div>
-        <div id="dialogContainer" class="ui dialogContainer centerX absolute">
-            <div id="messagesContainer"></div>
+        <div id="conversationWrapper" class="centerX absolute ui hidden">
+            <div class="profileIcon hidden">
+                <img src="characters/director.png">
+                <div class="ui">Generální tajemník Linkin</div>
+            </div>
+            <div id="dialogContainer" class="dialogContainer">
+                <div id="messagesContainer"></div>
+            </div>
+            <div class="profileIcon playerIcon hidden">
+                <img src="characters/player.png">
+                <div class="ui">Player</div>
+            </div>
         </div>
         <script src="bundle.js"></script>
 </body>

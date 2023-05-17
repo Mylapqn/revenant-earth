@@ -61,6 +61,6 @@ void main(void) {
     vec2 normal = edgeNormalAtPos(sourceColor);
     vec2 sunHeading = normalize(uLightPos - vTextureCoord);
     float sunLight = (clamp(threshold(edge, .2) * map(dot(sunHeading, normal), .1, 1., 0., 1.), 0., 1.));
-    color = vec4(vec3(sourceColor.rgb + (sunLight * uColor.rgb * uIntensity + lightMap.rgb * edge * 2.) * uAlpha * sourceColor.a), sourceColor.a);
+    color = vec4(vec3(sourceColor.rgb + (sunLight * uColor.rgb * uIntensity + lightMap.rgb * edge * .5) * uAlpha * sourceColor.a), sourceColor.a);
     //color = vec4(length(sunHeading),0.,0.,1.);
 }
