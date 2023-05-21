@@ -10,7 +10,7 @@
 
 @font-face {
     font-family: "monogram";
-    src: url(monogram-extended.ttf);
+    src: url("../monogram-extended.ttf");
 }
 
 body {
