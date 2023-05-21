@@ -280,7 +280,7 @@ export function initGame() {
     DebugDraw.graphics.addChild(Shadowmap.graphic);
 
     ticker.add((delta) => {
-        if (terrainScore < 80 && tps < 120 && (1000 / Math.max(...dtAvg))  > 50) {
+        if (terrainScore < 80 && tps / tpsMeter < 0.12 && (1000 / Math.max(...dtAvg)) > 50) {
             terrainUpdate();
         }
 
