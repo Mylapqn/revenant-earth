@@ -1,6 +1,6 @@
 
 import { AnimatedSprite, Sprite } from "pixi.js";
-import { debugPrint, worldToScreen } from "../..";
+import { debugPrint, worldToScreen } from "../../game";
 import { Camera } from "../../camera";
 import { Entity } from "../../entity";
 import { lookup, Terrain, terrainType } from "../../terrain";

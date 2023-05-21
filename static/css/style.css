@@ -1,0 +1,53 @@
+:root {
+    --borderWidth: 4px;
+    --outline-color-inactive: #ffffff1a;
+    --outline-color-active: #ffffff81;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+@font-face {
+    font-family: "monogram";
+    src: url(monogram-extended.ttf);
+}
+
+body {
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    background: #000;
+    background: linear-gradient(#3571b1 0%, #6f8eba 60%, #99a4a6);
+    width: 100vw;
+    height: 100vh;
+}
+
+canvas {
+    height: 100vh;
+    image-rendering: pixelated;
+    scale: 100%;
+    transition: scale 2s;
+}
+
+.absolute {
+    position: absolute;
+}
+
+.centerX {
+    position: absolute;
+    left: 50%;
+    right: unset;
+    transform: translateX(-50%);
+}
+
+.centerY {
+    position: absolute;
+    top: 50%;
+    bottom: unset;
+    transform: translateY(-50%);
+}
+
+.centerX.centerY {
+    transform: translate(-50%, -50%);
+}

@@ -1,5 +1,5 @@
 import { Container, Sprite } from "pixi.js";
-import { screenToWorld, mouse, player, terrainTick } from "../..";
+import { screenToWorld, mouse, player, terrainTick } from "../../game";
 import { Camera } from "../../camera";
 import { Entity } from "../../entity";
 import { Terrain, terrainType } from "../../terrain";

@@ -5,7 +5,7 @@ import { Assets, Container, DisplayObject } from 'pixi.js';
 import { Color } from '../../color';
 import { Atmosphere } from '../../atmosphere';
 import { Camera } from '../../camera';
-import { mouse, player, terrainTick, worldToScreen } from '../..';
+import { mouse, player, terrainTick, worldToScreen } from '../../game';
 import { Vector } from '../../vector';
 import { Light, Lightmap } from './light';
 

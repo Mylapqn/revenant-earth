@@ -1,5 +1,5 @@
 import * as PIXI from "pixi.js"
-import { app } from ".";
+import { app } from "./game";
 import { Vector } from "./vector";
 import { Terrain, TerrainManager, lookup, terrainProperties, terrainType } from "./terrain";
 import { Color } from "./color";

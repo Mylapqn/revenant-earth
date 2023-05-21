@@ -4,7 +4,7 @@ import { Vector } from "../../../vector";
 import { Root } from "./root";
 import { Branch } from "./branch";
 import { random } from "../../../utils";
-import { debugPrint } from "../../..";
+import { debugPrint } from "../../../game";
 import { coniferousSettings, defaultTreeSettings, TreeSettings } from "./treeSettings";
 import { GuiButton, GuiLabel, GuiTooltip } from "../../../gui/gui";
 import { OutlineFilter } from "@pixi/filter-outline";
@@ -29,7 +29,7 @@ export class Seed extends Entity {
         this.hoverable = true;
         this.settings = settings;
         this.label = new GuiLabel(position.result().add(new Vector(0, 20)), settings.name);
-        new GuiButton(new Vector(100, 100), "remobe 💀", () => { this.remove(); }, this.label);
+        new GuiButton({ content: "remobe 💀", callback: () => { this.remove(); }, parent: this.label });
         this.culling = true;
     }
 

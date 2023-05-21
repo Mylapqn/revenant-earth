@@ -1,0 +1,178 @@
+#guiContainer {
+    position: absolute;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    font-family: 'Bahnschrift';
+    color: white;
+    z-index: 1;
+    background-size: cover;
+    background-position-x: center;
+    image-rendering: pixelated;
+}
+
+#guiContainer.mainMenu {
+    background-image: url("../mainmenu2.png");
+}
+
+.mainMenu .ui {
+    background-color: #8e1d12ab;
+}
+
+.gameTitle {
+    font-weight: 400;
+    text-transform: uppercase;
+    font-size: 6vw;
+    letter-spacing: .2em;
+    text-align: center;
+    margin: 0;
+    width: 100vw;
+    color:#B93816;
+}
+
+.ui {
+    user-select: none;
+    background-color: #00000062;
+    padding: 20px;
+    backdrop-filter: blur(50px);
+    transition: transform .1s, outline .1s;
+    color: white;
+    font-family: 'Bahnschrift';
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    flex-direction: column;
+    border-radius: 5px;
+    z-index: 1;
+}
+
+
+
+.ui .ui {
+    backdrop-filter: none;
+}
+
+.ui.blank {
+    border-radius: initial;
+    transition: initial;
+    padding: 0;
+    background: none;
+    backdrop-filter: none;
+}
+
+.ui.fill {
+    width: 100%;
+    height: 100%;
+}
+
+.tooltip {
+    outline: none;
+}
+
+.label {
+    z-index: 0;
+    right: unset;
+    transform: translateX(-50%);
+}
+
+.label::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    width: var(--borderWidth);
+    height: 50px;
+    top: -50px;
+    background-color: white;
+}
+
+.keyPrompt {
+    display: inline-block;
+    /*
+    outline: calc(var(--borderWidth)*.75) solid rgb(255, 255, 255);
+    */
+
+    background: white;
+    color: black;
+
+    padding: 5px;
+    margin: 0px 2px;
+    text-transform: uppercase;
+    min-width: 29px;
+    text-align: center;
+}
+
+.button {
+    /* display: block; */
+    cursor: pointer;
+    flex-grow: 0;
+    width: fit-content;
+    outline: var(--borderWidth) solid var(--outline-color-inactive);
+}
+
+.button.img {
+    padding: 5px;
+    height: fit-content;
+}
+
+.button.img>img {
+    height: 3em;
+}
+
+.button:hover {
+    background-color: #49494984;
+    outline: var(--borderWidth) solid var(--outline-color-active);
+    /* outline-offset: var(--borderWidth); */
+    transform: scale(1.06);
+}
+
+.splash {
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 6em;
+    animation: splash 7s;
+    animation-fill-mode: both;
+    animation-timing-function: linear;
+    letter-spacing: .1em;
+    font-weight: 100;
+    flex-direction: column;
+}
+
+.splash::after {
+    content: "new biome discovered";
+    font-size: .4em;
+    display: block;
+    letter-spacing: 0;
+}
+
+@keyframes splash {
+    from {
+        opacity: 0;
+        letter-spacing: .0em;
+    }
+
+    20% {
+        opacity: 1;
+    }
+
+    80% {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+        letter-spacing: .05em;
+    }
+}

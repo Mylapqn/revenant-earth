@@ -4,7 +4,7 @@ import { Color } from "../../color";
 import { Entity } from "../../entity";
 import { Vector } from "../../vector";
 import { Camera } from "../../camera";
-import { app, worldToScreen } from "../..";
+import { app, worldToScreen } from "../../game";
 import { PixelDrawer } from "../../pixelDrawer";
 import { clamp } from "../../utils";
 import { Atmosphere } from "../../atmosphere";

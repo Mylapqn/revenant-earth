@@ -4,7 +4,7 @@ import type { FilterSystem, RenderTexture, CLEAR_MODES } from '@pixi/core';
 import { Assets, Color } from 'pixi.js';
 import { Atmosphere } from '../../atmosphere';
 import { Camera } from '../../camera';
-import { mouse } from '../..';
+import { mouse } from '../../game';
 
 let fragment: string = fs.readFileSync(__dirname + '/sky.frag', 'utf8');
 

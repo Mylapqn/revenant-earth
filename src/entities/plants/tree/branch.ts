@@ -1,5 +1,5 @@
 import { Graphics, Rectangle } from "pixi.js";
-import { debugPrint } from "../../..";
+import { debugPrint } from "../../../game";
 import { Color } from "../../../color";
 import { Entity } from "../../../entity";
 import { angleDiff, random, randomBool, randomInt } from "../../../utils";

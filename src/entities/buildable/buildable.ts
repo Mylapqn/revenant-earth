@@ -1,7 +1,7 @@
 import { BLEND_MODES, Container, DisplayObject, Sprite } from "pixi.js";
 import { Entity } from "../../entity";
 import { Vector } from "../../vector";
-import { mouse, player, preferences, screenToWorld } from "../..";
+import { mouse, player, preferences, screenToWorld } from "../../game";
 import { Terrain, terrainType } from "../../terrain";
 import { Camera } from "../../camera";
 import { GuiTooltip } from "../../gui/gui";

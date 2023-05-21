@@ -1,0 +1,167 @@
+
+.profileIcon {
+    flex-shrink: 0;
+    flex-grow: 0;
+    width: 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    transition: margin 1s;
+}
+
+.profileIcon.hidden {
+    margin-left: -220px;
+}
+
+.profileIcon.playerIcon.hidden {
+    margin-left: 0;
+    margin-right: -220px;
+}
+
+.profileIcon>img {
+    width: 100%;
+    image-rendering: pixelated;
+    background: #A3CAF9;
+    background: none;
+    border-radius: 5px;
+}
+
+.profileIcon:last-of-type>img {
+    transform: scaleX(-1);
+}
+
+
+.profileIcon>div {
+    height: 80px;
+    text-align: center;
+}
+
+#conversationWrapper {
+    font-size: 1.2em;
+    z-index: 2;
+    max-width: 80vw;
+    width: 1200px;
+    height: 320px;
+    overflow: hidden;
+    bottom: 20px;
+    /* height: fit-content;
+    max-height: calc(100% - 100px); */
+    display: flex;
+    justify-content: left;
+    align-items: end;
+    flex-direction: row;
+    scrollbar-width: none;
+    pointer-events: all;
+    transition: bottom 1s cubic-bezier(.2, 0, 0, 1);
+}
+
+#conversationWrapper.hidden {
+    transition: bottom 1s cubic-bezier(1, 0, .8, 1);
+    bottom: -340px;
+}
+
+#dialogContainer {
+    flex-shrink: 1;
+    flex-grow: 1;
+    min-height: 100px;
+    align-self: stretch;
+    /* height: fit-content;
+    max-height: calc(100% - 100px); */
+    display: block;
+    justify-content: end;
+    flex-direction: column;
+    overflow-y: auto;
+    scrollbar-width: none;
+    pointer-events: all;
+    padding: 20px;
+    /* border-bottom: var(--borderWidth) solid white; */
+    /* background: rgba(0, 0, 0, 0.344); */
+}
+
+#dialogContainer::-webkit-scrollbar {
+    width: 0;
+    /*sposition: relative;
+    sbackground: transparent;*/
+}
+
+#messagesContainer {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 80vw;
+    display: flex;
+    flex-direction: column;
+    justify-content: end;
+    gap: 20px;
+    height: fit-content;
+    min-height: 400px;
+    bottom: 0;
+}
+
+.dialogBox {
+    line-height: 1.3em;
+    bottom: 100px;
+    max-width: calc(100% - 40px);
+    height: fit-content;
+    text-align: center;
+    display: block;
+    animation: dialogAppear .3s linear both;
+    align-self: center;
+}
+
+@keyframes dialogAppear {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.dialogLeft {
+    align-self: flex-start;
+    border-left: var(--borderWidth) solid white;
+    text-align: left;
+}
+
+.dialogRight {
+    align-self: flex-end;
+    border-right: var(--borderWidth) solid rgb(244, 109, 233);
+    text-align: right;
+}
+
+.dialogLeft,
+.dialogRight {
+    width: fit-content;
+}
+
+.dialogChoiceWrapper {
+    align-self: flex-end;
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    border-radius: 15px;
+    background-color: rgba(255, 255, 255, 0.069);
+}
+
+.dialogChoice {
+    display: inline-block;
+    background: #00000073;
+    animation: pulse .5s cubic-bezier(0.41, 0, 0.14, 1) infinite alternate;
+}
+
+.dialogChoice:hover {
+    animation: none;
+}
+
+@keyframes pulse {
+    from {
+        outline-offset: 0px;
+        outline-color: var(--outline-color-active);
+    }
+
+    to {
+        outline-offset: var(--borderWidth);
+        outline-color: var(--outline-color-inactive);
+    }
+}

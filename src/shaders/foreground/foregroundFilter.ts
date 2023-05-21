@@ -1,7 +1,7 @@
 const fs = require("fs");
 import { Filter, utils } from '@pixi/core';
 import type { FilterSystem, RenderTexture, CLEAR_MODES } from '@pixi/core';
-import { player, worldToScreen } from '../..';
+import { player, worldToScreen } from '../../game';
 import { Camera } from '../../camera';
 import { Atmosphere } from '../../atmosphere';
 

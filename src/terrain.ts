@@ -1,5 +1,5 @@
 import { log } from "console";
-import { DebugMode, debugPrint, preferences, terrainTick } from ".";
+import { DebugMode, debugPrint, preferences, terrainTick } from "./game";
 import { Camera } from "./camera";
 import { PixelDrawer } from "./pixelDrawer";
 import { indexSplit, noise, random, randomBool, randomInt } from "./utils";

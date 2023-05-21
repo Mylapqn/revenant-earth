@@ -4,7 +4,7 @@ import type { FilterSystem, RenderTexture, CLEAR_MODES } from '@pixi/core';
 import { Assets, Color } from 'pixi.js';
 import { Atmosphere } from '../../atmosphere';
 import { Camera } from '../../camera';
-import { mouse } from '../..';
+import { mouse } from '../../game';
 import { Light, Lightmap } from '../lighting/light';
 
 let vertex: string = fs.readFileSync(__dirname + '/highlight.vert', 'utf8');

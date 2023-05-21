@@ -1,5 +1,5 @@
 import { Container, Sprite } from "pixi.js";
-import { debugPrint } from "../../..";
+import { debugPrint } from "../../../game";
 import { Camera } from "../../../camera";
 import { Entity } from "../../../entity";
 import { Terrain, terrainType } from "../../../terrain";

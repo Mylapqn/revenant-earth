@@ -1,5 +1,5 @@
 import { removeAllListeners } from "process";
-import { mouse, worldToScreen } from "..";
+import { mouse, worldToScreen } from "../game";
 import { clamp } from "../utils";
 import { Vector } from "../vector";
 
@@ -33,41 +33,59 @@ export class GUI {
 }
 
 interface GuiElementOptions {
-    position?: Vector,
     parent?: GuiElement,
-    centerX?: boolean,
-    centerY?: boolean,
     content?: string,
+    blankStyle?: boolean,
+    fillContainer?: boolean
 }
 
-export class GuiElement {
-    position: Vector;
+interface PositionableGuiElementOptions extends GuiElementOptions {
+    position?: Vector,
+    centerX?: boolean,
+    centerY?: boolean,
+}
+
+interface GuiPanelOptions extends GuiElementOptions {
+    flexDirection?: "row" | "column";
+}
+
+interface GuiButtonOptions extends PositionableGuiElementOptions {
+    callback: () => void
+}
+
+export class BaseGuiElement {
+    element: HTMLElement;
+    constructor(type: keyof HTMLElementTagNameMap, ...classes: string[]) {
+        this.element = document.createElement(type);
+        for (const c of classes) {
+            this.element.classList.add(c);
+        }
+    }
+}
+
+export class CustomGuiElement extends BaseGuiElement {
+    constructor(type: keyof HTMLElementTagNameMap, content = "none", ...classes: string[]) {
+        super(type, ...classes)
+        this.element.innerText = content;
+    }
+}
+
+class GuiElement extends BaseGuiElement {
     element: HTMLElement;
     moving = false;
     removed = false;
     constructor(options: GuiElementOptions) {
-        this.element = document.createElement("div");
+        super("div", "ui");
         GUI.container.appendChild(this.element);
-        this.element.classList.add("ui");
+        if (options.blankStyle)
+            this.element.classList.add("blank");
+        if (options.fillContainer)
+            this.element.classList.add("fill");
         this.content = options.content ?? "";
         GuiElement.list.push(this);
         if (options.parent) {
             options.parent.addChild(this);
         }
-        else {
-            this.position = options.position;
-            this.element.addEventListener("mouseenter", (e) => { mouse.gui++; });
-            this.element.addEventListener("mouseleave", (e) => { mouse.gui = 0; });
-            this.element.classList.add("absolute");
-            if (options.centerX) this.element.classList.add("centerX");
-            else if (options.position) this.element.style.left = this.position.x + "px";
-            if (options.centerY) this.element.classList.add("centerY");
-            else if (options.position) this.element.style.top = this.position.y + "px";
-        }
-    }
-    update() {
-        this.element.style.left = this.position.x + "px";
-        this.element.style.top = this.position.y + "px";
     }
     remove() {
         if (this.removed) return;
@@ -76,11 +94,17 @@ export class GuiElement {
         //GUI.container.removeChild(this.element);
         GuiElement.list.splice(GuiElement.list.indexOf(this), 1);
     }
-    private addChild(child: GuiElement) {
-        this.element.appendChild(child.element);
-        child.element.classList.remove("absolute");
+    update() {
+
     }
-    private removeChild(child: GuiElement) {
+    addChild(...children: BaseGuiElement[]) {
+        for (const child of children) {
+            this.element.appendChild(child.element);
+            child.element.classList.remove("absolute");
+        }
+        return this;
+    }
+    removeChild(child: BaseGuiElement) {
         this.element.removeChild(child.element);
     }
     private _content = "text";
@@ -95,13 +119,41 @@ export class GuiElement {
     static list: GuiElement[] = [];
 }
 
+export class PositionableGuiElement extends GuiElement {
+    position: Vector;
+
+    constructor(options: PositionableGuiElementOptions) {
+        super(options);
+        if (!options.parent) {
+            this.position = options.position;
+            this.element.addEventListener("mouseenter", (e) => { mouse.gui++; });
+            this.element.addEventListener("mouseleave", (e) => { mouse.gui = 0; });
+            this.element.classList.add("absolute");
+            if (options.centerX) this.element.classList.add("centerX");
+            else if (options.position) this.element.style.left = this.position.x + "px";
+            if (options.centerY) this.element.classList.add("centerY");
+            else if (options.position) this.element.style.top = this.position.y + "px";
+        }
+    }
+    update() {
+        this.element.style.left = this.position.x + "px";
+        this.element.style.top = this.position.y + "px";
+    }
+}
+
+export class GuiPanel extends GuiElement {
+    constructor(options: GuiPanelOptions) {
+        super(options);
+        this.element.style.flexDirection = options.flexDirection ?? "row";
+    }
+}
+
 export class DialogBox extends GuiElement {
     static container = document.getElementById("messagesContainer");
     static wrapper = document.getElementById("dialogContainer");
     static conversationElement = document.getElementById("conversationWrapper");
     constructor(content = "none", speaker = 0) {
         super({ content });
-        this.element.classList.remove("absolute");
         this.element.classList.add("dialogBox");
         if (speaker == 1) this.element.classList.add("dialogLeft");
         else if (speaker == 2) this.element.classList.add("dialogRight");
@@ -150,7 +202,7 @@ export class DialogChoices {
     }
 }
 
-export class GuiLabel extends GuiElement {
+export class GuiLabel extends PositionableGuiElement {
     worldPosition: Vector;
     moving = true;
     lastOpacity = 0;
@@ -174,23 +226,23 @@ export class GuiLabel extends GuiElement {
     }
 }
 
-export class GuiTooltip extends GuiElement {
+export class GuiTooltip extends PositionableGuiElement {
     moving = true;
     constructor(content = "none") {
         super({ position: new Vector(0, 0), content: content });
         this.element.classList.add("tooltip");
     }
     update(): void {
-        this.position = new Vector(mouse.x+10, mouse.y+10);
+        this.position = new Vector(mouse.x + 10, mouse.y + 10);
         super.update();
     }
 }
 
-export class GuiButton extends GuiElement {
-    constructor(position?: Vector, content = "none", callback = () => { }, parent: GuiElement = null) {
-        super({ position, content, parent });
+export class GuiButton extends PositionableGuiElement {
+    constructor(options: GuiButtonOptions) {
+        super(options);
         this.element.classList.add("button");
-        this.element.onclick = callback;
+        this.element.onclick = options.callback;
     }
 }
 

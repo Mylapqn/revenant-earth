@@ -1,4 +1,4 @@
-import { app } from ".";
+import { app } from "./game";
 import { Camera } from "./camera";
 import { DialogBox, DialogChoices } from "./gui/gui";
 
@@ -100,8 +100,8 @@ export class TopNode extends DialogueNode {
     }
     execute(): void {
         app.view.style.scale="200%";
-        DialogBox.conversationElement.classList.remove("hidden");
         Camera.yOffset = 10;
+        DialogBox.conversationElement.classList.remove("hidden");
         super.execute();
     }
 }

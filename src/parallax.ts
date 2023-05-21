@@ -7,7 +7,7 @@ import { LightingFilter } from "./shaders/lighting/lightingFilter";
 import { HighlightFilter } from "./shaders/outline/highlightFilter";
 import { Terrain } from "./terrain";
 import { Vector } from "./vector";
-import { onResize } from ".";
+import { onResize } from "./game";
 import { Color } from "./color";
 import { clamp } from "./utils";
 

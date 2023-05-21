@@ -2,7 +2,7 @@
 const fs = require("fs");
 import { DRAW_MODES, FORMATS, Filter, Geometry, Mesh, RenderTexture, Shader, Sprite, TYPES, Texture } from "pixi.js";
 import { Camera } from "./camera";
-import { background, terrainTick } from ".";
+import { background, terrainTick } from "./game";
 import { Atmosphere } from "./atmosphere";
 import { Light, Lightmap } from "./shaders/lighting/light";
 import { Color } from "./color";
