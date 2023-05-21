@@ -114,8 +114,12 @@ let terrainScore = 100;
 
 export const mouse = { x: .5, y: .5, pressed: 0, gui: 0 };
 
-function infiniteLoop() {
-    setTimeout(infiniteLoop, 7);
+function terrainUpdateCycle() {
+    setTimeout(terrainUpdateCycle, 7);
+    terrainUpdate();
+}
+
+function terrainUpdate(){
     Terrain.update(terrainTick);
     terrainScore++;
     terrainTick++;
@@ -277,8 +281,9 @@ export function initGame() {
 
     ticker.add((delta) => {
         if (terrainScore < 80) {
-            return;
+            terrainUpdate();
         }
+        
         app.renderer.render(bg, { renderTexture: background });
         app.renderer.render(ParallaxDrawer.container, { renderTexture: background, clear: false });
         app.renderer.render(Entity.graphic, { renderTexture: background, clear: false });
@@ -483,7 +488,7 @@ export function initGame() {
     window.addEventListener("mousemove", (e) => { mouse.x = e.clientX; mouse.y = e.clientY });
 
     ticker.start();
-    infiniteLoop();
+    terrainUpdateCycle();
 }
 
 export function screenToWorld(vector: { x: number, y: number }) {
