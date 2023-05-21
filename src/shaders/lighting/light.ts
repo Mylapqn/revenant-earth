@@ -7,16 +7,18 @@ import { Camera } from "../../camera";
 import { app, worldToScreen } from "../..";
 import { PixelDrawer } from "../../pixelDrawer";
 import { clamp } from "../../utils";
+import { Atmosphere } from "../../atmosphere";
 
 export class Light {
     static maxAmount = 16;
-    _position = new Vector();
+    private _position = new Vector();
     width = 1;
-    _angle: number;
+    private _angle: number;
     range = 100;
     color = new Color(255, 100, 255);
     parent: Entity;
-    constructor(parent: Entity = null, position: Vector, angle = 0, width = 1, color = new Color(255, 255, 255), range = 100) {
+    private _intensity = 1;
+    constructor(parent: Entity = null, position: Vector, angle = 0, width = 1, color = new Color(255, 255, 255), range = 100, intensity = 1) {
 
         this._position = position;
         this._angle = angle;
@@ -24,6 +26,7 @@ export class Light {
         this.range = range;
         this.color = color.copy();
         this.parent = parent;
+        this._intensity = intensity;
         console.log(this);
         Light.list.push(this);
     }
@@ -42,6 +45,15 @@ export class Light {
     }
     public set position(position) {
         this._position = position;
+    }
+    public set intensity(intensity) {
+        this._intensity = intensity;
+    }
+    public get intensity() {
+        let a = Atmosphere.settings.ambientLight
+        let ambientIntensity = (a.r + a.g + a.b) / 765;
+
+        return this._intensity * clamp(1 - ambientIntensity,.1,1);
     }
 
     static list: Light[] = [];
@@ -71,7 +83,7 @@ export class Lightmap {
             //this.uniforms.uLights[i] = {position:[screenPos.x / window.innerWidth, screenPos.y / window.innerHeight]};
             (this.uniforms as any)[`uLights[${i}].position`] = [.5, .5];
             (this.uniforms as any)[`uLights[${i}].color`] = [1, 1, 1];
-            for (const prop of ["angle", "range", "width"]) {
+            for (const prop of ["angle", "range", "width", "intensity"]) {
                 (this.uniforms as any)[`uLights[${i}].${prop}`] = .1;
             }
         }
@@ -85,7 +97,7 @@ export class Lightmap {
             [0, 0, 1, 0, 1, 1, 0, 1], // x, y 
             2)
         this.graphic = new Mesh(geometry, material) as any;
-        
+
     }
 
     static update() {
@@ -100,7 +112,7 @@ export class Lightmap {
             //this.uniforms.uLights[i] = {position:[screenPos.x / window.innerWidth, screenPos.y / window.innerHeight]};
             (this.uniforms as any)[`uLights[${i}].position`] = [screenPos.x / window.innerWidth, screenPos.y / window.innerHeight];
             (this.uniforms as any)[`uLights[${i}].color`] = [light.color.r / 255, light.color.g / 255, light.color.b / 255];
-            for (const prop of ["angle", "range", "width"]) {
+            for (const prop of ["angle", "range", "width", "intensity"]) {
                 (this.uniforms as any)[`uLights[${i}].${prop}`] = light[prop as keyof Light];
             }
         }
@@ -134,7 +146,7 @@ export class Shadowmap {
             //this.uniforms.uLights[i] = {position:[screenPos.x / window.innerWidth, screenPos.y / window.innerHeight]};
             (this.uniforms as any)[`uLights[${i}].position`] = [.5, .5];
             (this.uniforms as any)[`uLights[${i}].color`] = [1, 1, 1];
-            for (const prop of ["angle", "range", "width"]) {
+            for (const prop of ["angle", "range", "width", "intensity"]) {
                 (this.uniforms as any)[`uLights[${i}].${prop}`] = .1;
             }
         }
@@ -162,7 +174,7 @@ export class Shadowmap {
             //this.uniforms.uLights[i] = {position:[screenPos.x / window.innerWidth, screenPos.y / window.innerHeight]};
             (this.uniforms as any)[`uLights[${i}].position`] = [screenPos.x / window.innerWidth, screenPos.y / window.innerHeight];
             (this.uniforms as any)[`uLights[${i}].color`] = [light.color.r / 255, light.color.g / 255, light.color.b / 255];
-            for (const prop of ["angle", "range", "width"]) {
+            for (const prop of ["angle", "range", "width", "intensity"]) {
                 (this.uniforms as any)[`uLights[${i}].${prop}`] = light[prop as keyof Light];
             }
         }

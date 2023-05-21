@@ -21,8 +21,8 @@ export class ParallaxDrawer {
     static update() {
         for (let i = 0; i < this.layers.length; i++) {
             const layer = this.layers[i];
-            let camPos = Camera.position.result().add(new Vector(Camera.width / 2, (layer.depth<=1)?-450:-530)).mult(-1 * layer.depth);
-            layer.sprite.position.set(Math.floor(Camera.width / 2 + camPos.x), Math.floor(-camPos.y));
+            let camPos = Camera.position.result().add(new Vector(Camera.width / 2, (layer.depth<=1)?-495:-530)).mult(-1 * layer.depth);
+            layer.sprite.position.set(Math.floor(Camera.width / 2 + camPos.x), Math.floor(-camPos.y)+50);
         }
     }
     static addLayer(sprite: Container | string, depth: number) {

@@ -17,6 +17,7 @@ struct Light {
     float angle;
     float width;
     float range;
+    float intensity;
     vec3 color;
 };
 uniform Light[maxLightAmount] uLights;

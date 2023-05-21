@@ -23,7 +23,7 @@ export class Drone extends Entity implements IFlyingPatrolRobot {
         const graph = Sprite.from("https://cdn.discordapp.com/attachments/767355244111331338/1107461643039936603/robo.png");
         graph.anchor.set(0.5);
         super(graph, position, parent, angle);
-        new Light(this, new Vector(0, 0), Math.PI + .2, .3, new Color(230, 40, 80), 200);
+        new Light(this, new Vector(0, 0), Math.PI + .2, .2, new Color(230, 40, 60), 300,5);
         this.patrolPoints = [position.result(), new Vector(3000, 600), new Vector(2750, 650)]
         this.task = droneTask;
         this.queueUpdate();

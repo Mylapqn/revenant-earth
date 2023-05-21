@@ -5,4 +5,5 @@ export class Camera {
     static width = 512;
     static height = 256;
     static aspectRatio = 1;
+    static yOffset = 50;
 }

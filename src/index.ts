@@ -201,7 +201,7 @@ foredrop.placeSprite(2500, 0, (Sprite.from("FG/urban1.png")), false, 512);
 foredrop.placeSprite(2200, 0, (Sprite.from("FG/urban2.png")), false, 512);
 foredrop.placeSprite(2300, 0, (Sprite.from("FG/urban3.png")), false, 200);
 
-new Light(player, new Vector(0, 25), Math.PI + .2, 1.2, undefined, 300);
+
 
 //new Robot(new Vector(2500, 600), undefined, 0);
 
@@ -288,7 +288,7 @@ ticker.add((delta) => {
     let sunHor = 1 - Math.abs(Vector.fromAngle(Atmosphere.settings.sunAngle).y);
     Atmosphere.settings.ambientLight = Color.fromHsl(lerp(10, 20, clamp(sunFac * 5)), clamp(.8 - sunFac), clamp(sunFac + .5));
     Atmosphere.settings.ambientLight = Atmosphere.settings.ambientLight.add(Color.fromHsl(lerp(280, 230, clamp(-sunFac / 2)), clamp(-sunFac + .3) * .6, Math.max(.1, (clamp(-sunFac + .3) * .3))))
-    Atmosphere.settings.sunIntensity = clamp(clamp(sunFac + .8) * Math.max(.4, sunHor * 2))
+    Atmosphere.settings.sunIntensity = clamp(clamp(sunFac + .8) * Math.max(.4, sunHor * 2));
     printText = ""
     if (key["arrowleft"]) Camera.position.x -= camspeed;
     if (key["arrowright"]) Camera.position.x += camspeed;
@@ -436,9 +436,9 @@ let questNode3 = new TopNode("Měl bych pro vás takový quest.").chain("Potřeb
     new TopNode("Nechci plantit stromy.", 2).reply("S okamžitou platností jste vyhozen z UNERA.").chain("Player byl vyhozen z UNERA.", 0).finish()
 ]);
 
-let firstNode: TopNode = new TopNode("Dobrý den!").chain("Já jsem generální tajemník Linkin a mým úkolem je dávat vám úkoly. Doufám, že naše spolupráce bude fungovat dobře a bez problému. Mám opravdu rád stromy takže vám budu dávat hodně úkolů abyste vyplantili stromy.").chain("Jak se máte?").choice([
-    new TopNode("Dobře", 2).reply("To rád slyším.").chainNode(questNode1).finish(),
-    new TopNode("Mám hlad", 2).reply("Máš hlad? Měl bys jít jíst. Pomůže to. Věř mi. Už jsem taky měl hlad, a zkusil jsem jít jíst, a fakt to pomohlo, nemůžu to víc doporučit.").reply("Nice").reply("Ok, teď jdi fakt jíst.").choice([
+let firstNode: TopNode = new TopNode("Hello, agent!").chain("I am the Secretary General of UNERA and I'm going to be your main contact throughout this mission. I hope our cooperation will be fruitful.").chain("How is it looking down there?").choice([
+    new TopNode("No life in sight.", 2).reply("The landing has been a little... rough.").chainNode(questNode1).finish(),
+    new TopNode("The landing has been a little... rough.", 2).reply("Máš hlad? Měl bys jít jíst. Pomůže to. Věř mi. Už jsem taky měl hlad, a zkusil jsem jít jíst, a fakt to pomohlo, nemůžu to víc doporučit.").reply("Nice").reply("Ok, teď jdi fakt jíst.").choice([
         new TopNode("Jdu jíst.", 2).reply("Skvělé!").chainNode(questNode2).finish(),
         new TopNode("Nemám hlad.", 2).reply("Takže mi lžeš?").reply("Uhhh...").chain("Možná?").reply("Anyway...").chainNode(questNode3).finish(),
     ])
@@ -460,8 +460,8 @@ GUI.init();
 let mainBar = new GuiElement({ position: new Vector(50, 50) })
 mainBar.element.style.flexDirection = "row";
 new GuiButton(null, "Talk", () => { firstNode.execute(); }, mainBar)
-new GuiButton(new Vector(50, 50), "/time set day", () => { Atmosphere.settings.sunAngle = -2 }, mainBar)
-new GuiButton(new Vector(200, 50), "/time set night", () => { Atmosphere.settings.sunAngle = 1 }, mainBar)
+new GuiButton(new Vector(50, 50), "Inventory", () => { Atmosphere.settings.sunAngle = -2 }, mainBar)
+new GuiButton(new Vector(200, 50), "Atmosphere status", () => { Atmosphere.settings.sunAngle = 1 }, mainBar)
 
 const key: Record<string, boolean> = {};
 export const mouse = { x: .5, y: .5, pressed: 0, gui: 0 };

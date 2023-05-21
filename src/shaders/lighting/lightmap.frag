@@ -5,7 +5,7 @@ precision mediump float;
 const int maxLightAmount = 16;
 const int angleRes = 512;
 
-const float shadowStrength = .8;
+const float shadowStrength = .85;
 
 uniform int lightAmount;
 
@@ -22,6 +22,7 @@ struct Light {
     float angle;
     float width;
     float range;
+    float intensity;
     vec3 color;
 };
 uniform Light[maxLightAmount] uLights;
@@ -77,7 +78,7 @@ void main(void) {
         float angleOffset = (acos(clamp(dot(normalize(off), (targetDir)), -1., 1.)));
         float angularFalloff = nClamp(smoothstep(l.width, -l.width, angleOffset));
 
-        vec3 addition = distanceFalloff * angularFalloff * l.color * 6.;
+        vec3 addition = distanceFalloff * angularFalloff * l.color * l.intensity *4.;
         addition *= 1. - nClamp((dis - shadowDist) * .1 * l.range) * shadowStrength;
 
         lightMap += addition;

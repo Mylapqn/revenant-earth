@@ -147,7 +147,7 @@ void preMain(void) {
                 if(r == 0) {
                     vec3 lightmapReflect = texture(uLightmap, reflectionUv).rgb;
                     color = mix(color, renderTexture(reflectionUv), .9);
-                    color += vec4(vec3(1., .8, .6) * (posterise(clamp(sunStrength, 0., .5) * 2. * pow(1. - abs(sunPos.x - vTextureCoord.x + waves * .04), 40.), 5.) + .02), 1.);
+                    color += vec4(vec3(1., .8, .6) * (posterise(clamp(sunStrength, 0., .5) * 2. * (pow(1. - abs(sunPos.x - vTextureCoord.x + waves * .04), 40.) + .02), 5.)), 1.);
                     color += vec4(lightmapReflect * .2, .0);
                     return;
                 }
@@ -165,7 +165,7 @@ void preMain(void) {
     color *= vec4(ambient * .5 + lightmap, 1.);
 }
 
-void main(){
+void main() {
     preMain();
-    color = vec4(tonemap(color.rgb),color.a);
+    color = vec4(tonemap(color.rgb), color.a);
 }

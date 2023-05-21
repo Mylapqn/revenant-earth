@@ -7,6 +7,8 @@ import { lookup, Terrain, terrainType } from "../../terrain";
 import { random } from "../../utils";
 import { Vector } from "../../vector";
 import { Cloud } from "../passive/cloud";
+import { Color } from "../../color";
+import { Light } from "../../shaders/lighting/light";
 
 const playerSprites = {
     stand: AnimatedSprite.fromFrames(["player.png"]),
@@ -42,6 +44,7 @@ export class Player extends Entity {
     step = 0;
     screenCenterNorm = new Vector();
     screenDimensionsNorm = new Vector();
+    light = new Light(this, new Vector(0, 25), Math.PI + .2, 1.2, new Color(150, 255, 255), 300,3);
 
     constructor(position: Vector) {
         const graph = new AnimatedSprite(playerSprites.stand.textures);
@@ -113,7 +116,7 @@ export class Player extends Entity {
             if (this.input.y > 0 && this.velocity.y <= 0) this.velocity.y += 600 * highestDensity;
         }
         let pos = this.position.result().sub(new Vector(Camera.width, Camera.height).mult(.5));
-        let diff = pos.sub(this.camTarget).add(new Vector(this.velocity.result().mult(.7).x, 30));
+        let diff = pos.sub(this.camTarget).add(new Vector(this.velocity.result().mult(.7).x, Camera.yOffset));
         this.camTarget.add(diff.mult(5 * dt))
         if (lookup[terrainInFront].density == 1) this.velocity.x = 0;
 

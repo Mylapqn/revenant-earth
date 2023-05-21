@@ -1,4 +1,5 @@
 import { app } from ".";
+import { Camera } from "./camera";
 import { DialogBox, DialogChoices } from "./gui/gui";
 
 let speakersHidden = [true, true];
@@ -79,6 +80,7 @@ class DialogueNode implements BaseNode {
         else {
             app.view.style.scale="100%";
             DialogBox.conversationElement.classList.add("hidden");
+            Camera.yOffset = 50;
         }
     }
     finish() {
@@ -99,6 +101,7 @@ export class TopNode extends DialogueNode {
     execute(): void {
         app.view.style.scale="200%";
         DialogBox.conversationElement.classList.remove("hidden");
+        Camera.yOffset = 10;
         super.execute();
     }
 }
