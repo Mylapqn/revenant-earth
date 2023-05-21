@@ -468,11 +468,11 @@ export function initGame() {
             { content: "Ne", callback: () => { new DialogBox("Nemám hlad.", 2) } }
         ]);
     }, 1000); */
-    let mainBar = new PositionableGuiElement({ position: new Vector(50, 50) })
+    let mainBar = new PositionableGuiElement({ position: new Vector(850, 50),centerX:true })
     mainBar.element.style.flexDirection = "row";
     new GuiButton({ content: "Talk", callback: () => { firstNode.execute(); }, parent: mainBar })
-    new GuiButton({ position: new Vector(50, 50), content: "Inventory", callback: () => { Atmosphere.settings.sunAngle = -2 }, parent: mainBar })
-    new GuiButton({ position: new Vector(200, 50), content: "Atmosphere status", callback: () => { Atmosphere.settings.sunAngle = 1 }, parent: mainBar })
+    new GuiButton({content: "Inventory", callback: () => { Atmosphere.settings.sunAngle = -2 }, parent: mainBar })
+    new GuiButton({content: "Atmosphere status", callback: () => { Atmosphere.settings.sunAngle = 1 }, parent: mainBar })
 
 
     const key: Record<string, boolean> = {};
