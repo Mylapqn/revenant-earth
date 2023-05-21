@@ -119,7 +119,7 @@ function terrainUpdateCycle() {
     terrainUpdate();
 }
 
-function terrainUpdate(){
+function terrainUpdate() {
     Terrain.update(terrainTick);
     terrainScore++;
     terrainTick++;
@@ -280,10 +280,10 @@ export function initGame() {
     DebugDraw.graphics.addChild(Shadowmap.graphic);
 
     ticker.add((delta) => {
-        if (terrainScore < 80) {
+        if (terrainScore < 80 && tps < 120 && (1000 / Math.max(...dtAvg))  > 50) {
             terrainUpdate();
         }
-        
+
         app.renderer.render(bg, { renderTexture: background });
         app.renderer.render(ParallaxDrawer.container, { renderTexture: background, clear: false });
         app.renderer.render(Entity.graphic, { renderTexture: background, clear: false });
@@ -473,11 +473,11 @@ export function initGame() {
             { content: "Ne", callback: () => { new DialogBox("Nemám hlad.", 2) } }
         ]);
     }, 1000); */
-    let mainBar = new PositionableGuiElement({ position: new Vector(850, 50),centerX:true })
+    let mainBar = new PositionableGuiElement({ position: new Vector(850, 50), centerX: true })
     mainBar.element.style.flexDirection = "row";
     new GuiButton({ content: "Talk", callback: () => { firstNode.execute(); }, parent: mainBar })
-    new GuiButton({content: "Inventory", callback: () => { Atmosphere.settings.sunAngle = -2 }, parent: mainBar })
-    new GuiButton({content: "Atmosphere status", callback: () => { Atmosphere.settings.sunAngle = 1 }, parent: mainBar })
+    new GuiButton({ content: "Inventory", callback: () => { Atmosphere.settings.sunAngle = -2 }, parent: mainBar })
+    new GuiButton({ content: "Atmosphere status", callback: () => { Atmosphere.settings.sunAngle = 1 }, parent: mainBar })
 
 
     const key: Record<string, boolean> = {};
