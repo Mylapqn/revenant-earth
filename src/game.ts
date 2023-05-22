@@ -123,8 +123,12 @@ for (const m of Object.values(music)) {
 
 export const mouse = { x: window.innerWidth/2, y: window.innerHeight/2, pressed: 0, gui: 0 };
 
-function infiniteLoop() {
-    setTimeout(infiniteLoop, 7);
+function terrainUpdateCycle() {
+    setTimeout(terrainUpdateCycle, 7);
+    terrainUpdate();
+}
+
+function terrainUpdate() {
     Terrain.update(terrainTick);
     terrainScore++;
     terrainTick++;
@@ -289,9 +293,10 @@ export function initGame() {
     DebugDraw.graphics.addChild(Shadowmap.graphic);
 
     ticker.add((delta) => {
-        if (terrainScore < 80) {
-            return;
+        if (terrainScore < 80 && tps / tpsMeter < 0.12 && (1000 / Math.max(...dtAvg)) > 50) {
+            terrainUpdate();
         }
+
         app.renderer.render(bg, { renderTexture: background });
         app.renderer.render(ParallaxDrawer.container, { renderTexture: background, clear: false });
         app.renderer.render(Entity.graphic, { renderTexture: background, clear: false });
@@ -480,11 +485,11 @@ export function initGame() {
             { content: "Ne", callback: () => { new DialogBox("Nemám hlad.", 2) } }
         ]);
     }, 1000); */
-    let mainBar = new PositionableGuiElement({ position: new Vector(850, 50),centerX:true })
+    let mainBar = new PositionableGuiElement({ position: new Vector(850, 50), centerX: true })
     mainBar.element.style.flexDirection = "row";
     new GuiButton({ content: "Talk", callback: () => { firstNode.execute(); }, parent: mainBar })
-    new GuiButton({content: "Inventory", callback: () => { Atmosphere.settings.sunAngle = -2 }, parent: mainBar })
-    new GuiButton({content: "Atmosphere status", callback: () => { Atmosphere.settings.sunAngle = 1 }, parent: mainBar })
+    new GuiButton({ content: "Inventory", callback: () => { Atmosphere.settings.sunAngle = -2 }, parent: mainBar })
+    new GuiButton({ content: "Atmosphere status", callback: () => { Atmosphere.settings.sunAngle = 1 }, parent: mainBar })
 
 
     const key: Record<string, boolean> = {};
@@ -494,7 +499,7 @@ export function initGame() {
     window.addEventListener("mouseup", (e) => { mouse.pressed = e.buttons });
     
     ticker.start();
-    infiniteLoop();
+    terrainUpdateCycle();
 }
 GUI.init();
 window.addEventListener("mousemove", (e) => { mouse.x = e.clientX; mouse.y = e.clientY });
