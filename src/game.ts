@@ -19,7 +19,7 @@ import { AtmosphereFilter } from "./shaders/atmosphere/atmosphereFilter";
 import { Cloud } from "./entities/passive/cloud";
 import { LightingFilter } from "./shaders/lighting/lightingFilter";
 import { FilmicFilter } from "./shaders/filmic/filmicFilter";
-import { TerrainGenerator } from "./biome";
+import { BiomeData, TerrainGenerator } from "./biome";
 import { SkyFilter } from "./shaders/atmosphere/skyFilter";
 import { DialogBox, DialogChoices, GUI, GuiButton, PositionableGuiElement, GuiLabel, GuiSplash } from "./gui/gui";
 import { Color } from "./color";
@@ -217,10 +217,11 @@ export function initGame() {
     generator.addToQueue(flatland, Terrain.width);
 
 
-    function rockSpawner(x: number, ty: number) {
+    function rockSpawner(x: number, ty: number, biomeData: BiomeData) {
         if (x == nextRock) {
             let size = random(3, 8);
             nextRock += randomInt(1, 10) * Math.round(size);
+            if(biomeData.biomeId == 2)
             new Rock(new Vector(x, ty), null, size, random(.3, 1.2), random(-2, 2));
         }
     }

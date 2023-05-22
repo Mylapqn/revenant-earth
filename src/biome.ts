@@ -31,6 +31,7 @@ export class TerrainGenerator {
                     const newData = {} as BiomeData;
                     for (let key in item.biome) {
                         let k = key as keyof BiomeData;
+                        if(typeof item.biome[k] == "number")
                         newData[k] = lerp(previous.biome[k], item.biome[k], lastX * this.transitionRate);
                     }
                     return newData;
@@ -48,7 +49,7 @@ export class TerrainGenerator {
     }
 
 
-    generate(settings: { skipPlacement: boolean, padding: number, scale?: number } = { skipPlacement: false, padding: 0, scale: 1 }, surfaceSpawner?: (x: number, y: number) => void) {
+    generate(settings: { skipPlacement: boolean, padding: number, scale?: number } = { skipPlacement: false, padding: 0, scale: 1 }, surfaceSpawner?: (x: number, y: number, biomeData: BiomeData) => void) {
         let currentState = { ...this.queue[0].biome };
 
         let ty = 470;
@@ -85,12 +86,12 @@ export class TerrainGenerator {
             }
             if (surfaceSpawner) {
                 if (settings.scale >= 1) {
-                    surfaceSpawner(x, ty);
+                    surfaceSpawner(x, ty, currentState);
                 }
                 else {
                     while (scaledX < x) {
                         scaledX += settings.scale;
-                        surfaceSpawner(scaledX, lerp(ty, lastY, scaledX % 1));
+                        surfaceSpawner(scaledX, lerp(ty, lastY, scaledX % 1), currentState);
                     }
                 }
             }
