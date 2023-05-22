@@ -118,10 +118,10 @@ export let music = {
 };
 for (const m of Object.values(music)) {
     m.loop = true;
-    m.volume=.3;
+    m.volume = .3;
 }
 
-export const mouse = { x: window.innerWidth/2, y: window.innerHeight/2, pressed: 0, gui: 0 };
+export const mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2, pressed: 0, gui: 0 };
 
 function terrainUpdateCycle() {
     setTimeout(terrainUpdateCycle, 7);
@@ -221,8 +221,8 @@ export function initGame() {
         if (x == nextRock) {
             let size = random(3, 8);
             nextRock += randomInt(1, 10) * Math.round(size);
-            if(biomeData.biomeId == 2)
-            new Rock(new Vector(x, ty), null, size, random(.3, 1.2), random(-2, 2));
+            if (biomeData.biomeId == 2)
+                new Rock(new Vector(x, ty), null, size, random(.3, 1.2), random(-2, 2));
         }
     }
 
@@ -244,7 +244,7 @@ export function initGame() {
     backdrop1.placeSprite(1500, 0, (() => { const a = Sprite.from("BG/mountains/mountain2.png"); return a })(), false, 100);
 
 
-    player = new Player(new Vector(2500, 600));
+    player = new Player(new Vector(2510, 600));
 
     //new Robot(new Vector(2500, 600), undefined, 0);
 
@@ -288,15 +288,24 @@ export function initGame() {
     background = PIXI.RenderTexture.create({ width: Camera.width, height: Camera.height });
     entityRender = PIXI.RenderTexture.create({ width: Camera.width, height: Camera.height });
 
-    new Drone(new Vector(2500, 600), undefined);
+    //new Drone(new Vector(2500, 600), undefined);
 
 
     DebugDraw.graphics.addChild(Shadowmap.graphic);
+
+    let frameByFrame = false;
 
     ticker.add((delta) => {
         if (terrainScore < 80 && tps / tpsMeter < 0.12 && (1000 / Math.max(...dtAvg)) > 50) {
             terrainUpdate();
         }
+
+        /*
+        if (!(key[" "] && !frameByFrame)) {
+            frameByFrame = key[" "];
+            return;
+        }
+        frameByFrame = key[" "];*/
 
         app.renderer.render(bg, { renderTexture: background });
         app.renderer.render(ParallaxDrawer.container, { renderTexture: background, clear: false });
@@ -498,7 +507,7 @@ export function initGame() {
     window.addEventListener("keyup", (e) => { key[e.key.toLowerCase()] = false });
     window.addEventListener("mousedown", (e) => { if (!mouse.gui) { mouse.pressed = e.buttons; } e.preventDefault() });
     window.addEventListener("mouseup", (e) => { mouse.pressed = e.buttons });
-    
+
     ticker.start();
     terrainUpdateCycle();
 }
