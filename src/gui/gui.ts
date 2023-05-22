@@ -5,6 +5,9 @@ import { Vector } from "../vector";
 
 export class GUI {
     static init() {
+        this.sounds.hover.volume = .35;
+        this.sounds.click.volume = .4;
+        this.sounds.appear.volume = .3;
         let elements = document.getElementsByClassName("ui");
         for (let i = 0; i < elements.length; i++) {
             const element = elements[i];
@@ -30,6 +33,14 @@ export class GUI {
         }
     }
     static container = document.getElementById("guiContainer");
+    static sounds = {
+        hover: new Audio("sound/fx/hover3.wav"),
+        click: new Audio("sound/fx/click.wav"),
+        talk: new Audio("sound/fx/talk.wav"),
+        appear: new Audio("sound/fx/appear.wav"),
+        hide: new Audio("sound/fx/hide.wav"),
+        unhide: new Audio("sound/fx/unhide.wav"),
+    };
 }
 
 interface GuiElementOptions {
@@ -75,10 +86,10 @@ class GuiElement extends BaseGuiElement {
     moving = false;
     removed = false;
     constructor(options: GuiElementOptions) {
-        super("div", "ui");
+        super("div", "flex");
         GUI.container.appendChild(this.element);
-        if (options.blankStyle)
-            this.element.classList.add("blank");
+        if (!options.blankStyle)
+            this.element.classList.add("ui");
         if (options.fillContainer)
             this.element.classList.add("fill");
         this.content = options.content ?? "";
@@ -158,6 +169,7 @@ export class DialogBox extends GuiElement {
         if (speaker == 1) this.element.classList.add("dialogLeft");
         else if (speaker == 2) this.element.classList.add("dialogRight");
         DialogBox.container.appendChild(this.element);
+        GUI.sounds.talk.play();
         //this.element.scrollIntoView({behavior:"smooth",})
         DialogBox.wrapper.scrollBy({ top: this.element.offsetHeight + 500, behavior: "smooth" })
     }
@@ -168,10 +180,12 @@ class DialogChoice extends DialogBox {
         super(content, 2);
         this.element.classList.add("button", "dialogChoice");
         this.element.onclick = () => {
+            GUI.sounds.click.play();
             parent.remove();
             callback();
             DialogBox.wrapper.scrollBy({ top: -1, behavior: "smooth" })
         };
+        this.element.onmouseenter = () => { GUI.sounds.hover.play(); }
     }
 }
 
@@ -239,10 +253,17 @@ export class GuiTooltip extends PositionableGuiElement {
 }
 
 export class GuiButton extends PositionableGuiElement {
+    private callback: () => void;
     constructor(options: GuiButtonOptions) {
         super(options);
         this.element.classList.add("button");
-        this.element.onclick = options.callback;
+        this.callback = options.callback;
+        this.element.onclick = this.click.bind(this);
+        this.element.onmouseenter = () => { GUI.sounds.hover.play(); }
+    }
+    click() {
+        GUI.sounds.click.play();
+        this.callback();
     }
 }
 

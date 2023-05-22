@@ -36,7 +36,7 @@
     text-align: center;
 }
 
-#conversationWrapper {
+.conversationWrapper {
     font-size: 1.2em;
     z-index: 2;
     max-width: 80vw;
@@ -55,12 +55,12 @@
     transition: bottom 1s cubic-bezier(.2, 0, 0, 1);
 }
 
-#conversationWrapper.hidden {
+.conversationWrapper.hidden {
     transition: bottom 1s cubic-bezier(1, 0, .8, 1);
     bottom: -340px;
 }
 
-#dialogContainer {
+.dialogContainer {
     flex-shrink: 1;
     flex-grow: 1;
     min-height: 100px;
@@ -78,13 +78,13 @@
     /* background: rgba(0, 0, 0, 0.344); */
 }
 
-#dialogContainer::-webkit-scrollbar {
+.dialogContainer::-webkit-scrollbar {
     width: 0;
     /*sposition: relative;
     sbackground: transparent;*/
 }
 
-#messagesContainer {
+.messagesContainer {
     margin-left: auto;
     margin-right: auto;
     max-width: 80vw;

@@ -1,7 +1,8 @@
 :root {
-    --borderWidth: 4px;
     --outline-color-inactive: #ffffff1a;
     --outline-color-active: #ffffff81;
+    --scale:calc(min(1px, .06vw));
+    --borderWidth: .2em;
 }
 
 * {
@@ -18,7 +19,7 @@ body {
     margin: 0;
     padding: 0;
     background: #000;
-    background: linear-gradient(#3571b1 0%, #6f8eba 60%, #99a4a6);
+    /* background: linear-gradient(#3571b1 0%, #6f8eba 60%, #99a4a6); */
     width: 100vw;
     height: 100vh;
 }

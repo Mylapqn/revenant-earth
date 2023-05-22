@@ -9,14 +9,57 @@
     background-size: cover;
     background-position-x: center;
     image-rendering: pixelated;
+user-select: none;
+}
+
+.menustation {
+    animation: wave 8s infinite alternate ease-in-out;
+}
+
+@keyframes wave {
+    from {
+        translate: 0px 100px;
+    }
+
+    to {
+        translate: 0px 0px;
+    }
+}
+
+.menubg {
+    pointer-events: none;
+    /* transform: translate(-50%,-50%); */
+    scale: 120%;
+    width: 100vw;
+    height: 100vh;
+    position: absolute;
+    z-index: 0;
+    background-size: cover;
+    background-position-x: center;
+    image-rendering: pixelated;
+}
+
+.menufg {
+    z-index: 1;
+}
+
+.menufg2 {
+    z-index: 2;
 }
 
 #guiContainer.mainMenu {
-    background-image: url("../mainmenu2.png");
+    background-color: #FFD599;
+    --scale: calc(min(1.5px, .12vw));
 }
 
-.mainMenu .ui {
-    background-color: #8e1d12ab;
+.mainMenu .button {
+    backdrop-filter: blur(10px);
+    background-color: #a218008d;
+}
+
+.mainMenu .button:hover {
+    background-color: #e17542b4;
+    outline-color: #ffecd2ea;
 }
 
 .gameTitle {
@@ -27,27 +70,31 @@
     text-align: center;
     margin: 0;
     width: 100vw;
-    color:#B93816;
+    color: #B93816;
+    z-index: 0;
+}
+
+.flex {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1em;
+    flex-direction: column;
+    font-size: calc(var(--scale)*20);
 }
 
 .ui {
     user-select: none;
     background-color: #00000062;
-    padding: 20px;
+    padding: calc(var(--scale)*20);
     backdrop-filter: blur(50px);
     transition: transform .1s, outline .1s;
     color: white;
     font-family: 'Bahnschrift';
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 20px;
-    flex-direction: column;
-    border-radius: 5px;
+    border-radius: .3em;
     z-index: 1;
+    font-size: calc(var(--scale)*20);
 }
-
-
 
 .ui .ui {
     backdrop-filter: none;
@@ -59,6 +106,11 @@
     padding: 0;
     background: none;
     backdrop-filter: none;
+}
+
+.fill {
+    width: 100%;
+    height: 100%;
 }
 
 .ui.fill {
@@ -83,8 +135,8 @@
     right: 0;
     margin: 0 auto;
     width: var(--borderWidth);
-    height: 50px;
-    top: -50px;
+    height: 4em;
+    top: -4em;
     background-color: white;
 }
 
@@ -113,7 +165,7 @@
 }
 
 .button.img {
-    padding: 5px;
+    padding: .2em;
     height: fit-content;
 }
 
@@ -148,6 +200,7 @@
     letter-spacing: .1em;
     font-weight: 100;
     flex-direction: column;
+    text-shadow: 0px 5px 30px black;
 }
 
 .splash::after {

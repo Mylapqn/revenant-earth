@@ -1,21 +1,47 @@
 import { app } from "./game";
 import { Camera } from "./camera";
-import { DialogBox, DialogChoices } from "./gui/gui";
+import { CustomGuiElement, DialogBox, DialogChoices, GUI } from "./gui/gui";
 
-let speakersHidden = [true, true];
-let profiles = document.getElementsByClassName("profileIcon") as any as HTMLElement[];
-let speakerProfiles = [
-    profiles[0],
-    profiles[1]
-]
+
+export class Dialogue {
+    static speakersHidden = [true, true];
+    static profiles: HTMLElement[] = [];
+    static speakerProfiles: HTMLElement[] = [];
+    static init() {
+
+        DialogBox.container = new CustomGuiElement("div", "", "messagesContainer").element;
+        DialogBox.wrapper = new CustomGuiElement("div", "", "dialogContainer").element;
+        DialogBox.conversationElement = new CustomGuiElement("div", "", "conversationWrapper", "absolute", "centerX", "hidden", "ui").element;
+        GUI.container.appendChild(DialogBox.conversationElement);
+        DialogBox.wrapper.appendChild(DialogBox.container);
+
+
+        this.speakerProfiles[0] = new CustomGuiElement("div", "", "profileIcon", "hidden").element;
+        let temp = document.createElement("img");
+        temp.src = "characters/director.png";
+        this.speakerProfiles[0].appendChild(temp);
+        this.speakerProfiles[0].appendChild(new CustomGuiElement("div", "General Director", "ui").element);
+        DialogBox.conversationElement.appendChild(this.speakerProfiles[0]);
+
+        DialogBox.conversationElement.appendChild(DialogBox.wrapper);
+
+        this.speakerProfiles[1] = new CustomGuiElement("div", "", "profileIcon", "hidden","playerIcon").element;
+        temp = document.createElement("img");
+        temp.src = "characters/player.png";
+        this.speakerProfiles[1].appendChild(temp);
+        this.speakerProfiles[1].appendChild(new CustomGuiElement("div", "Player", "ui").element);
+        DialogBox.conversationElement.appendChild(this.speakerProfiles[1]);
+    }
+}
 
 function showSpeaker(index: number) {
-    speakerProfiles[index].classList.remove("hidden");
-    speakersHidden[index] = false;
+    GUI.sounds.appear.play();
+    Dialogue.speakerProfiles[index].classList.remove("hidden");
+    Dialogue.speakersHidden[index] = false;
 }
 function hideSpeaker(index: number) {
-    speakerProfiles[index].classList.add("hidden");
-    speakersHidden[index] = true;
+    Dialogue.speakerProfiles[index].classList.add("hidden");
+    Dialogue.speakersHidden[index] = true;
 }
 
 interface BaseNode {
@@ -57,7 +83,7 @@ class DialogueNode implements BaseNode {
     }
     execute() {
         let delay = 10;
-        if (speakersHidden[this.speaker - 1]) {
+        if (Dialogue.speakersHidden[this.speaker - 1]) {
             showSpeaker(this.speaker - 1);
             delay += 800
         }
@@ -67,7 +93,7 @@ class DialogueNode implements BaseNode {
         new DialogBox(this.content, this.speaker);
         if (this.nextNode) {
             let delay = this.content.length * 20 + 800;
-            if (speakersHidden[this.nextNode.speaker - 1]) {
+            if (Dialogue.speakersHidden[this.nextNode.speaker - 1]) {
                 setTimeout(() => {
                     showSpeaker(this.nextNode.speaker - 1);
                 }, 800);
@@ -78,7 +104,7 @@ class DialogueNode implements BaseNode {
             }, delay);
         }
         else {
-            app.view.style.scale="100%";
+            app.view.style.scale = "100%";
             DialogBox.conversationElement.classList.add("hidden");
             Camera.yOffset = 50;
         }
@@ -99,7 +125,7 @@ export class TopNode extends DialogueNode {
         else return this;
     }
     execute(): void {
-        app.view.style.scale="200%";
+        app.view.style.scale = "200%";
         Camera.yOffset = 10;
         DialogBox.conversationElement.classList.remove("hidden");
         super.execute();

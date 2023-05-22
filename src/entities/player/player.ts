@@ -117,25 +117,24 @@ export class Player extends Entity {
         }
         let pos = this.position.result().sub(new Vector(Camera.width, Camera.height).mult(.5));
         let diff = pos.sub(this.camTarget).add(new Vector(this.velocity.result().mult(.7).x, Camera.yOffset));
-        this.camTarget.add(diff.mult(5 * dt))
+        //let diff = pos.sub(this.camTarget).add(new Vector());
+        this.camTarget.add(diff.mult(5*dt))
         if (lookup[terrainInFront].density == 1) this.velocity.x = 0;
-
+        
+        
         //Camera.position.y = pos.y
         //Camera.position.y+=diff.y*.1;
         //if (Camera.position.x < pos.x) Camera.position.x++;
         //if (Camera.position.x > pos.x) Camera.position.x--;
         //Camera.position.add(new Vector(1, 1));
         //Camera.position = this.position.result().sub(new Vector(Camera.width, Camera.height).mult(.5));
+        
         this.position.add(this.velocity.result().mult(dt));
         this.step += Math.abs(this.velocity.x) * dt;
         if (this.step > 5 && this.grounded) {
             this.step = 0;
             new Cloud(this.position.result(), Math.abs(this.velocity.x), new Vector(this.velocity.x * random(-.5, .1), -5));
         }
-        const screenDims = (new Vector(this.graphics.width / Camera.width, this.graphics.height / Camera.height));
-        this.screenDimensionsNorm = screenDims;
-        const screenPos = worldToScreen(this.position.result().add(new Vector(0, this.graphics.height / 2)));
-        this.screenCenterNorm = new Vector(screenPos.x / window.innerWidth, screenPos.y / window.innerHeight);
 
         this.updatePosition();
         this.queueUpdate();

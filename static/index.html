@@ -8,13 +8,21 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/gui.css">
     <link rel="stylesheet" href="css/dialogue.css">
-    <title>Save the environment with this ONE SIMPLE TRICK!</title>
+    <title>Revenant Earth</title>
 </head>
 
 <body oncontextmenu="return false">
-    <div id="guiContainer">
+    <div class="ui absolute centerX centerY">
+        Press any key to begin
     </div>
-        <script src="bundle.js"></script>
 </body>
+<script>
+    document.body.onkeyup = () => {
+        window.location="game.html"
+    }
+    document.body.onclick = () => {
+        window.location="game.html"
+    }
+</script>
 
 </html>

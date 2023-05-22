@@ -37,7 +37,7 @@ import { Drone } from "./entities/enemy/drone/drone";
 import { DebugDraw } from "./debugDraw";
 import { World } from "./world";
 import { Light, Lightmap, Shadowmap } from "./shaders/lighting/light";
-import { ChoiceNode, TopNode } from "./dialogue";
+import { ChoiceNode, Dialogue, TopNode } from "./dialogue";
 let seed = parseInt(window.location.toString().split('?')[1]);
 if (!seed) seed = Math.floor(Math.random() * 1000);
 Math.random = mulberry32(seed);
@@ -112,7 +112,16 @@ export let terrainTick = 0;
 let tps = 0;
 let terrainScore = 100;
 
-export const mouse = { x: .5, y: .5, pressed: 0, gui: 0 };
+export let music = {
+    mountains: new Audio("sound/music/melted mountains.wav"),
+    menu: new Audio("sound/music/menu.wav"),
+};
+for (const m of Object.values(music)) {
+    m.loop = true;
+    m.volume=.3;
+}
+
+export const mouse = { x: window.innerWidth/2, y: window.innerHeight/2, pressed: 0, gui: 0 };
 
 function infiniteLoop() {
     setTimeout(infiniteLoop, 7);
@@ -123,6 +132,8 @@ function infiniteLoop() {
 }
 
 export function initGame() {
+
+    Dialogue.init();
 
     Lightmap.init();
     PixelDrawer.init();
@@ -224,6 +235,8 @@ export function initGame() {
     backdrop1.placeSprite(2050, 0, (() => { const a = Sprite.from("building4.png"); return a })(), false, 70);
     backdrop1.placeSprite(2850, 0, (() => { const a = Sprite.from("building4.png"); return a })(), true, 70);
     backdrop0.placeSprite(2900, 0, (() => { const a = Sprite.from("dump1.png"); return a })(), false, 120);
+    backdrop2.placeSprite(1400, 0, (() => { const a = Sprite.from("BG/mountains/mountain1.png"); return a })(), false, 100);
+    backdrop1.placeSprite(1500, 0, (() => { const a = Sprite.from("BG/mountains/mountain2.png"); return a })(), false, 100);
 
 
     player = new Player(new Vector(2500, 600));
@@ -333,6 +346,7 @@ export function initGame() {
         debugPrint(screenToWorld(mouse).toString());
         let newBiome = generator.getBiome(player.position.x).biomeId;
         if (newBiome != currentBiome) {
+            music.mountains.play();
             new GuiSplash(["Urban Ruins", "Melted Mountains", "Swampy Lowlands"][newBiome - 1])
             currentBiome = newBiome;
         }
@@ -430,8 +444,8 @@ export function initGame() {
         //app.renderer.render(app.stage,{ renderTexture: mainRenderTexture, clear: true });
         app.render();
         DebugDraw.clear()
-        Camera.position.x = Math.floor(player.camTarget.x);
-        Camera.position.y = Math.floor(player.camTarget.y);
+        Camera.position.x = Math.round(player.camTarget.x);
+        Camera.position.y = Math.round(player.camTarget.y);
     });
 
     let questNode1 = new TopNode("Měl bych pro vás takový quest.").chain("Potřebuji vyplantit 1 strom").choice([
@@ -454,8 +468,6 @@ export function initGame() {
             new TopNode("Nemám hlad.", 2).reply("Takže mi lžeš?").reply("Uhhh...").chain("Možná?").reply("Anyway...").chainNode(questNode3).finish(),
         ])
     ]);
-
-    GUI.init();
 
     /* setTimeout(() => {
         firstNode.execute();
@@ -480,11 +492,12 @@ export function initGame() {
     window.addEventListener("keyup", (e) => { key[e.key.toLowerCase()] = false });
     window.addEventListener("mousedown", (e) => { if (!mouse.gui) { mouse.pressed = e.buttons; } e.preventDefault() });
     window.addEventListener("mouseup", (e) => { mouse.pressed = e.buttons });
-    window.addEventListener("mousemove", (e) => { mouse.x = e.clientX; mouse.y = e.clientY });
-
+    
     ticker.start();
     infiniteLoop();
 }
+GUI.init();
+window.addEventListener("mousemove", (e) => { mouse.x = e.clientX; mouse.y = e.clientY });
 
 export function screenToWorld(vector: { x: number, y: number }) {
     return new Vector(

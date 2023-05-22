@@ -69,7 +69,7 @@ void main(void) {
     vec4 sourceColor = demult(texture2D(uSampler, vTextureCoord));
     float playerDist = map(clamp(length((uPlayerPos - vTextureCoord) / uPixelSize / 150.), 0., 1.), .5, 1., 0., 1.);
     vec4 b = blur((1. - playerDist) * 10. + 5.);
-    float alpha = b.a * playerDist;
-    vec3 color = vec3(0.15, 0.1, 0.1) * uAmbient;
+    float alpha = clamp(b.a * playerDist,0.,1.);
+    vec3 color = vec3(.15, 0.1, 0.1) * uAmbient;
     gl_FragColor = vec4(color * alpha, alpha * (1.));
 }
