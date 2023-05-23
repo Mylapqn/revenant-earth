@@ -25,7 +25,7 @@ export class Dialogue {
 
         DialogBox.conversationElement.appendChild(DialogBox.wrapper);
 
-        this.speakerProfiles[1] = new CustomGuiElement("div", "", "profileIcon", "hidden","playerIcon").element;
+        this.speakerProfiles[1] = new CustomGuiElement("div", "", "profileIcon", "hidden", "playerIcon").element;
         temp = document.createElement("img");
         temp.src = "characters/player.png";
         this.speakerProfiles[1].appendChild(temp);
@@ -34,32 +34,37 @@ export class Dialogue {
     }
 }
 
-function showSpeaker(index: number) {
+async function showSpeaker(index: number) {
     GUI.sounds.appear.play();
     Dialogue.speakerProfiles[index].classList.remove("hidden");
     Dialogue.speakersHidden[index] = false;
+    sleep(800);
+    return;
 }
-function hideSpeaker(index: number) {
+async function hideSpeaker(index: number) {
     Dialogue.speakerProfiles[index].classList.add("hidden");
     Dialogue.speakersHidden[index] = true;
+    sleep(800);
+    return;
 }
 
 interface BaseNode {
     execute: () => void
 }
 
-class DialogueNode implements BaseNode {
+export class DialogueNode implements BaseNode {
     topNode: TopNode;
     content = "none";
     nextNode: DialogueNode | ChoiceNode;
     speaker = 1;
-    constructor(content = "none", speaker = 1) {
+    constructor(content = "", speaker = 1) {
         this.speaker = speaker;
         this.content = content;
     }
-    chainNode(node: TopNode) {
-        this.nextNode = node;
-        node.topNode = this.topNode;
+    chainNode(node: NodeStack) {
+        let n = node.copy();
+        this.nextNode = n;
+        n.topNode = this.topNode;
         return this.nextNode;
     }
     chain(content = "none", speaker: number = null) {
@@ -79,35 +84,26 @@ class DialogueNode implements BaseNode {
     choice(choices: TopNode[] = []) {
         this.nextNode = new ChoiceNode(choices);
         this.nextNode.topNode = this.topNode;
-        return this.topNode;
+        return this.nextNode;
     }
-    execute() {
-        let delay = 10;
+    async execute() {
         if (Dialogue.speakersHidden[this.speaker - 1]) {
-            showSpeaker(this.speaker - 1);
-            delay += 800
+            await showSpeaker(this.speaker - 1);
         }
-        setTimeout(this.showBox.bind(this), delay);
+        await sleep(10);
+        await this.showBox();
     }
-    private showBox() {
+    private async showBox() {
         new DialogBox(this.content, this.speaker);
+        let delay = this.content.length * 40 + 1000;
+        //delay = 300;
+        await sleep(delay);
         if (this.nextNode) {
-            let delay = this.content.length * 40 + 800;
-            delay=10;
             if (Dialogue.speakersHidden[this.nextNode.speaker - 1]) {
-                setTimeout(() => {
-                    showSpeaker(this.nextNode.speaker - 1);
-                }, 800);
-                delay += 1000;
+                await showSpeaker(this.nextNode.speaker - 1);
+                await sleep(2000);
             }
-            setTimeout(() => {
-                this.nextNode.execute();
-            }, delay);
-        }
-        else {
-            app.view.style.scale = "100%";
-            DialogBox.conversationElement.classList.add("hidden");
-            Camera.yOffset = 50;
+            await this.nextNode.execute();
         }
     }
     finish() {
@@ -115,14 +111,34 @@ class DialogueNode implements BaseNode {
     }
 }
 
-export class NodeStack {
-    constructor(){
-        
+export class NodeStack extends DialogueNode {
+    startNode: TopNode;
+    nextNode: DialogueNode
+    constructor(startNode: TopNode) {
+        super("", 0);
+        this.startNode = startNode
+    }
+    copy() {
+        let n = new NodeStack(this.startNode);
+        return n;
+    }
+    async execute() {
+        await this.startNode.execute();
+        await sleep(800);
+        if (this.nextNode) {
+            await this.nextNode.execute();
+        }
+        else {
+            app.view.style.scale = "100%";
+            DialogBox.conversationElement.classList.add("hidden");
+            Camera.yOffset = 50;
+        }
     }
 }
 
 export class TopNode extends DialogueNode {
     isTop = true;
+    nodeStack: NodeStack;
     constructor(content = "none", speaker = 1) {
         super(content, speaker);
         this.topNode = this;
@@ -131,26 +147,35 @@ export class TopNode extends DialogueNode {
         if (this.topNode != this) return this.topNode.getTop();
         else return this;
     }
-    execute(): void {
+    async execute() {
         app.view.style.scale = "200%";
         Camera.yOffset = 10;
         DialogBox.conversationElement.classList.remove("hidden");
-        super.execute();
+        await super.execute();
     }
 }
 
-export class ChoiceNode implements BaseNode {
-    topNode: DialogueNode;
+export class ChoiceNode extends DialogueNode {
     choices: DialogueNode[] = [];
     speaker = 2;
     constructor(choices: DialogueNode[] = []) {
+        super();
         this.choices = choices;
     }
-    execute() {
+    async execute() {
         let c = [];
         for (const choice of this.choices) {
-            c.push({ content: choice.content, callback: () => { choice.execute(); } });
+            choice.speaker = this.speaker;
+            c.push({ content: choice.content, node: choice });
         }
-        new DialogChoices(c);
+        console.log("Select");
+
+        await (await (new DialogChoices(c).awaitSelection())).execute();
+        console.log("SelectDead");
+        if (this.nextNode)
+            await this.nextNode.execute();
+        return;
     };
 }
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));

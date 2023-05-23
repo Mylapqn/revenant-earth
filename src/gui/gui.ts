@@ -2,6 +2,7 @@ import { removeAllListeners } from "process";
 import { mouse, worldToScreen } from "../game";
 import { clamp } from "../utils";
 import { Vector } from "../vector";
+import { DialogueNode } from "../dialogue";
 
 export class GUI {
     static init() {
@@ -176,28 +177,33 @@ export class DialogBox extends GuiElement {
 }
 
 class DialogChoice extends DialogBox {
-    constructor(content = "none", callback = () => { }, parent: DialogChoices) {
+    node: DialogueNode;
+    constructor(content = "none", node: DialogueNode, parent: DialogChoices) {
         super(content, 2);
+        this.node = node;
         this.element.classList.add("button", "dialogChoice");
         this.element.onclick = () => {
             GUI.sounds.click.play();
             parent.remove();
-            callback();
+            this.select();
             DialogBox.wrapper.scrollBy({ top: -1, behavior: "smooth" })
         };
         this.element.onmouseenter = () => { GUI.sounds.hover.play(); }
+    }
+    select() {
+
     }
 }
 
 export class DialogChoices {
     children: DialogChoice[] = [];
     wrapper: HTMLDivElement;
-    constructor(choices: { content: string, callback: () => void }[] = []) {
+    constructor(choices: { content: string, node: DialogueNode }[] = []) {
         this.wrapper = document.createElement("div");
         this.wrapper.classList.add("dialogChoiceWrapper", "ui");
         for (let i = 0; i < choices.length; i++) {
             const options = choices[i];
-            let dc = new DialogChoice(options.content, options.callback, this)
+            let dc = new DialogChoice(options.content, options.node, this)
             this.wrapper.appendChild(dc.element);
             this.children.push(dc);
         }
@@ -213,6 +219,13 @@ export class DialogChoices {
         }
         this.wrapper.remove();
 
+    }
+    async awaitSelection() {
+        return new Promise<DialogueNode>((resolve, reject) => {
+            for (const c of this.children) {
+                c.select = () => resolve(c.node);
+            }
+        })
     }
 }
 

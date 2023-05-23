@@ -9,7 +9,8 @@
     background-size: cover;
     background-position-x: center;
     image-rendering: pixelated;
-user-select: none;
+    user-select: none;
+    font-size: calc(var(--scale)*20);
 }
 
 .menustation {
@@ -53,7 +54,7 @@ user-select: none;
 }
 
 .mainMenu .button {
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(.5em);
     background-color: #a218008d;
 }
 
@@ -87,7 +88,7 @@ user-select: none;
     user-select: none;
     background-color: #00000062;
     padding: calc(var(--scale)*20);
-    backdrop-filter: blur(50px);
+    backdrop-filter: blur(2em);
     transition: transform .1s, outline .1s;
     color: white;
     font-family: 'Bahnschrift';
@@ -193,7 +194,7 @@ user-select: none;
     align-items: center;
     justify-content: center;
     text-align: center;
-    font-size: 6em;
+    font-size: 5em;
     animation: splash 7s;
     animation-fill-mode: both;
     animation-timing-function: linear;

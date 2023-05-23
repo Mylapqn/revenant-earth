@@ -50,7 +50,7 @@ function init() {
         new GuiButton({ content: "NEW GAME", callback: startGame, fillContainer: true }),
         new GuiPanel({ blankStyle: true, flexDirection: "row" })
             .addChild(
-                new GuiButton({ content: "CONTINUE", callback: startGame }),
+                new GuiButton({ content: "CONTINUE", callback: continueGame }),
                 new GuiButton({ content: "EXIT", callback: () => { window.location.href = "index.html"; } })
             )
     );
@@ -71,11 +71,53 @@ function menuUpdate() {
 function startGame() {
     music.menu.pause();
     menuActive = false;
-    GUI.container.classList.remove("mainMenu");
-    mainMenuContainer.remove();
+    let black = document.createElement("div");
+    black.classList.add("fade");
+    document.body.appendChild(black);
+    setTimeout(() => {
+        black.style.opacity = "1";
+    }, 1);
+    setTimeout(() => {
 
-    mouse.gui = 0;
-    initGame();
+        GUI.container.classList.remove("mainMenu");
+        mainMenuContainer.remove();
+
+        mouse.gui = 0;
+        let crashAudio = new Audio("sound/fx/crash.ogg");
+        crashAudio.volume = .5;
+        crashAudio.play();
+    }, 2000);
+    setTimeout(() => {
+        initGame();
+        setTimeout(() => {
+            black.style.opacity = "0";
+            setTimeout(() => {
+                black.remove();
+            }, 2000);
+        }, 2000);
+    }, 15000);
+}
+
+function continueGame(){
+    music.menu.pause();
+    menuActive = false;
+    let black = document.createElement("div");
+    black.classList.add("fade");
+    document.body.appendChild(black);
+    setTimeout(() => {
+        black.style.opacity = "1";
+    }, 1);
+    setTimeout(() => {
+        GUI.container.classList.remove("mainMenu");
+        mainMenuContainer.remove();
+
+        mouse.gui = 0;
+        initGame();
+        black.style.opacity = "0";
+        setTimeout(() => {
+            black.remove();
+        }, 2000);
+    }, 2000);
 }
 
 init();

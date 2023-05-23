@@ -37,7 +37,8 @@ import { Drone } from "./entities/enemy/drone/drone";
 import { DebugDraw } from "./debugDraw";
 import { World } from "./world";
 import { Light, Lightmap, Shadowmap } from "./shaders/lighting/light";
-import { ChoiceNode, Dialogue, TopNode } from "./dialogue";
+import { ChoiceNode, Dialogue, NodeStack, TopNode } from "./dialogue";
+import { CrashPod } from "./entities/passive/landingPod";
 let seed = parseInt(window.location.toString().split('?')[1]);
 if (!seed) seed = Math.floor(Math.random() * 1000);
 Math.random = mulberry32(seed);
@@ -118,10 +119,10 @@ export let music = {
 };
 for (const m of Object.values(music)) {
     m.loop = true;
-    m.volume=.3;
+    m.volume = .3;
 }
 
-export const mouse = { x: window.innerWidth/2, y: window.innerHeight/2, pressed: 0, gui: 0 };
+export const mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2, pressed: 0, gui: 0 };
 
 function terrainUpdateCycle() {
     setTimeout(terrainUpdateCycle, 7);
@@ -264,9 +265,11 @@ export function initGame() {
     Stamps.loadStamps().then(() => {
         //const pos = Stamps.stamp("stamp", new Vector(2500, 0), { useDirtFrom: generator });
         //new Sign(pos.add(new Vector(184, 92)));
+        const pos = Stamps.stamp("landing", new Vector(2500, 0), { useDirtFrom: generator ,replaceMatching: (r, w) => TerrainManager.isDirt(r) });
+        new CrashPod(pos.add(new Vector(0, 1)));
         Stamps.stamp("stamp2", new Vector(2800, 0), { useDirtFrom: generator, replaceMatching: (r, w) => TerrainManager.isDirt(r) });
         Stamps.stamp("stamp5", new Vector(2650, 0), { useDirtFrom: generator, replaceMatching: (r, w) => TerrainManager.isDirt(r) });
-        Stamps.stamp("stamp3", new Vector(2450, -36), { useDirtFrom: generator, replaceMatching: (r, w) => TerrainManager.isDirt(r) });
+        Stamps.stamp("stamp3", new Vector(3450, -36), { useDirtFrom: generator, replaceMatching: (r, w) => TerrainManager.isDirt(r) });
         Stamps.stamp("stamp4", new Vector(2200, -36), { useDirtFrom: generator, replaceMatching: (r, w) => TerrainManager.isDirt(r) });
         Stamps.stamp("bigbuilding", new Vector(800, 0), { useDirtFrom: generator, replaceMatching: (r, w) => TerrainManager.isDirt(r), replace: [terrainType.stone] });
     });
@@ -287,7 +290,7 @@ export function initGame() {
     background = PIXI.RenderTexture.create({ width: Camera.width, height: Camera.height });
     entityRender = PIXI.RenderTexture.create({ width: Camera.width, height: Camera.height });
 
-    new Drone(new Vector(2500, 600), undefined);
+    new Drone(new Vector(3500, 600), undefined);
 
 
     DebugDraw.graphics.addChild(Shadowmap.graphic);
@@ -453,17 +456,68 @@ export function initGame() {
         Camera.position.y = Math.round(player.camTarget.y);
     });
 
-    let questNode1 = new TopNode("Měl bych pro vás takový quest.").chain("Potřebuji vyplantit 1 strom").choice([
-        new TopNode("Ok", 2).reply("To rád slyším.").chain("Player vyplantil 1 strom.", 0).finish(),
-        new TopNode("Nechci plantit stromy.", 2).reply("S okamžitou platností jste vyhozen z UNERA.").chain("Player byl vyhozen z UNERA.", 0).finish()
-    ]);
-    let firstNode: TopNode = new TopNode("Hello, agent!").chain("I am the Secretary General of UNERA and I'm going to be your main contact throughout this mission. I hope our cooperation will be fruitful.").chain("How is it looking down there?").choice([
-        new TopNode("No life in sight.", 2).reply("The landing has been a little... rough.").chainNode(questNode1).finish(),
-        new TopNode("The landing has been a little... rough.", 2).reply("Máš hlad? Měl bys jít jíst. Pomůže to. Věř mi. Už jsem taky měl hlad, a zkusil jsem jít jíst, a fakt to pomohlo, nemůžu to víc doporučit.").reply("Nice").reply("Ok, teď jdi fakt jíst.").choice([
-            new TopNode("Jdu jíst.", 2).reply("Skvělé!").chainNode(questNode1).finish(),
-            new TopNode("Nemám hlad.", 2).reply("Takže mi lžeš?").reply("Uhhh...").chain("Možná?").reply("Anyway...").chainNode(questNode1).finish(),
-        ])
-    ]);
+    let questNode = new NodeStack(
+        new TopNode("Měl bych pro vás takový quest.")
+            .chain("Potřebuji vyplantit 1 strom")
+            .choice([
+                new TopNode("Ok", 2).reply("To rád slyším.").chain("Player vyplantil 1 strom.", 0).finish(),
+                new TopNode("Nechci plantit stromy.", 2).reply("S okamžitou platností jste vyhozen z UNERA.").chain("Player byl vyhozen z UNERA.", 0).finish()
+            ])
+            .chain("Dod")
+            .finish()
+    );
+    let firstNode = new NodeStack(
+        new TopNode("Hello, agent!", 0).chain("I am the Secretary General of UNERA and I'm going to be your main contact throughout this mission. I hope our cooperation will be fruitful.").chain("How is it looking down there?").choice([
+            new TopNode("No life in sight.", 2).reply("The landing has been a little... rough.").chainNode(questNode).finish(),
+            new TopNode("The landing has been a little... rough.", 2).reply("Máš hlad? Měl bys jít jíst. Pomůže to. Věř mi. Už jsem taky měl hlad, a zkusil jsem jít jíst, a fakt to pomohlo, nemůžu to víc doporučit.").reply("Nice").reply("Ok, teď jdi fakt jíst.").choice([
+                new TopNode("Jdu jíst.", 2).reply("Skvělé!").chainNode(questNode).chain("A nezapomeň na to jídlo!", 1).finish(),
+                new TopNode("Nemám hlad.", 2).reply("Takže mi lžeš?").reply("Uhhh...").chain("Možná?").reply("Anyway...").chainNode(questNode).finish(),
+            ]).finish()
+        ]).finish());
+
+    let introDialogue = new NodeStack(
+        new TopNode("You stumble out of the pod.", 0)
+            .chain("The surroundings look nothing like the pictures of Earth that you've seen.")
+            .choice([
+                new TopNode("This place looks more like Mars.")
+                .chain("The dusty, orange atmosphere looks hostile and unbreathable.",0)
+                .finish(),
+                new TopNode("What happened here?")
+                .chain("A glance at the scenery tells a tale of destruction and abandonment.",0)
+                .finish(),
+                new TopNode("Wow! This game looks so pretty!")
+                .chain("Thanks. I don't have any gameplay or story in this game, but I worked a lot on the water shaders.",0)
+                .finish(),
+            ])
+            .chain("The pod is slightly damaged, but the radio appears still functional.",0)
+            .chain("I should try to call Mission Control.",2)
+            .chain("After a moment of static, the display lights up.",0)
+            .chain("-ssion control to ERA-1, repeat, we have lost-",1)
+            .reply("ERA-1 calling Mission Control.")
+            .reply("It appears the signal is back! Hello, Agent.")
+            .chain("What is your status?")
+            .choice([
+                new TopNode("There is slight damage to the landing pod."),
+                new TopNode("I've been better...")
+            ])
+            .reply("Good to know.")
+            .chain("Anyway, get to work. Plant me some trees before dawn or your food resupply pod will have a malfunction.")
+            .choice([
+                new TopNode("Yes sir"),
+                new TopNode("Pla- what?")
+                .chain("What the hell are you talking about?",2)
+                .reply("Stop complaining, Agent. I know you read the game description so you know that this game is about planting trees.")
+                .reply("But...")
+                .chain("What about the gameplay? The exploration? And all the cool environments you promised?")
+                .reply("Yeah, that's not happening. Get to work.")
+                .finish()
+            ])
+            .chain("The Director or whoever it is has disconnected.",0)
+            .chain("Get to work.")
+            .finish()
+    )
+    console.log(firstNode);
+
 
     /* setTimeout(() => {
         firstNode.execute();
@@ -478,7 +532,7 @@ export function initGame() {
     }, 1000); */
     let mainBar = new PositionableGuiElement({ position: new Vector(850, 50), centerX: true })
     mainBar.element.style.flexDirection = "row";
-    new GuiButton({ content: "Talk", callback: () => { firstNode.execute(); }, parent: mainBar })
+    new GuiButton({ content: "Talk", callback: () => { introDialogue.execute(); }, parent: mainBar })
     new GuiButton({ content: "Inventory", callback: () => { Atmosphere.settings.sunAngle = -2 }, parent: mainBar })
     new GuiButton({ content: "Atmosphere status", callback: () => { Atmosphere.settings.sunAngle = 1 }, parent: mainBar })
 
@@ -488,9 +542,13 @@ export function initGame() {
     window.addEventListener("keyup", (e) => { key[e.key.toLowerCase()] = false });
     window.addEventListener("mousedown", (e) => { if (!mouse.gui) { mouse.pressed = e.buttons; } e.preventDefault() });
     window.addEventListener("mouseup", (e) => { mouse.pressed = e.buttons });
-    
+
     ticker.start();
     terrainUpdateCycle();
+
+    setTimeout(() => {
+        introDialogue.execute();
+    }, 8000);
 }
 GUI.init();
 window.addEventListener("mousemove", (e) => { mouse.x = e.clientX; mouse.y = e.clientY });
