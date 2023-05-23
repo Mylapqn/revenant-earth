@@ -140,7 +140,7 @@ export class Player extends Entity {
         if (this.velocity.x > 0) this.graphics.scale.x = 1;
 
         this.position.add(this.velocity.result().mult(dt));
-        this.camTarget = this.position.result().sub(new Vector(Math.floor(Camera.width / 4) * 4, Camera.height).mult(.5).sub(lastvel.mult(dt))).round();
+        this.camTarget = this.position.result().sub(new Vector(Math.floor(Camera.width / 4) * 4, Camera.height).mult(.5).sub(lastvel.mult(dt))).add(new Vector(0,Camera.yOffset)).round();
 
         /*
                 let legsPixels = [];
