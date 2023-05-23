@@ -19,7 +19,7 @@ import { AtmosphereFilter } from "./shaders/atmosphere/atmosphereFilter";
 import { Cloud } from "./entities/passive/cloud";
 import { LightingFilter } from "./shaders/lighting/lightingFilter";
 import { FilmicFilter } from "./shaders/filmic/filmicFilter";
-import { TerrainGenerator } from "./biome";
+import { BiomeData, TerrainGenerator } from "./biome";
 import { SkyFilter } from "./shaders/atmosphere/skyFilter";
 import { DialogBox, DialogChoices, GUI, GuiButton, PositionableGuiElement, GuiLabel, GuiSplash } from "./gui/gui";
 import { Color } from "./color";
@@ -218,11 +218,12 @@ export function initGame() {
     generator.addToQueue(flatland, Terrain.width);
 
 
-    function rockSpawner(x: number, ty: number) {
+    function rockSpawner(x: number, ty: number, biomeData: BiomeData) {
         if (x == nextRock) {
             let size = random(3, 8);
             nextRock += randomInt(1, 10) * Math.round(size);
-            new Rock(new Vector(x, ty), null, size, random(.3, 1.2), random(-2, 2));
+            if (biomeData.biomeId == 2)
+                new Rock(new Vector(x, ty), null, size, random(.3, 1.2), random(-2, 2));
         }
     }
 
@@ -244,7 +245,7 @@ export function initGame() {
     backdrop1.placeSprite(1500, 0, (() => { const a = Sprite.from("BG/mountains/mountain2.png"); return a })(), false, 100);
 
 
-    player = new Player(new Vector(2500, 600));
+    player = new Player(new Vector(2510, 600));
 
     //new Robot(new Vector(2500, 600), undefined, 0);
 
@@ -295,10 +296,19 @@ export function initGame() {
 
     DebugDraw.graphics.addChild(Shadowmap.graphic);
 
+    let frameByFrame = false;
+
     ticker.add((delta) => {
         if (terrainScore < 80 && tps / tpsMeter < 0.12 && (1000 / Math.max(...dtAvg)) > 50) {
             terrainUpdate();
         }
+
+        /*
+        if (!(key[" "] && !frameByFrame)) {
+            frameByFrame = key[" "];
+            return;
+        }
+        frameByFrame = key[" "];*/
 
         app.renderer.render(bg, { renderTexture: background });
         app.renderer.render(ParallaxDrawer.container, { renderTexture: background, clear: false });
