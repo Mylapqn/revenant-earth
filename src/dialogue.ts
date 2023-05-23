@@ -92,7 +92,8 @@ class DialogueNode implements BaseNode {
     private showBox() {
         new DialogBox(this.content, this.speaker);
         if (this.nextNode) {
-            let delay = this.content.length * 20 + 800;
+            let delay = this.content.length * 40 + 800;
+            delay=10;
             if (Dialogue.speakersHidden[this.nextNode.speaker - 1]) {
                 setTimeout(() => {
                     showSpeaker(this.nextNode.speaker - 1);
@@ -111,6 +112,12 @@ class DialogueNode implements BaseNode {
     }
     finish() {
         return this.topNode.getTop();
+    }
+}
+
+export class NodeStack {
+    constructor(){
+        
     }
 }
 

@@ -457,20 +457,11 @@ export function initGame() {
         new TopNode("Ok", 2).reply("To rád slyším.").chain("Player vyplantil 1 strom.", 0).finish(),
         new TopNode("Nechci plantit stromy.", 2).reply("S okamžitou platností jste vyhozen z UNERA.").chain("Player byl vyhozen z UNERA.", 0).finish()
     ]);
-    let questNode2 = new TopNode("Měl bych pro vás takový quest.").chain("Potřebuji vyplantit 1 strom").choice([
-        new TopNode("Ok", 2).reply("To rád slyším.").chain("Player vyplantil 1 strom.", 0).finish(),
-        new TopNode("Nechci plantit stromy.", 2).reply("S okamžitou platností jste vyhozen z UNERA.").chain("Player byl vyhozen z UNERA.", 0).finish()
-    ]);
-    let questNode3 = new TopNode("Měl bych pro vás takový quest.").chain("Potřebuji vyplantit 1 strom").choice([
-        new TopNode("Ok", 2).reply("To rád slyším.").chain("Player vyplantil 1 strom.", 0).finish(),
-        new TopNode("Nechci plantit stromy.", 2).reply("S okamžitou platností jste vyhozen z UNERA.").chain("Player byl vyhozen z UNERA.", 0).finish()
-    ]);
-
     let firstNode: TopNode = new TopNode("Hello, agent!").chain("I am the Secretary General of UNERA and I'm going to be your main contact throughout this mission. I hope our cooperation will be fruitful.").chain("How is it looking down there?").choice([
         new TopNode("No life in sight.", 2).reply("The landing has been a little... rough.").chainNode(questNode1).finish(),
         new TopNode("The landing has been a little... rough.", 2).reply("Máš hlad? Měl bys jít jíst. Pomůže to. Věř mi. Už jsem taky měl hlad, a zkusil jsem jít jíst, a fakt to pomohlo, nemůžu to víc doporučit.").reply("Nice").reply("Ok, teď jdi fakt jíst.").choice([
-            new TopNode("Jdu jíst.", 2).reply("Skvělé!").chainNode(questNode2).finish(),
-            new TopNode("Nemám hlad.", 2).reply("Takže mi lžeš?").reply("Uhhh...").chain("Možná?").reply("Anyway...").chainNode(questNode3).finish(),
+            new TopNode("Jdu jíst.", 2).reply("Skvělé!").chainNode(questNode1).finish(),
+            new TopNode("Nemám hlad.", 2).reply("Takže mi lžeš?").reply("Uhhh...").chain("Možná?").reply("Anyway...").chainNode(questNode1).finish(),
         ])
     ]);
 
