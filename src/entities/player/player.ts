@@ -141,7 +141,7 @@ export class Player extends Entity {
         let pos = new Vector(this.graphics.position.x, -this.graphics.position.y).sub(new Vector(Camera.width, Camera.height).mult(.5));
         let diff = pos.sub(this.camTarget).add(new Vector(this.velocity.result().mult(.7).x, Camera.yOffset));
         //let diff = pos.sub(this.camTarget).add(new Vector());
-        this.camTarget.add(diff.mult(5 * 0.005));
+        this.camTarget.add(diff.mult(5 * dt));
 
         // this.camTarget = this.position.result().sub(new Vector(Math.floor(Camera.width / 4) * 4, Camera.height).mult(.5).sub(lastvel.mult(dt)));
         // this.camTarget = this.camTarget.add(new Vector(0,Camera.yOffset)).round();
