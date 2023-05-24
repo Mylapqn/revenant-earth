@@ -128,7 +128,6 @@ export class Player extends Entity {
                 break;
             }
         }
-        this.velocity.x *= ((2 - highestDensity) / 2);
 
         this.graphics.animationSpeed = Math.abs(this.velocity.x * (this.run ? 0.3 : 1) / 300);
 
