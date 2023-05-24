@@ -102,11 +102,10 @@ export class Player extends Entity {
             if (this.input.y > 0 && this.velocity.y <= 0) this.velocity.y += 600 * highestDensity;
         }
 
-        if (this.input.x != 0) {
-            this.velocity.x = this.input.x * 10000 * dt * (this.run ? 2 : 1);
-        }
-
-
+        this.velocity.x += this.input.x * 10000 * dt;
+        this.velocity.x = Math.sign(this.velocity.x) * Math.min(this.run ? 180 : 60, Math.abs(this.velocity.x));
+        if (this.velocity.x < 0) this.graphics.scale.x = -1;
+        else this.graphics.scale.x = 1;
         if (this.input.x == 0) this.velocity.x *= (1 - 10 * dt);
         if (highestDensity > 0) {
             if (this.input.x == 0) this.velocity.x *= (1 - 1 * dt);
@@ -134,13 +133,18 @@ export class Player extends Entity {
         this.graphics.animationSpeed = Math.abs(this.velocity.x * (this.run ? 0.3 : 1) / 300);
 
 
-
-
         if (this.velocity.x < 0) this.graphics.scale.x = -1;
         if (this.velocity.x > 0) this.graphics.scale.x = 1;
 
         this.position.add(this.velocity.result().mult(dt));
-        this.camTarget = this.position.result().sub(new Vector(Math.floor(Camera.width / 4) * 4, Camera.height).mult(.5).sub(lastvel.mult(dt))).add(new Vector(0,Camera.yOffset)).round();
+
+        let pos = new Vector(this.graphics.position.x, -this.graphics.position.y).sub(new Vector(Camera.width, Camera.height).mult(.5));
+        let diff = pos.sub(this.camTarget).add(new Vector(this.velocity.result().mult(.7).x, Camera.yOffset));
+        //let diff = pos.sub(this.camTarget).add(new Vector());
+        this.camTarget.add(diff.mult(5 * 0.005));
+
+        // this.camTarget = this.position.result().sub(new Vector(Math.floor(Camera.width / 4) * 4, Camera.height).mult(.5).sub(lastvel.mult(dt)));
+        // this.camTarget = this.camTarget.add(new Vector(0,Camera.yOffset)).round();
 
         /*
                 let legsPixels = [];
