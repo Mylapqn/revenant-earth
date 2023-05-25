@@ -110,7 +110,6 @@ function continueGame(){
     setTimeout(() => {
         GUI.container.classList.remove("mainMenu");
         mainMenuContainer.remove();
-
         mouse.gui = 0;
         initGame(true);
         black.style.opacity = "0";

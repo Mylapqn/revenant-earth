@@ -140,6 +140,7 @@ function terrainUpdate() {
 }
 
 export function initGame(skipIntro = false) {
+    console.log("skipIntro", skipIntro);
 
     Dialogue.init();
 
@@ -377,9 +378,9 @@ export function initGame(skipIntro = false) {
             new GuiSplash(newBiome.name)
             currentBiome = newBiome.biomeId;
         }
-        currentMusic.volume = Math.min(0.5, currentMusic.volume + 0.005); 
+        currentMusic.volume = Math.min(0.5, currentMusic.volume + 0.005);
         for (const track of Object.values(music)) {
-                track.volume *= 0.995 
+            track.volume *= 0.995
         }
 
         if (mouse.pressed == 1 && preferences.selectedTerrainType != 0) {
@@ -610,7 +611,7 @@ export function initGame(skipIntro = false) {
     ticker.start();
     terrainUpdateCycle();
 
-    if (skipIntro) {
+    if (!skipIntro) {
         setTimeout(() => {
             introDialogue.execute();
         }, 8000);
