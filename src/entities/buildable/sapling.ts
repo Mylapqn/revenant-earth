@@ -21,8 +21,8 @@ export class Sapling extends Buildable {
     update(dt: number): void {
         super.update(dt);
     }
-    checkValidPlace(): boolean {
-        return super.checkValidPlace();
+    checkValidPlace(adjust = 0): boolean {
+        return super.checkValidPlace(adjust);
     }
     place(): void {
         new Seed(this.position, undefined, 0, this.settings);

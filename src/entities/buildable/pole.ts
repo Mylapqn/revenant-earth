@@ -33,9 +33,9 @@ export class Pole extends Buildable {
             }
         }
     }
-    checkValidPlace(): boolean {
+    checkValidPlace(adjust = 0): boolean {
         if (this.cable?.targetLength > this.cable?.length) return false;
-        return super.checkValidPlace();
+        return super.checkValidPlace(adjust);
     }
     place() {
         super.place();

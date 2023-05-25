@@ -60,15 +60,27 @@ export class Buildable extends Entity {
         if (Buildable.currentBuildable == this) Buildable.currentBuildable = null;
         super.remove();
     }
-    checkValidPlace() {
-        if (Buildable.placeCooldown != 0) return false;
+    checkValidPlace(adjust = 0): boolean {
+        console.log(adjust);
+
+        if (Buildable.placeCooldown != 0 || adjust > 20) return false;
+        let grounded = 0;
         for (let x = 0; x < this.graphics.width; x++) {
             for (let y = 0; y < this.graphics.height; y++) {
                 const t = Terrain.getPixel(Math.round(this.position.x + x - this.graphics.width / 2), Math.round(this.position.y + y));
-                if (t != terrainType.void) return false;
+                if (y > 4) {
+                    if (t != terrainType.void) {
+                        this.position.y++;
+                        return this.checkValidPlace(adjust+1);
+                    }
+                } else {
+                    if (t != terrainType.void) grounded++;
+                }
             }
         }
-        return true;
+        if (grounded > this.graphics.width) return true
+        this.position.y--;
+        return this.checkValidPlace(adjust+1);
     }
     static update(dt: number) {
         this.placeCooldown = Math.max(0, this.placeCooldown - dt);

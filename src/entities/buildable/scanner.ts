@@ -36,8 +36,8 @@ export class Scanner extends Buildable {
 
         super.update(dt);
     }
-    checkValidPlace(): boolean {
-        return super.checkValidPlace();
+    checkValidPlace(adjust = 0): boolean {
+        return super.checkValidPlace(adjust);
     }
     place(): void {
         this.label = new GuiLabel(this.position, "Loading data...");
