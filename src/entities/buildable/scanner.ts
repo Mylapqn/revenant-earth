@@ -10,19 +10,25 @@ import { Seed } from "../plants/tree/seed";
 import { TreeSettings, defaultTreeSettings } from "../plants/tree/treeSettings";
 import { GuiLabel } from "../../gui/gui";
 import { World } from "../../world";
+import { Light } from "../../shaders/lighting/light";
+import { Color } from "../../color";
+import { randomInt } from "../../utils";
 
 export class Scanner extends Buildable {
     static scanners: Array<Scanner> = []
     graphics: Sprite;
     label: GuiLabel;
     timer = 1;
-    name = ""
+    name = "";
+    light: Light;
     constructor(position: Vector, placeInstantly = false) {
         const graph = new AnimatedSprite([Texture.from("buildable/scanner1.png"), Texture.from("buildable/scanner2.png")]);
         graph.play();
         graph.animationSpeed = 0.01;
         graph.anchor.set(0.5, 1);
         super(graph, position, placeInstantly);
+        this.culling = true;
+        this.light = new Light(this, new Vector(0.5, 10), -Math.PI/2, Math.PI*2, new Color(100, 100, 250), 5, 2);
     }
     update(dt: number): void {
         if (!this.placing) {
@@ -31,6 +37,13 @@ export class Scanner extends Buildable {
                 this.timer = 1;
                 let data = World.getDataFrom(this.position.x);
                 this.label.content = this.name + "\n" + data.co2.toFixed(0) + "ppm" + "\n" + data.pollution.toFixed(1) + "%"
+            }
+
+            if (this.timer % 0.7 < 0.2) {
+                this.light.range = 5;
+            } else {
+                this.light.range = 0;
+                this.light.position = new Vector(randomInt(-2,2), randomInt(8,12));
             }
         }
 

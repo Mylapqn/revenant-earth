@@ -18,6 +18,7 @@ export class Pole extends Buildable {
         const graph = Sprite.from("buildable/pole.png");
         graph.anchor.set(0.5, 1);
         super(graph, position, placeInstantly);
+        this.culling = true;
         if (cable) {
             this.cable = new Cable(position.result().add(new Vector(-3, 55)), position, 200);
             this.cable.graphics.alpha = this.graphics.alpha;

@@ -45,6 +45,7 @@ export class Buildable extends Entity {
         }
         this.updatePosition();
         this.queueUpdate();
+        if (this.culling) this.cullDisplay();
     }
     place() {
         if (Buildable.currentBuildable == this) Buildable.currentBuildable = null;
@@ -71,7 +72,7 @@ export class Buildable extends Entity {
                 if (y > 4) {
                     if (t != terrainType.void) {
                         this.position.y++;
-                        return this.checkValidPlace(adjust+1);
+                        return this.checkValidPlace(adjust + 1);
                     }
                 } else {
                     if (t != terrainType.void) grounded++;
@@ -80,7 +81,7 @@ export class Buildable extends Entity {
         }
         if (grounded > this.graphics.width) return true
         this.position.y--;
-        return this.checkValidPlace(adjust+1);
+        return this.checkValidPlace(adjust + 1);
     }
     static update(dt: number) {
         this.placeCooldown = Math.max(0, this.placeCooldown - dt);

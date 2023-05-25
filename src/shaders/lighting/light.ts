@@ -53,7 +53,7 @@ export class Light {
         let a = Atmosphere.settings.ambientLight
         let ambientIntensity = (a.r + a.g + a.b) / 765;
 
-        return this._intensity * clamp(1 - ambientIntensity,.1,1);
+        return this._intensity * clamp(1 - ambientIntensity, .1, 1);
     }
 
     static list: Light[] = [];
@@ -106,15 +106,22 @@ export class Lightmap {
         this.uniforms.uPixelSize[0] = 1 / Camera.width;
         this.uniforms.uPixelSize[1] = 1 / Camera.height;
 
+        let index = 0;
         for (let i = 0; i < Light.list.length; i++) {
             const light = Light.list[i];
+            if (!light.parent.graphics.visible) continue;
             let screenPos = worldToScreen(light.position);
             //this.uniforms.uLights[i] = {position:[screenPos.x / window.innerWidth, screenPos.y / window.innerHeight]};
-            (this.uniforms as any)[`uLights[${i}].position`] = [screenPos.x / window.innerWidth, screenPos.y / window.innerHeight];
-            (this.uniforms as any)[`uLights[${i}].color`] = [light.color.r / 255, light.color.g / 255, light.color.b / 255];
+            (this.uniforms as any)[`uLights[${index}].position`] = [screenPos.x / window.innerWidth, screenPos.y / window.innerHeight];
+            (this.uniforms as any)[`uLights[${index}].color`] = [light.color.r / 255, light.color.g / 255, light.color.b / 255];
             for (const prop of ["angle", "range", "width", "intensity"]) {
-                (this.uniforms as any)[`uLights[${i}].${prop}`] = light[prop as keyof Light];
+                (this.uniforms as any)[`uLights[${index}].${prop}`] = light[prop as keyof Light];
             }
+            index++;
+        }
+
+        for (let i = index; i < Light.maxAmount; i++) {
+            (this.uniforms as any)[`uLights[${i}].range`] = 0;
         }
         this.uniforms.lightAmount = Light.list.length;
         const useWidth = Math.ceil((Camera.width) / 4) * 4;
@@ -168,15 +175,22 @@ export class Shadowmap {
         this.uniforms.uPixelSize[0] = 1 / Camera.width;
         this.uniforms.uPixelSize[1] = 1 / Camera.height;
 
+        let index = 0;
         for (let i = 0; i < Light.list.length; i++) {
             const light = Light.list[i];
+            if (!light.parent.graphics.visible) continue;
             let screenPos = worldToScreen(light.position);
             //this.uniforms.uLights[i] = {position:[screenPos.x / window.innerWidth, screenPos.y / window.innerHeight]};
-            (this.uniforms as any)[`uLights[${i}].position`] = [screenPos.x / window.innerWidth, screenPos.y / window.innerHeight];
-            (this.uniforms as any)[`uLights[${i}].color`] = [light.color.r / 255, light.color.g / 255, light.color.b / 255];
+            (this.uniforms as any)[`uLights[${index}].position`] = [screenPos.x / window.innerWidth, screenPos.y / window.innerHeight];
+            (this.uniforms as any)[`uLights[${index}].color`] = [light.color.r / 255, light.color.g / 255, light.color.b / 255];
             for (const prop of ["angle", "range", "width", "intensity"]) {
-                (this.uniforms as any)[`uLights[${i}].${prop}`] = light[prop as keyof Light];
+                (this.uniforms as any)[`uLights[${index}].${prop}`] = light[prop as keyof Light];
             }
+            index++;
+        }
+
+        for (let i = index; i < Light.maxAmount; i++) {
+            (this.uniforms as any)[`uLights[${i}].range`] = 0;
         }
 
         this.uniforms.lightAmount = Light.list.length;
