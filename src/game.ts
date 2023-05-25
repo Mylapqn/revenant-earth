@@ -39,6 +39,7 @@ import { World } from "./world";
 import { Light, Lightmap, Shadowmap } from "./shaders/lighting/light";
 import { ChoiceNode, Dialogue, NodeStack, TopNode } from "./dialogue";
 import { CrashPod } from "./entities/passive/landingPod";
+import { Scanner } from "./entities/buildable/scanner";
 let seed = parseInt(window.location.toString().split('?')[1]);
 if (!seed) seed = Math.floor(Math.random() * 1000);
 Math.random = mulberry32(seed);
@@ -115,6 +116,8 @@ let terrainScore = 100;
 
 export let music = {
     mountains: new Audio("sound/music/melted mountains.wav"),
+    ruins: new Audio("sound/music/industrial wasteland 2.10.wav"),
+    swamp: new Audio("sound/music/evening.wav"),
     menu: new Audio("sound/music/menu.wav"),
 };
 for (const m of Object.values(music)) {
@@ -136,7 +139,7 @@ function terrainUpdate() {
     tps++;
 }
 
-export function initGame() {
+export function initGame(skipIntro = false) {
 
     Dialogue.init();
 
@@ -200,10 +203,11 @@ export function initGame() {
     Terrain.init();
 
     const generator = new TerrainGenerator();
+    Terrain.generator = generator;
     let nextRock = randomInt(1, 10);
-    const flatland = { stoneTop: 0.5, stoneBottom: 0.5, bottom: 360, top: 480, moisture: 2, minerals: 3, dirtDepth: 50, mineralDepthPenalty: -2, curveModifier: 0.5, curveLimiter: 0.1, biomeId: 1 };
-    const mountains = { stoneTop: 1, stoneBottom: 2, bottom: 550, top: 660, moisture: 2, minerals: 1, dirtDepth: 10, mineralDepthPenalty: 0, curveModifier: 1.5, curveLimiter: 1, biomeId: 2 };
-    const swamp = { stoneTop: 2, stoneBottom: 0.5, bottom: 360, top: 400, moisture: 3, minerals: 0, dirtDepth: 80, mineralDepthPenalty: 0, curveModifier: 0.5, curveLimiter: 0.1, biomeId: 3 };
+    const flatland: BiomeData = { stoneTop: 0.5, stoneBottom: 0.5, bottom: 360, top: 480, moisture: 2, minerals: 3, dirtDepth: 50, mineralDepthPenalty: -2, curveModifier: 0.5, curveLimiter: 0.1, biomeId: 1, name: "Urban Ruins", shortName: "Ruins", music: music.ruins };
+    const mountains: BiomeData = { stoneTop: 1, stoneBottom: 2, bottom: 550, top: 660, moisture: 2, minerals: 1, dirtDepth: 10, mineralDepthPenalty: 0, curveModifier: 1.5, curveLimiter: 1, biomeId: 2, name: "Melted Mountains", shortName: "Mountains", music: music.mountains };
+    const swamp: BiomeData = { stoneTop: 2, stoneBottom: 0.5, bottom: 360, top: 400, moisture: 3, minerals: 0, dirtDepth: 80, mineralDepthPenalty: 0, curveModifier: 0.5, curveLimiter: 0.1, biomeId: 3, name: "Swampy Lowlands", shortName: "Lowlands", music: music.swamp };
     generator.addToQueue(swamp, 1000);
     generator.addToQueue(mountains, 1000);
     generator.addToQueue(flatland, 1000);
@@ -266,7 +270,7 @@ export function initGame() {
     Stamps.loadStamps().then(() => {
         //const pos = Stamps.stamp("stamp", new Vector(2500, 0), { useDirtFrom: generator });
         //new Sign(pos.add(new Vector(184, 92)));
-        const pos = Stamps.stamp("landing", new Vector(2500, 0), { useDirtFrom: generator ,replaceMatching: (r, w) => TerrainManager.isDirt(r) });
+        const pos = Stamps.stamp("landing", new Vector(2500, 0), { useDirtFrom: generator, replaceMatching: (r, w) => TerrainManager.isDirt(r) });
         new CrashPod(pos.add(new Vector(0, 1)));
         Stamps.stamp("stamp2", new Vector(2800, 0), { useDirtFrom: generator, replaceMatching: (r, w) => TerrainManager.isDirt(r) });
         Stamps.stamp("stamp5", new Vector(2650, 0), { useDirtFrom: generator, replaceMatching: (r, w) => TerrainManager.isDirt(r) });
@@ -297,6 +301,9 @@ export function initGame() {
     DebugDraw.graphics.addChild(Shadowmap.graphic);
 
     let frameByFrame = false;
+
+    let scannerData: PositionableGuiElement;
+    let currentMusic: HTMLAudioElement;
 
     ticker.add((delta) => {
         if (terrainScore < 80 && tps / tpsMeter < 0.12 && (1000 / Math.max(...dtAvg)) > 50) {
@@ -362,12 +369,19 @@ export function initGame() {
 
         const [wx, wy] = screenToWorld(mouse).xy();
         debugPrint(screenToWorld(mouse).toString());
-        let newBiome = generator.getBiome(player.position.x).biomeId;
-        if (newBiome != currentBiome) {
-            music.mountains.play();
-            new GuiSplash(["Urban Ruins", "Melted Mountains", "Swampy Lowlands"][newBiome - 1])
-            currentBiome = newBiome;
+        let newBiome = generator.getBiome(player.position.x);
+        if (newBiome.biomeId != currentBiome) {
+
+            newBiome.music.play();
+            currentMusic = newBiome.music;
+            new GuiSplash(newBiome.name)
+            currentBiome = newBiome.biomeId;
         }
+        currentMusic.volume = Math.min(0.5, currentMusic.volume + 0.005); 
+        for (const track of Object.values(music)) {
+                track.volume *= 0.995 
+        }
+
         if (mouse.pressed == 1 && preferences.selectedTerrainType != 0) {
             for (let x = 0; x < preferences.penSize; x++) {
                 for (let y = 0; y < preferences.penSize; y++) {
@@ -447,6 +461,15 @@ export function initGame() {
             tps = 0;
         }
 
+        if (Scanner.scanners.length > 0) {
+            scannerData.element.innerHTML = "<table class='scanners'><tr><th>scanner</th><th>CO2</th><th>pollution</th>" + Scanner.scanners.map((s, i) => {
+                const data = World.getDataFrom(s.position.x)
+                return `<tr><td>${s.name}</td><td>${data.co2.toFixed(0)}ppm</td><td>${data.pollution > 0 ? data.pollution.toFixed(1) : 0}%</td></tr>`
+            }).join("\n") + "</table>";
+        } else {
+            scannerData.element.innerHTML = "no scanners deployed"
+        }
+
         Terrain.draw();
         ParallaxDrawer.update();
         Entity.update(dt);
@@ -490,19 +513,19 @@ export function initGame() {
             .chain("The surroundings look nothing like the pictures of Earth that you've seen.")
             .choice([
                 new TopNode("This place looks more like Mars.")
-                .chain("The dusty, orange atmosphere looks hostile and unbreathable.",0)
-                .finish(),
+                    .chain("The dusty, orange atmosphere looks hostile and unbreathable.", 0)
+                    .finish(),
                 new TopNode("What happened here?")
-                .chain("A glance at the scenery tells a tale of destruction and abandonment.",0)
-                .finish(),
+                    .chain("A glance at the scenery tells a tale of destruction and abandonment.", 0)
+                    .finish(),
                 new TopNode("Wow! This game looks so pretty!")
-                .chain("Thanks. I don't have any gameplay or story in this game, but I worked a lot on the water shaders.",0)
-                .finish(),
+                    .chain("Thanks. I don't have any gameplay or story in this game, but I worked a lot on the water shaders.", 0)
+                    .finish(),
             ])
-            .chain("The pod is slightly damaged, but the radio appears still functional.",0)
-            .chain("I should try to call Mission Control.",2)
-            .chain("After a moment of static, the display lights up.",0)
-            .chain("-ssion control to ERA-1, repeat, we have lost-",1)
+            .chain("The pod is slightly damaged, but the radio appears still functional.", 0)
+            .chain("I should try to call Mission Control.", 2)
+            .chain("After a moment of static, the display lights up.", 0)
+            .chain("-ssion control to ERA-1, repeat, we have lost-", 1)
             .reply("ERA-1 calling Mission Control.")
             .reply("It appears the signal is back! Hello, Agent.")
             .chain("What is your status?")
@@ -515,14 +538,14 @@ export function initGame() {
             .choice([
                 new TopNode("Yes sir"),
                 new TopNode("Pla- what?")
-                .chain("What the hell are you talking about?",2)
-                .reply("Stop complaining, Agent. I know you read the game description so you know that this game is about planting trees.")
-                .reply("But...")
-                .chain("What about the gameplay? The exploration? And all the cool environments you promised?")
-                .reply("Yeah, that's not happening. Get to work.")
-                .finish()
+                    .chain("What the hell are you talking about?", 2)
+                    .reply("Stop complaining, Agent. I know you read the game description so you know that this game is about planting trees.")
+                    .reply("But...")
+                    .chain("What about the gameplay? The exploration? And all the cool environments you promised?")
+                    .reply("Yeah, that's not happening. Get to work.")
+                    .finish()
             ])
-            .chain("The Director or whoever it is has disconnected.",0)
+            .chain("The Director or whoever it is has disconnected.", 0)
             .chain("Get to work.")
             .finish()
     )
@@ -546,6 +569,37 @@ export function initGame() {
     new GuiButton({ content: "Inventory", callback: () => { Atmosphere.settings.sunAngle = -2 }, parent: mainBar })
     new GuiButton({ content: "Atmosphere status", callback: () => { Atmosphere.settings.sunAngle = 1 }, parent: mainBar })
 
+    const hotbar = new PositionableGuiElement({ position: new Vector(50, 50), invertHorizontalPosition: true })
+
+    function placeSeed() {
+        if (!Buildable.currentBuildable && seedCooldown <= 0) {
+            seedCooldown = .2;
+            new Sapling(player.position.result(), randomBool() ? coniferousSettings : defaultTreeSettings);
+        }
+    }
+
+    function placePole() {
+        if (!Buildable.currentBuildable && seedCooldown <= 0) {
+            seedCooldown = .2;
+            new Pole(player.position.result(), false);
+        }
+    }
+
+    function placeScanner() {
+        if (!Buildable.currentBuildable && seedCooldown <= 0) {
+            seedCooldown = .2;
+            new Scanner(player.position.result(), false);
+        }
+    }
+
+
+
+    new GuiButton({ content: "Seed", callback: () => { placeSeed() }, parent: hotbar })
+    new GuiButton({ content: "Pole", callback: () => { placePole() }, parent: hotbar })
+    new GuiButton({ content: "Scanner", callback: () => { placeScanner() }, parent: hotbar })
+
+
+    scannerData = new PositionableGuiElement({ position: new Vector(50, 50), invertHorizontalPosition: true, invertVerticalPosition: true })
 
     const key: Record<string, boolean> = {};
     window.addEventListener("keydown", (e) => { key[e.key.toLowerCase()] = true });
@@ -556,9 +610,12 @@ export function initGame() {
     ticker.start();
     terrainUpdateCycle();
 
-    setTimeout(() => {
-        introDialogue.execute();
-    }, 8000);
+    if (skipIntro) {
+        setTimeout(() => {
+            introDialogue.execute();
+        }, 8000);
+    }
+
 }
 GUI.init();
 window.addEventListener("mousemove", (e) => { mouse.x = e.clientX; mouse.y = e.clientY });

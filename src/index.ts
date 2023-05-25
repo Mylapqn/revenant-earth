@@ -112,7 +112,7 @@ function continueGame(){
         mainMenuContainer.remove();
 
         mouse.gui = 0;
-        initGame();
+        initGame(true);
         black.style.opacity = "0";
         setTimeout(() => {
             black.remove();

@@ -6,6 +6,7 @@ import { indexSplit, noise, random, randomBool, randomInt } from "./utils";
 import { Vector } from "./vector";
 import { Rock } from "./entities/passive/rock";
 import { GrassPatch } from "./entities/passive/grassPatch";
+import { TerrainGenerator } from "./biome";
 
 
 enum Direction {
@@ -23,6 +24,7 @@ enum Direction {
 export class Terrain {
     static readonly width = 1024 * 10;
     static readonly height = 1024;
+    static generator: TerrainGenerator
     static pixels: Uint8Array;
     static view: DataView;
     static toUpdate: Set<number>;

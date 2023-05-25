@@ -55,6 +55,8 @@ interface PositionableGuiElementOptions extends GuiElementOptions {
     position?: Vector,
     centerX?: boolean,
     centerY?: boolean,
+    invertHorizontalPosition?: boolean,
+    invertVerticalPosition?: boolean,
 }
 
 interface GuiPanelOptions extends GuiElementOptions {
@@ -133,23 +135,35 @@ class GuiElement extends BaseGuiElement {
 
 export class PositionableGuiElement extends GuiElement {
     position: Vector;
+    invertHorizontalPosition: boolean;
+    invertVerticalPosition: boolean;
 
     constructor(options: PositionableGuiElementOptions) {
         super(options);
         if (!options.parent) {
             this.position = options.position;
+            this.invertHorizontalPosition = options.invertHorizontalPosition;
+            this.invertVerticalPosition = options.invertVerticalPosition;
             this.element.addEventListener("mouseenter", (e) => { mouse.gui++; });
             this.element.addEventListener("mouseleave", (e) => { mouse.gui = 0; });
             this.element.classList.add("absolute");
             if (options.centerX) this.element.classList.add("centerX");
-            else if (options.position) this.element.style.left = this.position.x + "px";
+            else if (options.position) {
+                if (!options.invertHorizontalPosition) this.element.style.left = this.position.x + "px";
+                else this.element.style.right = this.position.x + "px";
+            }
             if (options.centerY) this.element.classList.add("centerY");
-            else if (options.position) this.element.style.top = this.position.y + "px";
+            else if (options.position){
+                if (!options.invertVerticalPosition) this.element.style.top = this.position.y + "px";
+                else this.element.style.bottom = this.position.y + "px";
+            } 
         }
     }
     update() {
-        this.element.style.left = this.position.x + "px";
-        this.element.style.top = this.position.y + "px";
+        if (!this.invertHorizontalPosition) this.element.style.left = this.position.x + "px";
+        else this.element.style.right = this.position.x + "px";
+        if (!this.invertVerticalPosition) this.element.style.top = this.position.y + "px";
+        else this.element.style.bottom = this.position.y + "px";
     }
 }
 

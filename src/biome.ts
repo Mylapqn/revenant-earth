@@ -28,11 +28,16 @@ export class TerrainGenerator {
                 if (lastX * this.transitionRate > 1) {
                     return { ...item.biome }
                 } else {
-                    const newData = {} as BiomeData;
+                    const newData = {} as any;
                     for (let key in item.biome) {
-                        let k = key as keyof BiomeData;
-                        if(typeof item.biome[k] == "number")
-                        newData[k] = lerp(previous.biome[k], item.biome[k], lastX * this.transitionRate);
+                        let k = key as keyof BiomeData; 
+                        const prevVal = previous.biome[k]
+                        const thisVal = item.biome[k]
+                        if (isNumber(prevVal) && isNumber(thisVal))
+                            newData[k] = lerp(prevVal, thisVal, lastX * this.transitionRate);
+                            else
+                            newData[k] = prevVal
+
                     }
                     return newData;
                 }
@@ -113,4 +118,11 @@ export type BiomeData = {
     curveLimiter: number;
     bottom: number;
     top: number;
+    name: string;
+    shortName: string;
+    music: HTMLAudioElement;
+}
+
+function isNumber(value: any): value is number {
+    return typeof value == "number"
 }

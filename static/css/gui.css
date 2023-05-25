@@ -3,14 +3,14 @@
     width: 100vw;
     height: 100vh;
     overflow: hidden;
-    font-family: 'Bahnschrift';
+    font-family: "Bahnschrift";
     color: white;
     z-index: 1;
     background-size: cover;
     background-position-x: center;
     image-rendering: pixelated;
     user-select: none;
-    font-size: calc(var(--scale)*20);
+    font-size: calc(var(--scale) * 20);
 }
 
 .menustation {
@@ -49,12 +49,12 @@
 }
 
 #guiContainer.mainMenu {
-    background-color: #FFD599;
-    --scale: calc(min(1.5px, .12vw));
+    background-color: #ffd599;
+    --scale: calc(min(1.5px, 0.12vw));
 }
 
 .mainMenu .button {
-    backdrop-filter: blur(.5em);
+    backdrop-filter: blur(0.5em);
     background-color: #a218008d;
 }
 
@@ -67,11 +67,11 @@
     font-weight: 400;
     text-transform: uppercase;
     font-size: 6vw;
-    letter-spacing: .2em;
+    letter-spacing: 0.2em;
     text-align: center;
     margin: 0;
     width: 100vw;
-    color: #B93816;
+    color: #b93816;
     z-index: 0;
 }
 
@@ -81,20 +81,20 @@
     justify-content: center;
     gap: 1em;
     flex-direction: column;
-    font-size: calc(var(--scale)*20);
+    font-size: calc(var(--scale) * 20);
 }
 
 .ui {
     user-select: none;
     background-color: #00000062;
-    padding: calc(var(--scale)*20);
+    padding: calc(var(--scale) * 20);
     backdrop-filter: blur(2em);
-    transition: transform .1s, outline .1s;
+    transition: transform 0.1s, outline 0.1s;
     color: white;
-    font-family: 'Bahnschrift';
-    border-radius: .3em;
+    font-family: "Bahnschrift";
+    border-radius: 0.3em;
     z-index: 1;
-    font-size: calc(var(--scale)*20);
+    font-size: calc(var(--scale) * 20);
 }
 
 .ui .ui {
@@ -121,16 +121,18 @@
 
 .tooltip {
     outline: none;
+    white-space: nowrap;
 }
 
 .label {
     z-index: 0;
     right: unset;
     transform: translateX(-50%);
+    white-space: nowrap;
 }
 
 .label::after {
-    content: '';
+    content: "";
     position: absolute;
     left: 0;
     right: 0;
@@ -157,6 +159,11 @@
     text-align: center;
 }
 
+.scanners th,
+.scanners td {
+    padding: 0 10px;
+}
+
 .button {
     /* display: block; */
     cursor: pointer;
@@ -166,11 +173,11 @@
 }
 
 .button.img {
-    padding: .2em;
+    padding: 0.2em;
     height: fit-content;
 }
 
-.button.img>img {
+.button.img > img {
     height: 3em;
 }
 
@@ -198,7 +205,7 @@
     animation: splash 7s;
     animation-fill-mode: both;
     animation-timing-function: linear;
-    letter-spacing: .1em;
+    letter-spacing: 0.1em;
     font-weight: 100;
     flex-direction: column;
     text-shadow: 0px 5px 30px black;
@@ -206,7 +213,7 @@
 
 .splash::after {
     content: "new biome discovered";
-    font-size: .4em;
+    font-size: 0.4em;
     display: block;
     letter-spacing: 0;
 }
@@ -214,7 +221,7 @@
 @keyframes splash {
     from {
         opacity: 0;
-        letter-spacing: .0em;
+        letter-spacing: 0em;
     }
 
     20% {
@@ -227,6 +234,6 @@
 
     to {
         opacity: 0;
-        letter-spacing: .05em;
+        letter-spacing: 0.05em;
     }
 }
