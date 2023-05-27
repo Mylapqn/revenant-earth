@@ -62,6 +62,7 @@ function resize() {
     PixelDrawer.resize();
     Entity.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
     PixelDrawer.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
+    app.stage.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
     const useWidth = Math.ceil((Camera.width) / 4) * 4;
     background = PIXI.RenderTexture.create({ width: useWidth, height: Camera.height });
     app.renderer.resize(Camera.width, Camera.height);
@@ -115,10 +116,11 @@ let tps = 0;
 let terrainScore = 100;
 
 export let music = {
-    mountains: new Audio("sound/music/melted mountains.wav"),
-    ruins: new Audio("sound/music/industrial wasteland 2.10.wav"),
-    swamp: new Audio("sound/music/evening.wav"),
-    menu: new Audio("sound/music/menu.wav"),
+    mountains: new Audio("sound/music/melted_mountains.ogg"),
+    ruins: new Audio("sound/music/urban_ruins.ogg"),
+    wasteland: new Audio("sound/music/industrial_wasteland.ogg"),
+    swamp: new Audio("sound/music/industrial_wasteland.ogg"),
+    menu: new Audio("sound/music/menu.ogg"),
 };
 for (const m of Object.values(music)) {
     m.loop = true;
@@ -192,6 +194,18 @@ export function initGame(skipIntro = false) {
     Entity.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
     ParallaxDrawer.fgContainer.filters = [new ForegroundFilter()];
     ParallaxDrawer.fgContainer.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
+    let colorGrade = new PIXI.ColorMatrixFilter();
+    //colorCorrect.blackAndWhite(true);
+    //colorCorrect.desaturate();
+    colorGrade.matrix = [
+        .7, .6, 0, 0, .2,
+        .1, .4, .1, 0, .08,
+        0, 0, .8, 0, -.4,
+        0, 0, 0, 1, 0,
+    ]
+    colorGrade.alpha = 1;
+    app.stage.filters = [colorGrade];
+    app.stage.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
     console.log(app.renderer);
 
     app.stage.addChild(debugText);
@@ -306,6 +320,8 @@ export function initGame(skipIntro = false) {
     let scannerData: PositionableGuiElement;
     let currentMusic: HTMLAudioElement;
 
+    let timeElapsed = 0;
+
     ticker.add((delta) => {
         if (terrainScore < 80 && tps / tpsMeter < 0.12 && (1000 / Math.max(...dtAvg)) > 50) {
             terrainUpdate();
@@ -331,14 +347,17 @@ export function initGame(skipIntro = false) {
         dtAvg.push(diff);
         tpsMeter += diff;
 
+        timeElapsed += dt;
+
         updateInfo -= diff;
 
+        let worldData = World.getDataFrom(player.position.x);
+        colorGrade.alpha = worldData.pollution/100
         if (updateInfo <= 0) {
             updateInfo = 250;
-            let data = World.getDataFrom(player.position.x);
             debugPrint("Local Status:");
 
-            debugPrint(Object.entries(data).map(e => `\t${e[0]}: ${e[1].toFixed(1)}`).join("\n"));
+            debugPrint(Object.entries(worldData).map(e => `\t${e[0]}: ${e[1].toFixed(1)}`).join("\n"));
 
             debugText.text = printText;
         }
@@ -370,15 +389,18 @@ export function initGame(skipIntro = false) {
 
         const [wx, wy] = screenToWorld(mouse).xy();
         debugPrint(screenToWorld(mouse).toString());
-        let newBiome = generator.getBiome(player.position.x);
-        if (newBiome.biomeId != currentBiome) {
 
-            newBiome.music.play();
-            currentMusic = newBiome.music;
-            new GuiSplash(newBiome.name)
-            currentBiome = newBiome.biomeId;
+        let newBiome = generator.getBiome(player.position.x);
+
+        if (timeElapsed > 1) {
+            if (newBiome.biomeId != currentBiome) {
+                newBiome.music.play();
+                currentMusic = newBiome.music;
+                new GuiSplash(newBiome.name)
+                currentBiome = newBiome.biomeId;
+            }
+            currentMusic.volume = Math.min(0.5, currentMusic.volume + 0.005);
         }
-        currentMusic.volume = Math.min(0.5, currentMusic.volume + 0.005);
         for (const track of Object.values(music)) {
             track.volume *= 0.995
         }
@@ -490,25 +512,6 @@ export function initGame(skipIntro = false) {
         Camera.position.y = Math.round(player.camTarget.y);
     });
 
-    let questNode = new NodeStack(
-        new TopNode("Měl bych pro vás takový quest.")
-            .chain("Potřebuji vyplantit 1 strom")
-            .choice([
-                new TopNode("Ok", 2).reply("To rád slyším.").chain("Player vyplantil 1 strom.", 0).finish(),
-                new TopNode("Nechci plantit stromy.", 2).reply("S okamžitou platností jste vyhozen z UNERA.").chain("Player byl vyhozen z UNERA.", 0).finish()
-            ])
-            .chain("Dod")
-            .finish()
-    );
-    let firstNode = new NodeStack(
-        new TopNode("Hello, agent!", 0).chain("I am the Secretary General of UNERA and I'm going to be your main contact throughout this mission. I hope our cooperation will be fruitful.").chain("How is it looking down there?").choice([
-            new TopNode("No life in sight.", 2).reply("The landing has been a little... rough.").chainNode(questNode).finish(),
-            new TopNode("The landing has been a little... rough.", 2).reply("Máš hlad? Měl bys jít jíst. Pomůže to. Věř mi. Už jsem taky měl hlad, a zkusil jsem jít jíst, a fakt to pomohlo, nemůžu to víc doporučit.").reply("Nice").reply("Ok, teď jdi fakt jíst.").choice([
-                new TopNode("Jdu jíst.", 2).reply("Skvělé!").chainNode(questNode).chain("A nezapomeň na to jídlo!", 1).finish(),
-                new TopNode("Nemám hlad.", 2).reply("Takže mi lžeš?").reply("Uhhh...").chain("Možná?").reply("Anyway...").chainNode(questNode).finish(),
-            ]).finish()
-        ]).finish());
-
     let introDialogue = new NodeStack(
         new TopNode("You stumble out of the pod.", 0)
             .chain("The surroundings look nothing like the pictures of Earth that you've seen.")
@@ -550,7 +553,6 @@ export function initGame(skipIntro = false) {
             .chain("Get to work.")
             .finish()
     )
-    console.log(firstNode);
 
 
     /* setTimeout(() => {
