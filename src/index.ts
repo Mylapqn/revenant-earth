@@ -1,5 +1,5 @@
 import { initGame, mouse, music } from "./game";
-import { BaseGuiElement, CustomGuiElement, DialogBox, GUI, GuiButton, GuiPanel, PositionableGuiElement } from "./gui/gui";
+import { BaseGuiElement, CustomGuiElement, DialogBox, GUI, GuiButton, GuiPanel, GuiSplash, PositionableGuiElement } from "./gui/gui";
 
 GUI.container.classList.add("mainMenu");
 
@@ -66,8 +66,6 @@ function menuUpdate() {
         requestAnimationFrame(menuUpdate);
 }
 
-
-
 function startGame() {
     music.menu.pause();
     menuActive = false;
@@ -83,9 +81,17 @@ function startGame() {
         mainMenuContainer.remove();
 
         mouse.gui = 0;
-        let crashAudio = new Audio("sound/fx/crash.ogg");
-        crashAudio.volume = .5;
+        let crashAudio = new Audio("sound/fx/crash2.ogg");
+        crashAudio.volume = .35;
         crashAudio.play();
+        setTimeout(() => {
+            let a = new CustomGuiElement("div", "The following game is a demo not representative of the final product.", "introText", "ui", "blank", "small");
+            black.appendChild(a.element);
+            setTimeout(() => {
+                let b = new CustomGuiElement("div", "REVENANT EARTH", "introText", "ui", "blank", "big");
+                black.appendChild(b.element);
+            }, 10000);
+        }, 1000);
     }, 2000);
     setTimeout(() => {
         initGame();
@@ -95,10 +101,10 @@ function startGame() {
                 black.remove();
             }, 2000);
         }, 2000);
-    }, 15000);
+    }, 22000);
 }
 
-function continueGame(){
+function continueGame() {
     music.menu.pause();
     menuActive = false;
     let black = document.createElement("div");

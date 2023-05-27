@@ -9,6 +9,7 @@ export class GUI {
         this.sounds.hover.volume = .35;
         this.sounds.click.volume = .4;
         this.sounds.appear.volume = .3;
+        this.sounds.discovery.volume = .05;
         let elements = document.getElementsByClassName("ui");
         for (let i = 0; i < elements.length; i++) {
             const element = elements[i];
@@ -41,6 +42,7 @@ export class GUI {
         appear: new Audio("sound/fx/appear.wav"),
         hide: new Audio("sound/fx/hide.wav"),
         unhide: new Audio("sound/fx/unhide.wav"),
+        discovery: new Audio("sound/fx/ping.wav"),
     };
 }
 
@@ -302,6 +304,7 @@ export class GuiSplash {
         this.element.classList.add("splash");
         this.element.innerText = content;
         this.element.style.animationDuration = duration + "s";
+        GUI.sounds.discovery.play();
         setTimeout(() => {
             this.element.remove();
         }, duration * 1000);

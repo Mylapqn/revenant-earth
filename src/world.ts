@@ -12,7 +12,7 @@ export class World {
     static init() {
         for (let x = 0; x <= Terrain.width; x += this.gap) {
             this.data[x] = {
-                pollution: 10,
+                pollution: 80,
                 co2: 900
             };
         }
