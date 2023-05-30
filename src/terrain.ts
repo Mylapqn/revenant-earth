@@ -41,6 +41,9 @@ export class Terrain {
         [7]: this.width,
         [8]: this.width + 1,
     };
+    static sounds = {
+        water: 0
+    }
     static init() {
         this.toUpdate = new Set();
         this.tempToUpdate = new Set();

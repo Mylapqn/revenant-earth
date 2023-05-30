@@ -40,6 +40,7 @@ import { Light, Lightmap, Shadowmap } from "./shaders/lighting/light";
 import { ChoiceNode, Dialogue, NodeStack, TopNode } from "./dialogue";
 import { CrashPod } from "./entities/passive/landingPod";
 import { Scanner } from "./entities/buildable/scanner";
+import { colorGradeFilter } from "./shaders/colorGrade/colorGrade";
 let seed = parseInt(window.location.toString().split('?')[1]);
 if (!seed) seed = Math.floor(Math.random() * 1000);
 Math.random = mulberry32(seed);
@@ -194,16 +195,7 @@ export function initGame(skipIntro = false) {
     Entity.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
     ParallaxDrawer.fgContainer.filters = [new ForegroundFilter()];
     ParallaxDrawer.fgContainer.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
-    let colorGrade = new PIXI.ColorMatrixFilter();
-    //colorCorrect.blackAndWhite(true);
-    //colorCorrect.desaturate();
-    colorGrade.matrix = [
-        .7, .6, 0, 0, .2,
-        .1, .4, .1, 0, .08,
-        0, 0, .8, 0, -.4,
-        0, 0, 0, 1, 0,
-    ]
-    colorGrade.alpha = 1;
+    let colorGrade = new colorGradeFilter();
     app.stage.filters = [colorGrade];
     app.stage.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
     console.log(app.renderer);
@@ -352,7 +344,7 @@ export function initGame(skipIntro = false) {
         updateInfo -= diff;
 
         let worldData = World.getDataFrom(player.position.x);
-        colorGrade.alpha = worldData.pollution/100
+        colorGrade.strength = worldData.pollution/100
         if (updateInfo <= 0) {
             updateInfo = 250;
             debugPrint("Local Status:");
