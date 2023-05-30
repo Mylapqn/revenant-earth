@@ -127,6 +127,15 @@ for (const m of Object.values(music)) {
     m.volume = .3;
 }
 
+const terrainNoises: Record<string, HTMLAudioElement> = {};
+
+for (const name in Terrain.sound) {
+    terrainNoises[name] = new Audio(`sound/terrain/${name}.ogg`);
+    terrainNoises[name].loop = true;
+    terrainNoises[name].volume = 0;
+
+}
+
 export const mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2, pressed: 0, gui: 0 };
 
 function terrainUpdateCycle() {
@@ -322,6 +331,12 @@ export function initGame(skipIntro = false) {
 
     let timeElapsed = 0;
 
+    for (const name in Terrain.sound) {
+        terrainNoises[name].play();
+        terrainNoises[name].loop = true;
+        terrainNoises[name].volume = 0;
+    }
+
     ticker.add((delta) => {
         if (terrainScore < 80 && tps / tpsMeter < 0.12 && (1000 / Math.max(...dtAvg)) > 50) {
             terrainUpdate();
@@ -352,7 +367,17 @@ export function initGame(skipIntro = false) {
         updateInfo -= diff;
 
         let worldData = World.getDataFrom(player.position.x);
-        colorGrade.alpha = worldData.pollution/100
+        colorGrade.alpha = worldData.pollution / 100
+
+        /* terrain noises */
+        debugPrint("Terrain noises:");
+
+        for (const name in Terrain.sound) {
+            const soundLevel = Terrain.sound[name as keyof typeof Terrain.sound] / Terrain.soundVolumeMulitplyer[name]
+            terrainNoises[name].volume = clamp(soundLevel, 0, 0.5);
+            debugPrint(`    ${name}:` + soundLevel.toFixed(2));
+        }
+
         if (updateInfo <= 0) {
             updateInfo = 250;
             debugPrint("Local Status:");
@@ -361,7 +386,7 @@ export function initGame(skipIntro = false) {
 
             debugText.text = printText;
         }
-
+        printText = ""
 
 
         Atmosphere.settings.sunAngle += dt / 20;
@@ -374,7 +399,6 @@ export function initGame(skipIntro = false) {
         Atmosphere.settings.ambientLight = Color.fromHsl(lerp(10, 20, clamp(sunFac * 5)), clamp(.8 - sunFac), clamp(sunFac + .5));
         Atmosphere.settings.ambientLight = Atmosphere.settings.ambientLight.add(Color.fromHsl(lerp(280, 230, clamp(-sunFac / 2)), clamp(-sunFac + .3) * .6, Math.max(.1, (clamp(-sunFac + .3) * .3))))
         Atmosphere.settings.sunIntensity = clamp(clamp(sunFac + .8) * Math.max(.4, sunHor * 2));
-        printText = ""
         if (key["arrowleft"]) Camera.position.x -= camspeed;
         if (key["arrowright"]) Camera.position.x += camspeed;
         if (key["arrowup"]) Camera.position.y += camspeed;
@@ -406,6 +430,9 @@ export function initGame(skipIntro = false) {
         }
 
         if (mouse.pressed == 1 && preferences.selectedTerrainType != 0) {
+            if (TerrainManager.isDirt(preferences.selectedTerrainType)) {
+                Terrain.sound.dirt += preferences.penSize * preferences.penSize;
+            }
             for (let x = 0; x < preferences.penSize; x++) {
                 for (let y = 0; y < preferences.penSize; y++) {
                     Terrain.setAndUpdatePixel(Math.floor(wx + x - preferences.penSize / 2), Math.floor(wy + y - preferences.penSize / 2), preferences.selectedTerrainType != terrainType.dirt00 ? preferences.selectedTerrainType : generator.getLocalDirt(
@@ -416,7 +443,26 @@ export function initGame(skipIntro = false) {
         } else if (mouse.pressed == 2) {
             for (let x = 0; x < preferences.penSize; x++) {
                 for (let y = 0; y < preferences.penSize; y++) {
-                    Terrain.setAndUpdatePixel(Math.floor(wx + x - preferences.penSize / 2), Math.floor(wy + y - preferences.penSize / 2), terrainType.void);
+                    const coordX = Math.floor(wx + x - preferences.penSize / 2)
+                    const coordY = Math.floor(wy + y - preferences.penSize / 2)
+                    const type = Terrain.getPixel(coordX, coordY);
+                    switch (true) {
+                        case  type == terrainType.stone:
+                            Terrain.sound.stone += 10;
+                            break;
+                        case type == terrainType.sand || type == terrainType.sand2:
+                            Terrain.sound.sand += 10;
+                            break;
+                        case TerrainManager.isWater(type) && type != terrainType.void:
+                            Terrain.sound.water += 10;
+                            break;
+                        case TerrainManager.isDirt(type):
+                            Terrain.sound.dirt += 10;
+                            break;
+                        default:
+                            break;
+                    }
+                    Terrain.setAndUpdatePixel(coordX, coordY, terrainType.void);
                 }
             }
         }

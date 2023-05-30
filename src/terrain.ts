@@ -1,5 +1,4 @@
-import { log } from "console";
-import { DebugMode, debugPrint, preferences, terrainTick } from "./game";
+import { DebugMode, debugPrint, player, preferences, terrainTick } from "./game";
 import { Camera } from "./camera";
 import { PixelDrawer } from "./pixelDrawer";
 import { indexSplit, noise, random, randomBool, randomInt } from "./utils";
@@ -41,6 +40,21 @@ export class Terrain {
         [7]: this.width,
         [8]: this.width + 1,
     };
+
+    static sound = {
+        water: 0,
+        sand: 0,
+        dirt: 0,
+        stone: 0,
+    }
+
+    static soundVolumeMulitplyer: Record<string, number> = {
+        water: 10000,
+        sand: 100000,
+        dirt: 10000,
+        stone: 10000,
+    }
+
     static init() {
         this.toUpdate = new Set();
         this.tempToUpdate = new Set();
@@ -93,7 +107,7 @@ export class Terrain {
         try {
             return this.view.getUint8(i) as terrainType;
         } catch (error) {
-            error.message+=`, getting x: ${x} y: ${y}, dimensions x: ${this.width} y: ${this.height},\n`
+            error.message += `, getting x: ${x} y: ${y}, dimensions x: ${this.width} y: ${this.height},\n`
             throw error;
         }
     }
@@ -130,6 +144,10 @@ export class Terrain {
     ];
 
     static update(tick: number) {
+        for (const key in this.sound) {
+            this.sound[key as keyof typeof this.sound] *= 0.95;
+        }
+
         debugPrint("updates: " + this.toUpdate.size);
         let order = terrainTick * 4;
         for (const index of this.toUpdate) {
@@ -243,6 +261,7 @@ export const lookup: Record<terrainType, terrainProperties> = {
             }
 
             if (checkIndex == index) return;
+            Terrain.sound.sand++;
             Terrain.setPixelByIndex(index, px);
             Terrain.setPixelByIndex(checkIndex, terrainType.sand);
             updateSurrounding(checkIndex);
@@ -257,6 +276,7 @@ export const lookup: Record<terrainType, terrainProperties> = {
             checkIndex = index - Terrain.width;
             let px = Terrain.getPixelByIndex(checkIndex);
             if (TerrainManager.isWater(px)) {
+                Terrain.sound.sand++;
                 Terrain.setPixelByIndex(index, px);
                 Terrain.setPixelByIndex(checkIndex, terrainType.sand2);
                 updateSurrounding(checkIndex);
@@ -496,10 +516,11 @@ function dirtBehaviour(index: number, water: number, minerals: number) {
     const drip = () => {
         if (px == terrainType.void) {
             if (water == 3) {
-                Terrain.setPixelByIndex(checkIndex, terrainType.water1);
-                Terrain.setPixelByIndex(index, TerrainManager.dirtByStats(water - 1, minerals));
                 updateSurrounding(checkIndex);
                 updateSurrounding(index);
+                Terrain.setPixelByIndex(checkIndex, terrainType.water1);
+                Terrain.setPixelByIndex(index, TerrainManager.dirtByStats(water - 1, minerals));
+
                 return true;
             }
         }
@@ -509,10 +530,11 @@ function dirtBehaviour(index: number, water: number, minerals: number) {
         if (TerrainManager.isWaterable(px)) {
             const otherWater = TerrainManager.getWater(px);
             if (water > 1 && otherWater < 3 && water + adjust >= otherWater) {
-                Terrain.setPixelByIndex(index, TerrainManager.dirtByStats(--water, minerals));
-                Terrain.setPixelByIndex(checkIndex, TerrainManager.setWater(px, otherWater + 1));
                 updateSurrounding(checkIndex);
                 updateSurrounding(index);
+                Terrain.setPixelByIndex(index, TerrainManager.dirtByStats(--water, minerals));
+                Terrain.setPixelByIndex(checkIndex, TerrainManager.setWater(px, otherWater + 1));
+
                 return true;
             }
         }
@@ -538,6 +560,7 @@ function dirtBehaviour(index: number, water: number, minerals: number) {
 
 function waterBehavoiour(index: number, waterLevel: number) {
     Terrain.setPixelByIndex(index, terrainType.void);
+    const startIndex = index;
     let checkIndex: number;
     checkIndex = index - Terrain.width;
     let px = Terrain.getPixelByIndex(checkIndex);
@@ -559,7 +582,8 @@ function waterBehavoiour(index: number, waterLevel: number) {
         updateSurrounding(checkIndex);
         return;
     } else {
-        for (let i = 1; i < 50; i++) {
+        let i = 1;
+        for (i = 1; i < 50; i++) {
             if (checkA) {
                 checkIndex = index + dir * i;
                 px = Terrain.getPixelByIndex(checkIndex);
@@ -647,13 +671,15 @@ function waterBehavoiour(index: number, waterLevel: number) {
             }
         }
 
+
         if (candidate1 == -1 || waterLevel == 0) {
             Terrain.setPixelByIndex(index, TerrainManager.setWater(terrainType.void, waterLevel));
             return;
         }
 
-        if (waterLevel != 0 && waterLevel > candidate1Level + 1) {
+        if (waterLevel != 0 && waterLevel > candidate2Level + 1) {
             if (candidate1 != -1) {
+                if (candidate2Level == 0 && startIndex + Terrain.width / 2 > candidate1 && Math.abs(index % Terrain.width - player.position.x) < 500) Terrain.sound.water += 1;
                 Terrain.setPixelByIndex(candidate1, TerrainManager.setWater(terrainType.void, candidate1Level + 1));
                 updateSurrounding(candidate1);
                 waterLevel--;
@@ -662,6 +688,7 @@ function waterBehavoiour(index: number, waterLevel: number) {
 
         if (waterLevel != 0 && waterLevel > candidate2Level + 1) {
             if (candidate2 != -1) {
+                if (candidate2Level == 0 && startIndex + Terrain.width / 2 > candidate2 && Math.abs(index % Terrain.width - player.position.x) < 500) Terrain.sound.water += 1;
                 Terrain.setPixelByIndex(candidate2, TerrainManager.setWater(terrainType.void, candidate2Level + 1));
                 updateSurrounding(candidate2);
                 waterLevel--;
@@ -670,6 +697,7 @@ function waterBehavoiour(index: number, waterLevel: number) {
 
         if (waterLevel != 0 && waterLevel > candidate3Level + 1) {
             if (candidate3 != -1) {
+                if (candidate3Level == 0 && startIndex + Terrain.width / 2 > candidate3 && Math.abs(index % Terrain.width - player.position.x) < 500) Terrain.sound.water += 1;
                 Terrain.setPixelByIndex(candidate3, TerrainManager.setWater(terrainType.void, candidate3Level + 1));
                 updateSurrounding(candidate3);
                 waterLevel--;
@@ -677,7 +705,6 @@ function waterBehavoiour(index: number, waterLevel: number) {
         }
         Terrain.setPixelByIndex(index, TerrainManager.setWater(terrainType.void, waterLevel));
         updateSurrounding(index);
-
     }
 
 }
