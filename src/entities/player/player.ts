@@ -42,7 +42,7 @@ export class Player extends Entity {
     graphics: AnimatedSprite;
     run = false;
     animState = 0;
-    step = 0;
+    private step = 1;
     screenCenterNorm = new Vector();
     screenDimensionsNorm = new Vector();
     light = new Light(this, new Vector(0, 25), Math.PI + .2, 1.2, new Color(150, 255, 255), 300, 3);
@@ -82,11 +82,20 @@ export class Player extends Entity {
         this.grounded = false;
         let highestDensity = 0;
         for (let j = -5; j <= -Math.min(this.velocity.y * dt, 0); j++) {
+            let solid: terrainType;
             for (let i = -4; i <= 4; i++) {
                 let t = Terrain.getPixel(Math.floor(this.position.x + i), Math.floor(this.position.y - j));
                 highestDensity = Math.max(highestDensity, lookup[t].density);
+                if (lookup[t].density > 0) solid = t;
             }
             if (highestDensity == 1) {
+                if (this.step == 0) Terrain.addSound(solid, 500);
+                if ((this.velocity.y) < -250) {
+                    Terrain.addSound(solid, Math.abs(this.velocity.y)*10);
+                    for (let index = 0; index < Math.abs(this.velocity.y) / 20; index++) {
+                        new Cloud(this.position.result(), Math.abs(this.velocity.x), new Vector(random(-1, 1) * 80 + this.velocity.x / 4, 10));
+                    }
+                }
                 this.velocity.y = 0;
                 this.grounded = true;
                 if (j < -4) break;
@@ -141,7 +150,12 @@ export class Player extends Entity {
         let diff = pos.sub(this.camTarget).add(new Vector(this.velocity.result().mult(.7).x, Camera.yOffset));
         //let diff = pos.sub(this.camTarget).add(new Vector());
         this.camTarget.add(diff.mult(5 * dt));
-        
+        this.step += Math.abs(this.velocity.x) * dt;
+        if (this.step > 10 && this.grounded) {
+            this.step = 0;
+            new Cloud(this.position.result(), Math.abs(this.velocity.x), new Vector(this.velocity.x * random(-.5, .1), -5));
+        }
+
 
         // this.camTarget = this.position.result().sub(new Vector(Math.floor(Camera.width / 4) * 4, Camera.height).mult(.5).sub(lastvel.mult(dt)));
         // this.camTarget = this.camTarget.add(new Vector(0,Camera.yOffset)).round();

@@ -48,7 +48,7 @@ export class Terrain {
         stone: 0,
     }
 
-    static soundVolumeMulitplyer: Record<string, number> = {
+    static soundVolumeMulitplier: Record<string, number> = {
         water: 10000,
         sand: 100000,
         dirt: 10000,
@@ -87,6 +87,25 @@ export class Terrain {
 
     static deferUpdate(index: number) {
         this.defferedUpdate.add(index);
+    }
+
+    static addSound(type: terrainType, vol: number) {
+        switch (true) {
+            case type == terrainType.stone:
+                Terrain.sound.stone += vol;
+                break;
+            case type == terrainType.sand || type == terrainType.sand2:
+                Terrain.sound.sand += vol;
+                break;
+            case TerrainManager.isWater(type) && type != terrainType.void:
+                Terrain.sound.water += vol;
+                break;
+            case TerrainManager.isDirt(type):
+                Terrain.sound.dirt += vol;
+                break;
+            default:
+                break;
+        }
     }
 
     static draw() {

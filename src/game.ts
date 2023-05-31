@@ -365,7 +365,7 @@ export function initGame(skipIntro = false) {
         debugPrint("Terrain noises:");
 
         for (const name in Terrain.sound) {
-            const soundLevel = Terrain.sound[name as keyof typeof Terrain.sound] / Terrain.soundVolumeMulitplyer[name]
+            const soundLevel = Terrain.sound[name as keyof typeof Terrain.sound] / Terrain.soundVolumeMulitplier[name]
             terrainNoises[name].volume = clamp(soundLevel, 0, 0.5);
             debugPrint(`    ${name}:` + soundLevel.toFixed(2));
         }
@@ -422,9 +422,9 @@ export function initGame(skipIntro = false) {
         }
 
         if (mouse.pressed == 1 && preferences.selectedTerrainType != 0) {
-            if (TerrainManager.isDirt(preferences.selectedTerrainType)) {
-                Terrain.sound.dirt += preferences.penSize * preferences.penSize;
-            }
+            const type = preferences.selectedTerrainType;
+            const vol = preferences.penSize * preferences.penSize * 4;
+            Terrain.addSound(type, vol);
             for (let x = 0; x < preferences.penSize; x++) {
                 for (let y = 0; y < preferences.penSize; y++) {
                     Terrain.setAndUpdatePixel(Math.floor(wx + x - preferences.penSize / 2), Math.floor(wy + y - preferences.penSize / 2), preferences.selectedTerrainType != terrainType.dirt00 ? preferences.selectedTerrainType : generator.getLocalDirt(
@@ -438,22 +438,7 @@ export function initGame(skipIntro = false) {
                     const coordX = Math.floor(wx + x - preferences.penSize / 2)
                     const coordY = Math.floor(wy + y - preferences.penSize / 2)
                     const type = Terrain.getPixel(coordX, coordY);
-                    switch (true) {
-                        case  type == terrainType.stone:
-                            Terrain.sound.stone += 10;
-                            break;
-                        case type == terrainType.sand || type == terrainType.sand2:
-                            Terrain.sound.sand += 10;
-                            break;
-                        case TerrainManager.isWater(type) && type != terrainType.void:
-                            Terrain.sound.water += 10;
-                            break;
-                        case TerrainManager.isDirt(type):
-                            Terrain.sound.dirt += 10;
-                            break;
-                        default:
-                            break;
-                    }
+                    Terrain.addSound(type, 10);
                     Terrain.setAndUpdatePixel(coordX, coordY, terrainType.void);
                 }
             }
