@@ -118,6 +118,24 @@ void preMain(void) {
     //return;
     if(i == 0) {
         color = vec4(lightmap * .1, .02);
+
+        /* float fogLength = 5.;
+        float dist = -1.;
+        float waves = noise(vec2(globalPos.x * .1 + tick / 100., globalPos.y * .08 + tick / 300.));
+        for(float i = 0.; i < 10.; i++) {
+            vec2 uv = vec2(vTextureCoord.x + waves * .01, vTextureCoord.y + ((1. / viewport.w) * i * fogLength) + waves * .02);
+            float ri = texture(terrain, uv).a;
+            int r = int(ri * 255.);
+            if(r > 2) {
+                dist = i;
+                break;
+            }
+        }
+        if(dist >= 0.) {
+            dist = clamp(1. - dist / 10., 0., 1.);
+            color += vec4(vec3(dist * dist * .2), 0.) * vec4(ambient * .7 + lightmap * .5, 1.);
+        } */
+
         return;
     } else if(i == 1 || i == 2 || i == 3) {
 

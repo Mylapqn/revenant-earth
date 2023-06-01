@@ -1,3 +1,5 @@
+import { colorGradeOptions } from "./shaders/colorGrade/colorGrade";
+import { Music } from "./sound";
 import { TerrainManager, Terrain, terrainType } from "./terrain";
 import { clamp, lerp, noise, random } from "./utils";
 import { Vector } from "./vector";
@@ -120,7 +122,8 @@ export type BiomeData = {
     top: number;
     name: string;
     shortName: string;
-    music: HTMLAudioElement;
+    music: Music;
+    colorGrade:colorGradeOptions;
 }
 
 function isNumber(value: any): value is number {

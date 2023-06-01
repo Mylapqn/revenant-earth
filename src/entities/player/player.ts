@@ -4,12 +4,13 @@ import { debugPrint, worldToScreen } from "../../game";
 import { Camera } from "../../camera";
 import { Entity } from "../../entity";
 import { lookup, Terrain, terrainType } from "../../terrain";
-import { random } from "../../utils";
+import { random, randomInt } from "../../utils";
 import { Vector } from "../../vector";
 import { Cloud } from "../passive/cloud";
 import { Color } from "../../color";
 import { Light } from "../../shaders/lighting/light";
 import { DebugDraw } from "../../debugDraw";
+import { SoundEffect } from "../../sound";
 
 const playerSprites = {
     stand: AnimatedSprite.fromFrames(["player.png"]),
@@ -46,6 +47,10 @@ export class Player extends Entity {
     screenCenterNorm = new Vector();
     screenDimensionsNorm = new Vector();
     light = new Light(this, new Vector(0, 25), Math.PI + .2, 1.2, new Color(150, 255, 255), 300, 3);
+    stepSound: SoundEffect[] = [];
+
+
+
 
     constructor(position: Vector) {
         const graph = new AnimatedSprite(playerSprites.stand.textures);
@@ -53,6 +58,9 @@ export class Player extends Entity {
         graph.animationSpeed = .1;
         graph.anchor.set(.5, 1);
         super(graph, position, null, 0);
+        for (let i = 1; i <= 6; i++) {
+            this.stepSound.push(new SoundEffect(`sound/fx/steps/dirt${i}.ogg`, .2));
+        }
     }
     update(dt: number): void {
         const lastvel = this.velocity.result();
@@ -89,9 +97,12 @@ export class Player extends Entity {
                 if (lookup[t].density > 0) solid = t;
             }
             if (highestDensity == 1) {
-                if (this.step == 0) Terrain.addSound(solid, 500);
+                if (this.step == 0) {
+                    this.stepSound[randomInt(0, this.stepSound.length - 1)].play();
+                    this.step += .001;
+                }
                 if ((this.velocity.y) < -250) {
-                    Terrain.addSound(solid, Math.abs(this.velocity.y)*10);
+                    Terrain.addSound(solid, Math.abs(this.velocity.y) * 3);
                     for (let index = 0; index < Math.abs(this.velocity.y) / 20; index++) {
                         new Cloud(this.position.result(), Math.abs(this.velocity.x), new Vector(random(-1, 1) * 80 + this.velocity.x / 4, 10));
                     }
@@ -203,15 +214,15 @@ export class Player extends Entity {
                 //let diff = pos.sub(this.camTarget).add(new Vector());
                 this.camTarget.add(diff.mult(5 * dt))
                 if (lookup[terrainInFront].density == 1) this.velocity.x = 0;
-        
-        
+         
+         
                 //Camera.position.y = pos.y
                 //Camera.position.y+=diff.y*.1;
                 //if (Camera.position.x < pos.x) Camera.position.x++;
                 //if (Camera.position.x > pos.x) Camera.position.x--;
                 //Camera.position.add(new Vector(1, 1));
                 //Camera.position = this.position.result().sub(new Vector(Camera.width, Camera.height).mult(.5));
-        
+         
                 this.position.add(this.velocity.result().mult(dt));
                 this.step += Math.abs(this.velocity.x) * dt;
                 if (this.step > 5 && this.grounded) {

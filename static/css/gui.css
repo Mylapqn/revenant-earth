@@ -87,7 +87,7 @@
 .ui {
     user-select: none;
     background-color: #00000062;
-    padding: calc(var(--scale) * 20);
+    padding: 1em;
     backdrop-filter: blur(2em);
     transition: transform 0.1s, outline 0.1s;
     color: white;

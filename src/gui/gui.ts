@@ -1,15 +1,15 @@
-import { removeAllListeners } from "process";
 import { mouse, worldToScreen } from "../game";
 import { clamp } from "../utils";
 import { Vector } from "../vector";
 import { DialogueNode } from "../dialogue";
+import { SoundEffect } from "../sound";
 
 export class GUI {
     static init() {
-        this.sounds.hover.volume = .35;
-        this.sounds.click.volume = .4;
-        this.sounds.appear.volume = .3;
-        this.sounds.discovery.volume = .05;
+        this.sounds.hover.volume = .7;
+        this.sounds.click.volume = .8;
+        this.sounds.appear.volume = .6;
+        this.sounds.discovery.volume = .1;
         let elements = document.getElementsByClassName("ui");
         for (let i = 0; i < elements.length; i++) {
             const element = elements[i];
@@ -36,13 +36,13 @@ export class GUI {
     }
     static container = document.getElementById("guiContainer");
     static sounds = {
-        hover: new Audio("sound/fx/hover3.wav"),
-        click: new Audio("sound/fx/click.wav"),
-        talk: new Audio("sound/fx/talk.wav"),
-        appear: new Audio("sound/fx/appear.wav"),
-        hide: new Audio("sound/fx/hide.wav"),
-        unhide: new Audio("sound/fx/unhide.wav"),
-        discovery: new Audio("sound/fx/ping.wav"),
+        hover: new SoundEffect("sound/fx/hover3.wav"),
+        click: new SoundEffect("sound/fx/click.wav"),
+        talk: new SoundEffect("sound/fx/talk.wav"),
+        appear: new SoundEffect("sound/fx/appear.wav"),
+        hide: new SoundEffect("sound/fx/hide.wav"),
+        unhide: new SoundEffect("sound/fx/unhide.wav"),
+        discovery: new SoundEffect("sound/fx/ping.wav"),
     };
 }
 
@@ -185,6 +185,7 @@ export class DialogBox extends GuiElement {
         this.element.classList.add("dialogBox");
         if (speaker == 1) this.element.classList.add("dialogLeft");
         else if (speaker == 2) this.element.classList.add("dialogRight");
+        else this.element.classList.add("dialogMiddle")
         DialogBox.container.appendChild(this.element);
         GUI.sounds.talk.play();
         //this.element.scrollIntoView({behavior:"smooth",})

@@ -1,5 +1,6 @@
-import { initGame, mouse, music } from "./game";
+import { initGame, mouse } from "./game";
 import { BaseGuiElement, CustomGuiElement, DialogBox, GUI, GuiButton, GuiPanel, GuiSplash, PositionableGuiElement } from "./gui/gui";
+import { SoundManager } from "./sound";
 
 GUI.container.classList.add("mainMenu");
 
@@ -35,7 +36,7 @@ class MenuBackground {
 }
 
 function init() {
-    music.menu.play();
+    SoundManager.music.menu.play();
     mainMenuContainer = new PositionableGuiElement({ centerX: true, centerY: true, blankStyle: true, fillContainer: true });
     new MenuBackground("1.png", -.02);
     new MenuBackground("2.png", .02);
@@ -67,7 +68,7 @@ function menuUpdate() {
 }
 
 function startGame() {
-    music.menu.pause();
+    SoundManager.music.menu.pause();
     menuActive = false;
     let black = document.createElement("div");
     black.classList.add("fade");
@@ -105,7 +106,7 @@ function startGame() {
 }
 
 function continueGame() {
-    music.menu.pause();
+    SoundManager.music.menu.pause();
     menuActive = false;
     let black = document.createElement("div");
     black.classList.add("fade");

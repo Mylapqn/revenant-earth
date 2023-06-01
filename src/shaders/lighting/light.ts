@@ -1,10 +1,10 @@
 const fs = require("fs");
-import { BaseRenderTexture, BaseTexture, BufferResource, DRAW_MODES, FORMATS, Geometry, Mesh, RenderTexture, Shader, State, TYPES, Texture } from "pixi.js";
+import { BaseRenderTexture, Geometry, Mesh, RenderTexture, Shader, TYPES, Texture } from "pixi.js";
 import { Color } from "../../color";
 import { Entity } from "../../entity";
 import { Vector } from "../../vector";
 import { Camera } from "../../camera";
-import { app, worldToScreen } from "../../game";
+import { app, worldToRender } from "../../game";
 import { PixelDrawer } from "../../pixelDrawer";
 import { clamp } from "../../utils";
 import { Atmosphere } from "../../atmosphere";
@@ -110,7 +110,7 @@ export class Lightmap {
         for (let i = 0; i < Light.list.length; i++) {
             const light = Light.list[i];
             if (!light.parent.graphics.visible) continue;
-            let screenPos = worldToScreen(light.position);
+            let screenPos = worldToRender(light.position);
             //this.uniforms.uLights[i] = {position:[screenPos.x / window.innerWidth, screenPos.y / window.innerHeight]};
             (this.uniforms as any)[`uLights[${index}].position`] = [screenPos.x / window.innerWidth, screenPos.y / window.innerHeight];
             (this.uniforms as any)[`uLights[${index}].color`] = [light.color.r / 255, light.color.g / 255, light.color.b / 255];
@@ -179,7 +179,7 @@ export class Shadowmap {
         for (let i = 0; i < Light.list.length; i++) {
             const light = Light.list[i];
             if (!light.parent.graphics.visible) continue;
-            let screenPos = worldToScreen(light.position);
+            let screenPos = worldToRender(light.position);
             //this.uniforms.uLights[i] = {position:[screenPos.x / window.innerWidth, screenPos.y / window.innerHeight]};
             (this.uniforms as any)[`uLights[${index}].position`] = [screenPos.x / window.innerWidth, screenPos.y / window.innerHeight];
             (this.uniforms as any)[`uLights[${index}].color`] = [light.color.r / 255, light.color.g / 255, light.color.b / 255];

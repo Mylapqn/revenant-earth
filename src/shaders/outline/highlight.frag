@@ -57,6 +57,10 @@ float map(float value, float fromMin, float fromMax, float toMin, float toMax) {
 
 void main(void) {
     vec4 sourceColor = texture(uSampler, vTextureCoord);
+    if(sourceColor.a < .9) {
+        color = sourceColor;
+        return;
+    }
     vec4 lightMap = texture(uLightMap, vTextureCoord);
     vec2 normal = edgeNormalAtPos(sourceColor);
     vec2 sunHeading = normalize(uLightPos - vTextureCoord);

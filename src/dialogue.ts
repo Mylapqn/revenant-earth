@@ -2,6 +2,7 @@ import { app } from "./game";
 import { Camera } from "./camera";
 import { CustomGuiElement, DialogBox, DialogChoices, GUI } from "./gui/gui";
 
+const cinematicWrapper = document.getElementById("cinematicWrapper");
 
 export class Dialogue {
     static speakersHidden = [true, true];
@@ -129,9 +130,10 @@ export class NodeStack extends DialogueNode {
             await this.nextNode.execute();
         }
         else {
-            app.view.style.scale = "100%";
+            if (cinematicWrapper) cinematicWrapper.classList.remove("active");
             DialogBox.conversationElement.classList.add("hidden");
             Camera.yOffset = 50;
+            Camera.scale = 1;
         }
     }
 }
@@ -148,9 +150,10 @@ export class TopNode extends DialogueNode {
         else return this;
     }
     async execute() {
-        app.view.style.scale = "200%";
+        Camera.scale = 2;
         Camera.yOffset = 10;
         DialogBox.conversationElement.classList.remove("hidden");
+        if (cinematicWrapper) cinematicWrapper.classList.add("active");
         await super.execute();
     }
 }

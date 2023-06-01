@@ -108,6 +108,8 @@
     display: block;
     animation: dialogAppear .3s linear both;
     align-self: center;
+    padding-left:1.5em;
+    padding-right:1.5em;
 }
 
 @keyframes dialogAppear {
@@ -119,6 +121,23 @@
         opacity: 1;
     }
 }
+
+.dialogMiddle {
+    background: rgba(0, 0, 0, 0.184);
+    font-weight:200;
+    max-width: 75%;
+    font-style: italic;
+    padding-left:1.5em;
+    padding-right:1.5em;
+    line-height: 150%;
+}
+
+/* .dialogMiddle::before{
+    content: "* ";
+}
+.dialogMiddle::after{
+    content: " *";
+} */
 
 .dialogLeft {
     align-self: flex-start;

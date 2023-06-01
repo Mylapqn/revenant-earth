@@ -31,12 +31,17 @@ vec3 contrast(vec3 color, float contrast) {
 }
 vec3 tint(vec3 color, vec3 tint, float strength) {
     tint = mix(vec3(.5), tint, strength);
+    color = clamp(color, vec3(.0), vec3(1.));
+    float val = clamp(luma(color), 0., 1.);
     vec3 softLight = ((1. - 2. * tint) * color * color + 2. * color * tint);
+    return softLight;
+    softLight += tint * (1. - val);
+    softLight *= mix(vec3(1.), tint, val * val);
     return mix(softLight, tint, (.2 + (1. - luma(color))) * strength * .5);
 }
 
 vec3 grade(vec3 color, float sat, float cont, float bright, vec3 tintCol, float tintStrength) {
-    return tint(contrast(saturation(color, sat), cont) * bright, tintCol, tintStrength);
+    return tint(saturation(contrast(color, cont), sat) * bright, tintCol, tintStrength);
 }
 
 void main(void) {

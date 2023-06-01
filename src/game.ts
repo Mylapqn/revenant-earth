@@ -4,31 +4,24 @@ import { PixelDrawer } from "./pixelDrawer";
 import { Terrain, TerrainManager, terrainType } from "./terrain";
 import { Camera } from "./camera";
 import { Entity } from "./entity";
-import { AnimatedSprite, Container, Rectangle, SCALE_MODES, Sprite, Texture, Ticker } from "pixi.js";
+import { Container, Rectangle, SCALE_MODES, Sprite, Texture, Ticker } from "pixi.js";
 import { Vector } from "./vector";
-import { Seed } from "./entities/plants/tree/seed";
-import { Robot } from "./entities/enemy/robot/robot";
 import { Player } from "./entities/player/player";
 import { Backdrop, BackdropProp, ParallaxDrawer } from "./parallax";
 import { coniferousSettings, defaultTreeSettings } from "./entities/plants/tree/treeSettings";
 import { HighlightFilter } from "./shaders/outline/highlightFilter";
 import { Rock } from "./entities/passive/rock";
-import { lerp, noise, random, randomBool, randomInt } from "./utils";
+import { lerp, random, randomBool, randomInt } from "./utils";
 import { Atmosphere } from "./atmosphere";
 import { AtmosphereFilter } from "./shaders/atmosphere/atmosphereFilter";
 import { Cloud } from "./entities/passive/cloud";
 import { LightingFilter } from "./shaders/lighting/lightingFilter";
-import { FilmicFilter } from "./shaders/filmic/filmicFilter";
 import { BiomeData, TerrainGenerator } from "./biome";
 import { SkyFilter } from "./shaders/atmosphere/skyFilter";
-import { DialogBox, DialogChoices, GUI, GuiButton, PositionableGuiElement, GuiLabel, GuiSplash } from "./gui/gui";
+import { GUI, GuiButton, PositionableGuiElement, GuiSplash } from "./gui/gui";
 import { Color } from "./color";
 import { clamp } from "./utils";
 import { Stamps } from "./stamp";
-import { GrassPatch } from "./entities/passive/grassPatch";
-import { Sign } from "./entities/passive/sign";
-import { log } from "console";
-import { Cable } from "./entities/passive/cable";
 import { Buildable } from "./entities/buildable/buildable";
 import { Pole } from "./entities/buildable/pole";
 import { Sapling } from "./entities/buildable/sapling";
@@ -36,11 +29,12 @@ import { ForegroundFilter } from "./shaders/foreground/foregroundFilter";
 import { Drone } from "./entities/enemy/drone/drone";
 import { DebugDraw } from "./debugDraw";
 import { World } from "./world";
-import { Light, Lightmap, Shadowmap } from "./shaders/lighting/light";
-import { ChoiceNode, Dialogue, NodeStack, TopNode } from "./dialogue";
+import { Lightmap, Shadowmap } from "./shaders/lighting/light";
+import { Dialogue, NodeStack, TopNode } from "./dialogue";
 import { CrashPod } from "./entities/passive/landingPod";
 import { Scanner } from "./entities/buildable/scanner";
-import { colorGradeFilter } from "./shaders/colorGrade/colorGrade";
+import { colorGradeFilter, colorGradeOptions } from "./shaders/colorGrade/colorGrade";
+import { SoundManager } from "./sound";
 let seed = parseInt(window.location.toString().split('?')[1]);
 if (!seed) seed = Math.floor(Math.random() * 1000);
 Math.random = mulberry32(seed);
@@ -115,18 +109,6 @@ let ticker = new Ticker();
 export let terrainTick = 0;
 let tps = 0;
 let terrainScore = 100;
-
-export let music = {
-    mountains: new Audio("sound/music/melted_mountains.ogg"),
-    ruins: new Audio("sound/music/urban_ruins.ogg"),
-    wasteland: new Audio("sound/music/industrial_wasteland.ogg"),
-    swamp: new Audio("sound/music/industrial_wasteland.ogg"),
-    menu: new Audio("sound/music/menu.ogg"),
-};
-for (const m of Object.values(music)) {
-    m.loop = true;
-    m.volume = .3;
-}
 
 const terrainNoises: Record<string, HTMLAudioElement> = {};
 
@@ -205,6 +187,7 @@ export function initGame(skipIntro = false) {
     ParallaxDrawer.fgContainer.filters = [new ForegroundFilter()];
     ParallaxDrawer.fgContainer.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
     let colorGrade = new colorGradeFilter();
+    let colorGradeBiome: colorGradeOptions;
     app.stage.filters = [colorGrade];
     app.stage.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
     console.log(app.renderer);
@@ -221,9 +204,9 @@ export function initGame(skipIntro = false) {
     const generator = new TerrainGenerator();
     Terrain.generator = generator;
     let nextRock = randomInt(1, 10);
-    const flatland: BiomeData = { stoneTop: 0.5, stoneBottom: 0.5, bottom: 360, top: 480, moisture: 2, minerals: 3, dirtDepth: 50, mineralDepthPenalty: -2, curveModifier: 0.5, curveLimiter: 0.1, biomeId: 1, name: "Urban Ruins", shortName: "Ruins", music: music.ruins };
-    const mountains: BiomeData = { stoneTop: 1, stoneBottom: 2, bottom: 550, top: 660, moisture: 2, minerals: 1, dirtDepth: 10, mineralDepthPenalty: 0, curveModifier: 1.5, curveLimiter: 1, biomeId: 2, name: "Melted Mountains", shortName: "Mountains", music: music.mountains };
-    const swamp: BiomeData = { stoneTop: 2, stoneBottom: 0.5, bottom: 360, top: 400, moisture: 3, minerals: 0, dirtDepth: 80, mineralDepthPenalty: 0, curveModifier: 0.5, curveLimiter: 0.1, biomeId: 3, name: "Swampy Lowlands", shortName: "Lowlands", music: music.swamp };
+    const flatland: BiomeData = { stoneTop: 0.5, stoneBottom: 0.5, bottom: 360, top: 480, moisture: 2, minerals: 3, dirtDepth: 50, mineralDepthPenalty: -2, curveModifier: 0.5, curveLimiter: 0.1, biomeId: 1, name: "Urban Ruins", shortName: "Ruins", music: SoundManager.music.ruins, colorGrade: colorGradeFilter.styles.blank };
+    const mountains: BiomeData = { stoneTop: 1, stoneBottom: 2, bottom: 550, top: 660, moisture: 2, minerals: 1, dirtDepth: 10, mineralDepthPenalty: 0, curveModifier: 1.5, curveLimiter: 1, biomeId: 2, name: "Melted Mountains", shortName: "Mountains", music: SoundManager.music.mountains, colorGrade: colorGradeFilter.styles.bleak };
+    const swamp: BiomeData = { stoneTop: 2, stoneBottom: 0.5, bottom: 360, top: 400, moisture: 3, minerals: 0, dirtDepth: 80, mineralDepthPenalty: 0, curveModifier: 0.5, curveLimiter: 0.1, biomeId: 3, name: "Swampy Lowlands", shortName: "Lowlands", music: SoundManager.music.swamp, colorGrade: colorGradeFilter.styles.blank };
     generator.addToQueue(swamp, 1000);
     generator.addToQueue(mountains, 1000);
     generator.addToQueue(flatland, 1000);
@@ -329,6 +312,10 @@ export function initGame(skipIntro = false) {
         terrainNoises[name].volume = 0;
     }
 
+    let colorGradeOld: colorGradeOptions = {};
+    let colorGradeNew: colorGradeOptions = {};
+    let biomeTime = 0;
+
     ticker.add((delta) => {
         if (terrainScore < 80 && tps / tpsMeter < 0.12 && (1000 / Math.max(...dtAvg)) > 50) {
             terrainUpdate();
@@ -358,8 +345,24 @@ export function initGame(skipIntro = false) {
 
         updateInfo -= diff;
 
+
+        Atmosphere.settings.sunAngle += dt / 20;
+        //Atmosphere.settings.sunAngle = new Vector(mouse.x / window.innerWidth - .5, mouse.y / window.innerHeight - .5).toAngle();
+        //Atmosphere.settings.sunAngle = -1.5;
+
+        Atmosphere.settings.sunPosition = Vector.fromAngle(Atmosphere.settings.sunAngle).mult(Camera.width / 2 * .6).add(new Vector(Camera.width / 2, Camera.height * .63));
+        let sunFac = (-Vector.fromAngle(Atmosphere.settings.sunAngle).y - .5) * 2;
+        let sunHor = 1 - Math.abs(Vector.fromAngle(Atmosphere.settings.sunAngle).y);
+        Atmosphere.settings.ambientLight = Color.fromHsl(lerp(10, 20, clamp(sunFac * 5)), clamp(.8 - sunFac), clamp(sunFac + .5));
+        Atmosphere.settings.ambientLight = Atmosphere.settings.ambientLight.add(Color.fromHsl(lerp(280, 230, clamp(-sunFac / 2)), clamp(-sunFac + .3) * .6, Math.max(.1, (clamp(-sunFac + .3) * .3))))
+        Atmosphere.settings.sunIntensity = clamp(clamp(sunFac + .8) * Math.max(.4, sunHor * 2));
+
+
         let worldData = World.getDataFrom(player.position.x);
-        colorGrade.strength = worldData.pollution / 100
+        colorGradeBiome = colorGradeFilter.mixSettings(colorGradeOld, colorGradeNew, biomeTime / 2);
+        let colorGradePollution = colorGradeFilter.mixSettings(colorGradeBiome, colorGradeFilter.styles.dust, worldData.pollution / 100);
+        colorGrade.options = colorGradeFilter.mixSettings(colorGradeFilter.mixSettings(colorGradeFilter.styles.night, colorGradeFilter.styles.sunset, (sunFac * 3 + 4)), colorGradePollution, sunFac * 4 + 2);
+
 
         /* terrain noises */
         debugPrint("Terrain noises:");
@@ -380,17 +383,6 @@ export function initGame(skipIntro = false) {
         }
         printText = ""
 
-
-        Atmosphere.settings.sunAngle += dt / 20;
-        //Atmosphere.settings.sunAngle = new Vector(mouse.x/window.innerWidth-.5, mouse.y/window.innerHeight-.5).toAngle();
-        //Atmosphere.settings.sunAngle = -1.5;
-
-        Atmosphere.settings.sunPosition = Vector.fromAngle(Atmosphere.settings.sunAngle).mult(Camera.width / 2 * .6).add(new Vector(Camera.width / 2, Camera.height * .63));
-        let sunFac = (-Vector.fromAngle(Atmosphere.settings.sunAngle).y - .5) * 2;
-        let sunHor = 1 - Math.abs(Vector.fromAngle(Atmosphere.settings.sunAngle).y);
-        Atmosphere.settings.ambientLight = Color.fromHsl(lerp(10, 20, clamp(sunFac * 5)), clamp(.8 - sunFac), clamp(sunFac + .5));
-        Atmosphere.settings.ambientLight = Atmosphere.settings.ambientLight.add(Color.fromHsl(lerp(280, 230, clamp(-sunFac / 2)), clamp(-sunFac + .3) * .6, Math.max(.1, (clamp(-sunFac + .3) * .3))))
-        Atmosphere.settings.sunIntensity = clamp(clamp(sunFac + .8) * Math.max(.4, sunHor * 2));
         if (key["arrowleft"]) Camera.position.x -= camspeed;
         if (key["arrowright"]) Camera.position.x += camspeed;
         if (key["arrowup"]) Camera.position.y += camspeed;
@@ -409,17 +401,18 @@ export function initGame(skipIntro = false) {
         let newBiome = generator.getBiome(player.position.x);
 
         if (timeElapsed > 1) {
+            biomeTime += dt;
             if (newBiome.biomeId != currentBiome) {
+                biomeTime = 0;
+                colorGradeOld = colorGradeBiome;
+                colorGradeNew = newBiome.colorGrade;
                 newBiome.music.play();
-                currentMusic = newBiome.music;
                 new GuiSplash(newBiome.name)
                 currentBiome = newBiome.biomeId;
             }
-            currentMusic.volume = Math.min(0.5, currentMusic.volume + 0.005);
         }
-        for (const track of Object.values(music)) {
-            track.volume *= 0.995
-        }
+
+
 
         if (mouse.pressed == 1 && preferences.selectedTerrainType != 0) {
             const type = preferences.selectedTerrainType;
@@ -515,7 +508,7 @@ export function initGame(skipIntro = false) {
         } else {
             scannerData.element.innerHTML = "no scanners deployed"
         }
-
+        SoundManager.update(dt);
         Terrain.draw();
         ParallaxDrawer.update();
         Entity.update(dt);
@@ -647,12 +640,28 @@ GUI.init();
 window.addEventListener("mousemove", (e) => { mouse.x = e.clientX; mouse.y = e.clientY });
 
 export function screenToWorld(vector: { x: number, y: number }) {
+    const pixelRatio = Camera.height / window.innerHeight;
+    const scaled = {
+        x: (vector.x - .5 * window.innerWidth) / Camera.scale + window.innerWidth / 2,
+        y: (vector.y - .5 * window.innerHeight) / Camera.scale + window.innerHeight / 2,
+    }
     return new Vector(
-        Camera.position.x + (vector.x * (Camera.height / window.innerHeight)),
-        Camera.position.y + Camera.height - (vector.y * (Camera.height / window.innerHeight)));
+        Camera.position.x + (scaled.x * pixelRatio),
+        Camera.position.y + Camera.height - (scaled.y * pixelRatio));
 }
 export function worldToScreen(vector: { x: number, y: number }) {
+    const pixelRatio = Camera.height / window.innerHeight;
+    const unscaled = new Vector(
+        (vector.x - Camera.position.x) / pixelRatio,
+        ((-vector.y) + Camera.position.y + Camera.height) / pixelRatio);
     return new Vector(
-        (vector.x - Camera.position.x) / (Camera.height / window.innerHeight),
-        ((-vector.y) + Camera.position.y + Camera.height) / (Camera.height / window.innerHeight));
+        (unscaled.x - window.innerWidth / 2) * Camera.scale + window.innerWidth / 2,
+        (unscaled.y - window.innerHeight / 2) * Camera.scale + window.innerHeight / 2
+    )
+}
+export function worldToRender(vector: { x: number, y: number }) {
+    const pixelRatio = Camera.height / window.innerHeight;
+    return new Vector(
+        (vector.x - Camera.position.x) / pixelRatio,
+        ((-vector.y) + Camera.position.y + Camera.height) / pixelRatio);
 }

@@ -1,13 +1,10 @@
 const fs = require("fs");
-import { Filter, utils } from '@pixi/core';
+import { Filter } from '@pixi/core';
 import type { FilterSystem, RenderTexture, CLEAR_MODES } from '@pixi/core';
-import { Assets, Container, DisplayObject } from 'pixi.js';
+import { Container, DisplayObject } from 'pixi.js';
 import { Color } from '../../color';
 import { Atmosphere } from '../../atmosphere';
-import { Camera } from '../../camera';
-import { mouse, player, terrainTick, worldToScreen } from '../../game';
-import { Vector } from '../../vector';
-import { Light, Lightmap } from './light';
+import { Lightmap } from './light';
 
 let fragment: string = fs.readFileSync(__dirname + '/lighting.frag', 'utf8');
 let fragmentAmbient: string = fs.readFileSync(__dirname + '/ambientLighting.frag', 'utf8');

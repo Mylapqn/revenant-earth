@@ -1,8 +1,7 @@
 const fs = require("fs");
-import { Filter, utils } from '@pixi/core';
+import { Filter } from '@pixi/core';
 import type { FilterSystem, RenderTexture, CLEAR_MODES } from '@pixi/core';
-import { player, worldToScreen } from '../../game';
-import { Camera } from '../../camera';
+import { player, worldToRender } from '../../game';
 import { Atmosphere } from '../../atmosphere';
 
 let fragment: string = fs.readFileSync(__dirname + '/foreground.frag', 'utf8');
@@ -18,7 +17,7 @@ export class ForegroundFilter extends Filter {
     apply(filterManager: FilterSystem, input: RenderTexture, output: RenderTexture, clear: CLEAR_MODES): void {
         this.uniforms.uPixelSize[0] = 1 / input._frame.width;
         this.uniforms.uPixelSize[1] = 1 / input._frame.height;
-        const screenPlayer = worldToScreen(player.position)
+        const screenPlayer = worldToRender(player.position)
         this.uniforms.uPlayerPos[0] = screenPlayer.x / window.innerWidth;
         this.uniforms.uPlayerPos[1] = screenPlayer.y / window.innerHeight;
         //console.log(...this.uniforms.uPlayerPos);
