@@ -126,13 +126,15 @@ class GuiElement extends BaseGuiElement {
     private _content = "text";
 
     public set content(content) {
-        this.element.innerText = content;
+        this.element.innerHTML = content.replace(GuiElement.highlightRegex, `<em>$1</em>`).replace(GuiElement.keyPromptRegex, `<kbd>$1</kbd>`);
     }
     public get content() {
         return this._content;
     }
 
     static list: GuiElement[] = [];
+    static keyPromptRegex = /\[(.+)\]/g;
+    static highlightRegex = /\*(.+)\*/g;
 }
 
 export class PositionableGuiElement extends GuiElement {
@@ -155,10 +157,10 @@ export class PositionableGuiElement extends GuiElement {
                 else this.element.style.right = this.position.x + "px";
             }
             if (options.centerY) this.element.classList.add("centerY");
-            else if (options.position){
+            else if (options.position) {
                 if (!options.invertVerticalPosition) this.element.style.top = this.position.y + "px";
                 else this.element.style.bottom = this.position.y + "px";
-            } 
+            }
         }
     }
     update() {
@@ -310,4 +312,11 @@ export class GuiSplash {
             this.element.remove();
         }, duration * 1000);
     }
+}
+
+export class KeyPrompt extends BaseGuiElement {
+    constructor(key: string) {
+        super("kbd");
+        this.element.innerText = key;
+    };
 }

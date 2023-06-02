@@ -543,7 +543,7 @@ export function initGame(skipIntro = false) {
                     .finish(),
             ])
             .chain("The pod is slightly damaged, but the radio appears still functional.", 0)
-            .chain("I should try to call Mission Control.", 2)
+            .chain("I should try to call *Mission Control*.", 2)
             .chain("After a moment of static, the display lights up.", 0)
             .chain("-ssion control to ERA-1, repeat, we have lost-", 1)
             .reply("ERA-1 calling Mission Control.")
@@ -554,7 +554,7 @@ export function initGame(skipIntro = false) {
                 new TopNode("I've been better...")
             ])
             .reply("Good to know.")
-            .chain("Anyway, get to work. Plant me some trees before dawn or your food resupply pod will have a malfunction.")
+            .chain("Anyway, get to work. *Plant me some trees* before dawn or your food resupply pod will have a malfunction.")
             .choice([
                 new TopNode("Yes sir"),
                 new TopNode("Pla- what?")
@@ -567,6 +567,7 @@ export function initGame(skipIntro = false) {
             ])
             .chain("The Director or whoever it is has disconnected.", 0)
             .chain("Get to work.")
+            .chain("Press [F] to plant a tree. *Plant 2 trees*.")
             .finish()
     )
 
