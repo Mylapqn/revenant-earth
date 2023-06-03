@@ -18,6 +18,7 @@ export class Stamps {
             this.loadTexture("stamp5", "stamp/stamp5.png"),
             this.loadTexture("bigbuilding", "stamp/bigbuilding.png"),
             this.loadTexture("landing", "stamp/landing.png"),
+            this.loadTexture("foundationSmall", "stamp/foundationSmall.png"),
 
         ]);
     }
@@ -27,7 +28,9 @@ export class Stamps {
     }
 
     static stamp(stampName: string, position: Vector, options?: { surface?: boolean, lowest?: boolean, replace?: terrainType[], useDirtFrom?: TerrainGenerator, replaceMatching?: (replace: terrainType, using: terrainType) => boolean }): Vector {
-        Object.assign(options, { surface: true, lowest: true, replace: [terrainType.void, terrainType.water1, terrainType.water2, terrainType.water3] });
+        
+        Object.assign(options, { lowest: true, replace: [terrainType.void, terrainType.water1, terrainType.water2, terrainType.water3] });
+        options.surface = options.surface??true;
         const texture = this.textures[stampName];
         const tempSprite = new PIXI.Sprite(texture);
         const data = app.renderer.extract.pixels(tempSprite);

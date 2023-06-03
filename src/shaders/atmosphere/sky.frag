@@ -49,7 +49,7 @@ vec3 blendMultiply(vec3 base, vec3 blend, float opacity) {
 void main(void) {
     vec4 sourceColor = texture2D(uSampler, vTextureCoord);
     float hor = (pow(max(0., 1. - (length((HORIZON_Y - vTextureCoord.y) / uPixelSize / 200.))), 2.) * 1.);
-    hor *= clamp(HORIZON_Y - (uSunPos.y - .5), 0., 1.);
+    hor *= clamp(HORIZON_Y - (uSunPos.y-.3), 0., 1.);
     float len = (pow(max(0., 1. - (length((uSunPos - vTextureCoord.xy) / uPixelSize / 70.))), 2.) * .5);
     if(len > .39)
         len = 1.;

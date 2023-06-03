@@ -18,7 +18,7 @@ import { Cloud } from "./entities/passive/cloud";
 import { LightingFilter } from "./shaders/lighting/lightingFilter";
 import { BiomeData, TerrainGenerator } from "./biome";
 import { SkyFilter } from "./shaders/atmosphere/skyFilter";
-import { GUI, GuiButton, PositionableGuiElement, GuiSplash } from "./gui/gui";
+import { GUI, GuiButton, PositionableGuiElement, GuiSplash, BaseGuiElement, CustomGuiElement, GuiPanel, TutorialPrompt } from "./gui/gui";
 import { Color } from "./color";
 import { clamp } from "./utils";
 import { Stamps } from "./stamp";
@@ -35,6 +35,10 @@ import { CrashPod } from "./entities/passive/landingPod";
 import { Scanner } from "./entities/buildable/scanner";
 import { colorGradeFilter, colorGradeOptions } from "./shaders/colorGrade/colorGrade";
 import { SoundManager } from "./sound";
+import { ParticleSystem } from "./particles/particle";
+import { ParticleFilter } from "./shaders/particle/particleFilter";
+import { Progress } from "./progress";
+import { Turbine } from "./entities/buildable/turbine";
 let seed = parseInt(window.location.toString().split('?')[1]);
 if (!seed) seed = Math.floor(Math.random() * 1000);
 Math.random = mulberry32(seed);
@@ -54,10 +58,11 @@ const resizeSubscribers = new Map<any, () => void>();
 function resize() {
     Camera.aspectRatio = window.innerWidth / window.innerHeight;
     Camera.width = Math.ceil(Camera.height * Camera.aspectRatio);
+    Camera.rect = new Rectangle(0, 0, Camera.width, Camera.height);
     PixelDrawer.resize();
-    Entity.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
-    PixelDrawer.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
-    app.stage.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
+    Entity.graphic.filterArea = Camera.rect;
+    PixelDrawer.graphic.filterArea = Camera.rect;
+    app.stage.filterArea = Camera.rect;
     const useWidth = Math.ceil((Camera.width) / 4) * 4;
     background = PIXI.RenderTexture.create({ width: useWidth, height: Camera.height });
     app.renderer.resize(Camera.width, Camera.height);
@@ -166,11 +171,13 @@ export function initGame(skipIntro = false) {
     pixelContainer.addChild(ParallaxDrawer.container);
     Entity.graphic = new Container();
     pixelContainer.addChild(Entity.graphic);
+    ParticleSystem.parentContainer = new Container();
+    pixelContainer.addChild(ParticleSystem.parentContainer);
     pixelContainer.addChild(PixelDrawer.graphic);
     Buildable.graphic = new Container();
     pixelContainer.addChild(Buildable.graphic);
     pixelContainer.addChild(ParallaxDrawer.fgContainer);
-    onResize(ParallaxDrawer.fgContainer, () => ParallaxDrawer.fgContainer.filterArea = new Rectangle(0, 0, Camera.width, Camera.height));
+    onResize(ParallaxDrawer.fgContainer, () => ParallaxDrawer.fgContainer.filterArea = Camera.rect);
 
 
     backdrop0 = new Backdrop(.65);
@@ -181,15 +188,17 @@ export function initGame(skipIntro = false) {
 
     app.stage.addChild(pixelContainer);
     PixelDrawer.graphic.filters = [new HighlightFilter(1, 0xFF9955, .6), new AtmosphereFilter(.9)];
-    PixelDrawer.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
+    PixelDrawer.graphic.filterArea = Camera.rect;
     Entity.graphic.filters = [new LightingFilter(Entity.graphic, new Color(200, 200, 200), true), new HighlightFilter(1, 0xFF9955, .6), new AtmosphereFilter(.9)];
-    Entity.graphic.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
+    Entity.graphic.filterArea = Camera.rect;
     ParallaxDrawer.fgContainer.filters = [new ForegroundFilter()];
-    ParallaxDrawer.fgContainer.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
+    ParallaxDrawer.fgContainer.filterArea = Camera.rect;
+    //ParticleSystem.container.blendMode = PIXI.BLEND_MODES.ADD;
+    onResize(ParticleSystem.parentContainer, () => ParticleSystem.parentContainer.filterArea = Camera.rect);
     let colorGrade = new colorGradeFilter();
     let colorGradeBiome: colorGradeOptions;
     app.stage.filters = [colorGrade];
-    app.stage.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
+    app.stage.filterArea = Camera.rect;
     console.log(app.renderer);
 
     app.stage.addChild(debugText);
@@ -331,6 +340,7 @@ export function initGame(skipIntro = false) {
         app.renderer.render(bg, { renderTexture: background });
         app.renderer.render(ParallaxDrawer.container, { renderTexture: background, clear: false });
         app.renderer.render(Entity.graphic, { renderTexture: background, clear: false });
+        app.renderer.render(ParticleSystem.parentContainer, { renderTexture: background, clear: false });
 
         debugPrint("terrainScore:" + terrainScore.toFixed(1));
         terrainScore *= 0.98;
@@ -347,21 +357,28 @@ export function initGame(skipIntro = false) {
 
 
         Atmosphere.settings.sunAngle += dt / 20;
-        //Atmosphere.settings.sunAngle = new Vector(mouse.x / window.innerWidth - .5, mouse.y / window.innerHeight - .5).toAngle();
+        //Atmosphere.settings.sunAngle = new Vector((mouse.x / window.innerWidth - .5) * window.innerWidth/window.innerHeight, mouse.y / window.innerHeight - .5).toAngle();
         //Atmosphere.settings.sunAngle = -1.5;
 
-        Atmosphere.settings.sunPosition = Vector.fromAngle(Atmosphere.settings.sunAngle).mult(Camera.width / 2 * .6).add(new Vector(Camera.width / 2, Camera.height * .63));
-        let sunFac = (-Vector.fromAngle(Atmosphere.settings.sunAngle).y - .5) * 2;
-        let sunHor = 1 - Math.abs(Vector.fromAngle(Atmosphere.settings.sunAngle).y);
-        Atmosphere.settings.ambientLight = Color.fromHsl(lerp(10, 20, clamp(sunFac * 5)), clamp(.8 - sunFac), clamp(sunFac + .5));
-        Atmosphere.settings.ambientLight = Atmosphere.settings.ambientLight.add(Color.fromHsl(lerp(280, 230, clamp(-sunFac / 2)), clamp(-sunFac + .3) * .6, Math.max(.1, (clamp(-sunFac + .3) * .3))))
-        Atmosphere.settings.sunIntensity = clamp(clamp(sunFac + .8) * Math.max(.4, sunHor * 2));
+        Atmosphere.settings.sunPosition = Vector.fromAngle(Atmosphere.settings.sunAngle).mult(Camera.width / 2 * .6).add(new Vector(Camera.width / 2, Camera.height * .5));
+        let sunFac = (-Vector.fromAngle(Atmosphere.settings.sunAngle).y);
 
+        if (sunFac < 0 && !Progress.firstNight) {
+            Progress.firstNight = true;
+            new TutorialPrompt({ content: "*The sun is setting.* At night, visibility is lowered and enemies are more dangerous. However, your *oxygen supply* depletes slower.<br>Press [Space] to dismiss.", keys: [" "] });
+        }
+
+        let sunHor = 1 - Math.abs(Vector.fromAngle(Atmosphere.settings.sunAngle).y);
+        Atmosphere.settings.ambientLight = Color.fromHsl(lerp(10, 20, clamp(sunFac * 4)), clamp(.6 - sunFac), clamp(sunFac + .2));
+        const nightColor = Color.fromHsl(lerp(280, 230, clamp(-sunFac * 2)), clamp(-sunFac * 2 + .3) * .6, Math.max(.05, (clamp(-sunFac + .6) * .1)));
+
+        Atmosphere.settings.ambientLight = Atmosphere.settings.ambientLight.add(nightColor)
+        Atmosphere.settings.sunIntensity = clamp(clamp(sunFac + .2) * Math.max(.4, sunHor * 2));
 
         let worldData = World.getDataFrom(player.position.x);
         colorGradeBiome = colorGradeFilter.mixSettings(colorGradeOld, colorGradeNew, biomeTime / 2);
         let colorGradePollution = colorGradeFilter.mixSettings(colorGradeBiome, colorGradeFilter.styles.dust, worldData.pollution / 100);
-        colorGrade.options = colorGradeFilter.mixSettings(colorGradeFilter.mixSettings(colorGradeFilter.styles.night, colorGradeFilter.styles.sunset, (sunFac * 3 + 4)), colorGradePollution, sunFac * 4 + 2);
+        colorGrade.options = colorGradeFilter.mixSettings(colorGradeFilter.mixSettings(colorGradeFilter.styles.night, colorGradeFilter.styles.sunset, (sunFac * 3 + 1.5)), colorGradePollution, sunFac * 4 + 1);
 
 
         /* terrain noises */
@@ -388,12 +405,14 @@ export function initGame(skipIntro = false) {
         if (key["arrowup"]) Camera.position.y += camspeed;
         if (key["arrowdown"]) Camera.position.y -= camspeed;
         player.input = new Vector();
-        if (key["a"]) player.input.x -= 1;
-        if (key["d"]) player.input.x += 1;
-        if (key["w"]) player.input.y += 1;
-        if (key["s"]) player.input.y -= 1;
-        if (key["shift"]) player.run = true;
-        else player.run = false;
+        if (Progress.controlsUnlocked) {
+            if (key["a"]) player.input.x -= 1;
+            if (key["d"]) player.input.x += 1;
+            if (key["w"]) player.input.y += 1;
+            if (key["s"]) player.input.y -= 1;
+            if (key["shift"]) player.run = true;
+            else player.run = false;
+        }
 
         const [wx, wy] = screenToWorld(mouse).xy();
         debugPrint(screenToWorld(mouse).toString());
@@ -403,11 +422,20 @@ export function initGame(skipIntro = false) {
         if (timeElapsed > 1) {
             biomeTime += dt;
             if (newBiome.biomeId != currentBiome) {
+                if (Progress.visitedBiomes.includes(newBiome.biomeId)) {
+                    new GuiSplash(newBiome.name, false)
+                }
+                else {
+                    if (Progress.visitedBiomes.length == 1) {
+                        new TutorialPrompt({ content: "You have just visited a *new biome*. The game has multiple areas, or biomes, that you can explore. Each biome offers unique resources, challenges, and sights.<br>Press [Space] to dismiss.", keys: [" "] });
+                    }
+                    Progress.visitedBiomes.push(newBiome.biomeId);
+                    new GuiSplash(newBiome.name, true)
+                }
                 biomeTime = 0;
                 colorGradeOld = colorGradeBiome;
                 colorGradeNew = newBiome.colorGrade;
                 newBiome.music.play();
-                new GuiSplash(newBiome.name)
                 currentBiome = newBiome.biomeId;
             }
         }
@@ -512,6 +540,7 @@ export function initGame(skipIntro = false) {
         Terrain.draw();
         ParallaxDrawer.update();
         Entity.update(dt);
+        ParticleSystem.update(dt);
         Buildable.update(dt);
         World.update(dt);
         GUI.update(dt);
@@ -532,17 +561,18 @@ export function initGame(skipIntro = false) {
         new TopNode("You stumble out of the pod.", 0)
             .chain("The surroundings look nothing like the pictures of Earth that you've seen.")
             .choice([
+                new TopNode("What happened?")
+                    .chain("The landing pod you just disembarked seems heavily damaged and there is a fire in the fuel tank.", 0)
+                    .chain("You don't remember the last few minutes very well, but if you had to guess, there was a problem with the landing thrusters.", 0)
+                    .chain("Thankfully, you don't feel any injuries besides a minor headache.", 0)
+                    .chain("As the fire suppression system slowly puts out the flames, you notice a status light from the radio panel. It still appears to be functional.", 0)
+                    .finish(),
                 new TopNode("This place looks more like Mars.")
-                    .chain("The dusty, orange atmosphere looks hostile and unbreathable.", 0)
-                    .finish(),
-                new TopNode("What happened here?")
+                    .chain("You know you crash-landed on Earth, but the dusty, orange atmosphere looks hostile and unbreathable.", 0)
                     .chain("A glance at the scenery tells a tale of destruction and abandonment.", 0)
-                    .finish(),
-                new TopNode("Wow! This game looks so pretty!")
-                    .chain("Thanks. I don't have any gameplay or story in this game, but I worked a lot on the water shaders.", 0)
+                    .chain("The pod was damaged in the landing, but the radio appears still functional.", 0)
                     .finish(),
             ])
-            .chain("The pod is slightly damaged, but the radio appears still functional.", 0)
             .chain("I should try to call *Mission Control*.", 2)
             .chain("After a moment of static, the display lights up.", 0)
             .chain("-ssion control to ERA-1, repeat, we have lost-", 1)
@@ -550,10 +580,20 @@ export function initGame(skipIntro = false) {
             .reply("It appears the signal is back! Hello, Agent.")
             .chain("What is your status?")
             .choice([
-                new TopNode("There is slight damage to the landing pod."),
+                new TopNode("The landing was rough.", 2)
+                    .chain("The pod is heavily damaged, but I don't think I'm injured.")
+                    .finish(),
                 new TopNode("I've been better...")
             ])
-            .reply("Good to know.")
+            .condition(() => { return !skipIntro },
+                new TopNode("We need to check your vitals.", 1)
+                    .chain("Can you try walking around for a while?")
+                    .callback(moveTutorial)
+                    .chain("I can move without problem.", 2)
+                    .finish(),
+                new TopNode("You seem fine.", 1)
+            )
+            .chain("Good to know.", 1)
             .chain("Anyway, get to work. *Plant me some trees* before dawn or your food resupply pod will have a malfunction.")
             .choice([
                 new TopNode("Yes sir"),
@@ -583,13 +623,13 @@ export function initGame(skipIntro = false) {
             { content: "Ne", callback: () => { new DialogBox("Nemám hlad.", 2) } }
         ]);
     }, 1000); */
-    let mainBar = new PositionableGuiElement({ position: new Vector(850, 50), centerX: true })
-    mainBar.element.style.flexDirection = "row";
-    new GuiButton({ content: "Talk", callback: () => { introDialogue.execute(); }, parent: mainBar })
-    new GuiButton({ content: "Inventory", callback: () => { Atmosphere.settings.sunAngle = -2 }, parent: mainBar })
-    new GuiButton({ content: "Atmosphere status", callback: () => { Atmosphere.settings.sunAngle = 1 }, parent: mainBar })
+    let devBar = new PositionableGuiElement({ position: new Vector(50, 50), hidden: true })
+    devBar.addChild(new CustomGuiElement("span", "Development options"));
+    let devPanel = new GuiPanel({ blankStyle: true, parent: devBar, flexDirection: "row" });
+    new GuiButton({ content: "Talk", callback: () => { introDialogue.execute(); }, parent: devPanel })
+    new GuiButton({ flexDirection: "row", image: "ui/icon-day.png", content: "Day", callback: () => { Atmosphere.settings.sunAngle = -2 }, parent: devPanel })
+    new GuiButton({ flexDirection: "row", image: "ui/icon-night.png", content: "Night", callback: () => { Atmosphere.settings.sunAngle = 1; }, parent: devPanel })
 
-    const hotbar = new PositionableGuiElement({ position: new Vector(50, 50), invertHorizontalPosition: true })
 
     function placeSeed() {
         if (!Buildable.currentBuildable && seedCooldown <= 0) {
@@ -605,6 +645,13 @@ export function initGame(skipIntro = false) {
         }
     }
 
+    function placeTurbine() {
+        if (!Buildable.currentBuildable && seedCooldown <= 0) {
+            seedCooldown = .2;
+            new Turbine(player.position.result(), false);
+        }
+    }
+
     function placeScanner() {
         if (!Buildable.currentBuildable && seedCooldown <= 0) {
             seedCooldown = .2;
@@ -614,12 +661,32 @@ export function initGame(skipIntro = false) {
 
 
 
+    const hotbar = new PositionableGuiElement({ position: new Vector(50, 50), invertHorizontalPosition: true, hidden: true })
     new GuiButton({ content: "Seed", callback: () => { placeSeed() }, parent: hotbar })
     new GuiButton({ content: "Pole", callback: () => { placePole() }, parent: hotbar })
+    new GuiButton({ content: "Turbine", callback: () => { placeTurbine() }, parent: hotbar })
     new GuiButton({ content: "Scanner", callback: () => { placeScanner() }, parent: hotbar })
 
 
-    scannerData = new PositionableGuiElement({ position: new Vector(50, 50), invertHorizontalPosition: true, invertVerticalPosition: true })
+    scannerData = new PositionableGuiElement({ position: new Vector(50, 50), invertHorizontalPosition: true, invertVerticalPosition: true, hidden: true })
+
+    async function moveTutorial() {
+        Progress.controlsUnlocked = true;
+        await new TutorialPrompt({ content: "Press [A] and [D] to move around.", keys: ["A", "D"] }).awaitDone;
+        await new TutorialPrompt({ content: "Hold [Shift] while moving to run faster.", keys: ["shift"] }).awaitDone;
+        await new TutorialPrompt({ content: "Press [W] to jump.", keys: ["W"] }).awaitDone;
+        Progress.controlsUnlocked = false;
+    }
+
+    async function activateTutorial() {
+        await introDialogue.execute();
+        //await moveTutorial();
+        Progress.controlsUnlocked = true;
+        await devBar.fadeIn();
+        await hotbar.fadeIn();
+        await scannerData.fadeIn();
+        await new TutorialPrompt({ content: "You can move around and plant seeds.", duration: 10 }).awaitDone;
+    }
 
     const key: Record<string, boolean> = {};
     window.addEventListener("keydown", (e) => { key[e.key.toLowerCase()] = true });
@@ -630,10 +697,18 @@ export function initGame(skipIntro = false) {
     ticker.start();
     terrainUpdateCycle();
 
+    //skipIntro = false;
+
     if (!skipIntro) {
         setTimeout(() => {
-            introDialogue.execute();
+            activateTutorial();
         }, 8000);
+    }
+    else {
+        devBar.fadeIn();
+        hotbar.fadeIn();
+        scannerData.fadeIn();
+        Progress.controlsUnlocked = true;
     }
 
 }

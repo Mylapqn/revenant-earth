@@ -47,7 +47,7 @@ export class ParallaxDrawer {
             this.fgContainer.addChild(sprite);
         }
         //sprite.filters.push(new AtmosphereFilter(clamp(1.2 - Math.pow(1 - depth*.9, 1.2))));
-        sprite.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
+        sprite.filterArea = Camera.rect;
         const sprt = sprite;
         this.layers.push({ sprite: sprite, depth: depth });
         onResize(sprt, () => sprt.filterArea = new Rectangle(0, 0, Camera.width, Camera.height));

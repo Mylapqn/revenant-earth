@@ -1,4 +1,4 @@
-import { Container, Sprite } from "pixi.js";
+import { AnimatedSprite, Container, Sprite } from "pixi.js";
 import { screenToWorld, mouse, player, terrainTick } from "../../game";
 import { Camera } from "../../camera";
 import { Entity } from "../../entity";
@@ -8,16 +8,25 @@ import { Buildable } from "./buildable";
 import { Cable } from "../passive/cable";
 import { Light } from "../../shaders/lighting/light";
 import { Color } from "../../color";
-import { random } from "../../utils";
+import { random, randomInt } from "../../utils";
 import { Stamps } from "../../stamp";
+import { Pole } from "./pole";
 
-export class Pole extends Buildable {
-    graphics: Sprite;
+export class Turbine extends Buildable {
+    graphics: AnimatedSprite;
     cable: Cable;
     light: Light;
     constructor(position: Vector, cable = true, placeInstantly = false) {
-        const graph = Sprite.from("buildable/pole.png");
+        const graph = AnimatedSprite.fromFrames([
+            "buildable/turbine/turbine1.png",
+            "buildable/turbine/turbine2.png",
+            "buildable/turbine/turbine3.png",
+            "buildable/turbine/turbine4.png",
+        ]);
+        
         graph.anchor.set(0.5, 1);
+        graph.animationSpeed = .2;
+        graph.currentFrame=randomInt(0,3);
         super(graph, position, placeInstantly);
         this.culling = true;
         if (cable) {
@@ -40,15 +49,17 @@ export class Pole extends Buildable {
         return super.checkValidPlace(adjust);
     }
     place() {
+        this.graphics.play();
         super.place();
-        Stamps.stamp("foundationSmall", new Vector(this.position.x,this.position.y-40),{surface:false, useDirtFrom: Terrain.generator, replaceMatching: (r, w) => TerrainManager.isDirt(r) });
+        Stamps.stamp("foundationSmall", new Vector(this.position.x-5,this.position.y-40),{surface:false, useDirtFrom: Terrain.generator, replaceMatching: (r, w) => TerrainManager.isDirt(r) });
+        Stamps.stamp("foundationSmall", new Vector(this.position.x+5,this.position.y-40),{surface:false, useDirtFrom: Terrain.generator, replaceMatching: (r, w) => TerrainManager.isDirt(r) });
         if (this.cable) {
             this.cable.graphics.tint = this.graphics.tint;
             this.cable.graphics.alpha = this.graphics.alpha;
         }
 
-        this.light = new Light(this, new Vector(0, this.graphics.height - 3), -Math.PI / 2, 1.2, new Color(255, 180, 150), 200, 1.3);
-        new Pole(this.position)
+        this.light = new Light(this, new Vector(0, this.graphics.height - 76), Math.PI / 2, .8, new Color(180, 200, 200), 100, 1.5);
+        new Pole(this.position);
     }
     remove(): void {
         super.remove();

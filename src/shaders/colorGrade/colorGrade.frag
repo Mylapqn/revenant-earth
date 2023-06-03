@@ -50,6 +50,7 @@ void main(void) {
     float val = luma(rgb);
     vec3 grad = grade(rgb, mix(1., uSaturation, uStrength), mix(1., uContrast, uStrength), mix(1., uBrightness, uStrength), uTintColor, mix(0., uTintStrength, uStrength));
     outColor = vec4(grad, 1.);
+    //outColor = sourceColor;
 
     /*
     outColor = vec4(vec3(rgb + vec3(1., .6, 0.) * val + vec3(1., 0., 0.) * (1. - val)) / 2., sourceColor.a);

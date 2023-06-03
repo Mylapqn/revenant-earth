@@ -61,17 +61,19 @@ export class Buildable extends Entity {
         if (Buildable.currentBuildable == this) Buildable.currentBuildable = null;
         super.remove();
     }
-    checkValidPlace(adjust = 0): boolean {
-        console.log(adjust);
 
+    checkOffset = 0;
+    checkValidPlace(adjust = 0): boolean {
+        //console.log(adjust);
+        if(adjust == 0) this.checkOffset = 0;
         if (Buildable.placeCooldown != 0 || adjust > 20) return false;
         let grounded = 0;
         for (let x = 0; x < this.graphics.width; x++) {
             for (let y = 0; y < this.graphics.height; y++) {
-                const t = Terrain.getPixel(Math.round(this.position.x + x - this.graphics.width / 2), Math.round(this.position.y + y));
+                const t = Terrain.getPixel(Math.round(this.position.x + x - this.graphics.width / 2), Math.round(this.position.y + y+this.checkOffset));
                 if (y > 4) {
                     if (t != terrainType.void) {
-                        this.position.y++;
+                        this.checkOffset++;
                         return this.checkValidPlace(adjust + 1);
                     }
                 } else {
@@ -79,8 +81,11 @@ export class Buildable extends Entity {
                 }
             }
         }
-        if (grounded > this.graphics.width) return true
-        this.position.y--;
+        if (grounded > this.graphics.width){
+            this.position.y+=this.checkOffset;
+            return true
+        }
+        this.checkOffset--;
         return this.checkValidPlace(adjust + 1);
     }
     static update(dt: number) {

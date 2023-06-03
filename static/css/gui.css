@@ -82,6 +82,7 @@
     gap: 1em;
     flex-direction: column;
     font-size: calc(var(--scale) * 20);
+    transition: opacity 1s;
 }
 
 .ui {
@@ -89,12 +90,24 @@
     background-color: #00000062;
     padding: 1em;
     backdrop-filter: blur(2em);
-    transition: transform 0.1s, outline 0.1s;
+    transition: transform 0.1s, outline 0.1s, opacity 1s;
     color: white;
     font-family: "Bahnschrift";
     border-radius: 0.3em;
     z-index: 1;
     font-size: calc(var(--scale) * 20);
+    opacity: 1;
+}
+
+.ui em {
+    font-style: inherit;
+    font-weight: 700;
+    color:#fff04a;
+}
+
+.flex.hidden {
+    transition: opacity 1s;
+    opacity: 0;
 }
 
 .ui .ui {
@@ -129,6 +142,7 @@
     right: unset;
     transform: translateX(-50%);
     white-space: nowrap;
+    transition: none;
 }
 
 .label::after {
@@ -161,6 +175,15 @@ kbd {
     font-weight: 600;
     border-radius: .3em;
     font-family: inherit;
+    /* border-bottom: var(--borderWidth) solid rgb(216, 216, 216); */
+    transition: outline-width .13s ease-in-out;
+    outline: 0 solid var(--outline-color-active);
+}
+
+kbd.pressed {
+    outline-width: var(--borderWidth);
+    border-bottom-width: 0;
+    /* translate: 0px var(--borderWidth); */
 }
 
 .scanners th,
@@ -176,12 +199,24 @@ kbd {
     outline: var(--borderWidth) solid var(--outline-color-inactive);
 }
 
+.button.disabled {
+    pointer-events: none;
+    outline: none;
+    opacity: .4;
+}
+
+.button>img {
+    height: 1em;
+    scale: 200%;
+}
+
 .button.img {
     padding: 0.2em;
     height: fit-content;
 }
 
 .button.img>img {
+    scale: initial;
     height: 3em;
 }
 
@@ -190,6 +225,22 @@ kbd {
     outline: var(--borderWidth) solid var(--outline-color-active);
     /* outline-offset: var(--borderWidth); */
     transform: scale(1.06);
+}
+
+.tutorialPrompt {
+    padding: 2em;
+    top: 15vh;
+    outline: var(--borderWidth) solid white;
+    animation: pulse .5s cubic-bezier(0.41, 0, 0.14, 1) infinite alternate;
+    text-align: center;
+    max-width: 30vw;
+    line-height: 1.5em;
+}
+
+.tutorialPrompt br {
+    display: block; /* makes it have a width */
+    content: ""; /* clears default height */
+    margin-top: 1.5em; /* change this to whatever height you want it */
 }
 
 .introText {
@@ -248,7 +299,7 @@ kbd {
     text-shadow: 0px 5px 30px black;
 }
 
-.splash::after {
+.splash.discovery::after {
     content: "new biome discovered";
     font-size: 0.4em;
     display: block;

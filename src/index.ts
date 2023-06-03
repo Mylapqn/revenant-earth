@@ -95,7 +95,7 @@ function startGame() {
         }, 1000);
     }, 2000);
     setTimeout(() => {
-        initGame();
+        initGame(false);
         setTimeout(() => {
             black.style.opacity = "0";
             setTimeout(() => {

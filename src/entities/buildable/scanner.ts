@@ -28,7 +28,7 @@ export class Scanner extends Buildable {
         graph.anchor.set(0.5, 1);
         super(graph, position, placeInstantly);
         this.culling = true;
-        this.light = new Light(this, new Vector(0.5, 10), -Math.PI/2, Math.PI*2, new Color(100, 100, 250), 5, 2);
+        this.light = new Light(this, new Vector(0.5, 10), -Math.PI / 2, Math.PI * 2, new Color(100, 100, 250), 5, 2);
     }
     update(dt: number): void {
         if (!this.placing) {
@@ -43,7 +43,7 @@ export class Scanner extends Buildable {
                 this.light.range = 5;
             } else {
                 this.light.range = 0;
-                this.light.position = new Vector(randomInt(-2,2), randomInt(8,12));
+                this.light.position = new Vector(randomInt(-2, 2), randomInt(8, 12));
             }
         }
 
@@ -57,5 +57,9 @@ export class Scanner extends Buildable {
         super.place();
         Scanner.scanners.push(this)
         this.name = Terrain.generator.getBiome(this.position.x).shortName + " #" + Scanner.scanners.length;
+    }
+    remove(): void {
+        this.light.remove();
+        super.remove();
     }
 }

@@ -1,3 +1,4 @@
+import { Rectangle } from "pixi.js";
 import { app } from "./game";
 import { Vector } from "./vector";
 
@@ -7,6 +8,7 @@ export class Camera {
     static height = 256;
     static aspectRatio = 1;
     static yOffset = 50;
+    static rect = new Rectangle(0, 0, Camera.width, Camera.height);
     private static _scale = 1;
     static set scale(s: number) {
         this._scale = s;

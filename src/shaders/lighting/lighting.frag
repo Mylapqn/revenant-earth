@@ -22,6 +22,7 @@ vec4 demult(vec4 color) {
 void main(void) {
     vec4 sourceColor = demult(texture(uSampler, vTextureCoord));
     vec4 lightMap = texture(uLightMap, vTextureCoord);
-    color = vec4(min(tonemap(sourceColor.rgb * (lightMap.rgb*.5 + uAmbient)), 1.) * sourceColor.a, sourceColor.a);
+    vec3 lighting = (lightMap.rgb*.5 + uAmbient);
+    color = vec4(min(tonemap(sourceColor.rgb * lighting), 1.) * sourceColor.a, sourceColor.a);
 
 }

@@ -32,7 +32,7 @@ export class Light {
     }
 
     public get angle(): number {
-        if (!this.parent) return this._angle;
+        if (!this.parent || this.parent.removed) return this._angle;
         if (this.parent.graphics.scale.x < 0) return Math.PI - (this._angle) + this.parent.angle;
         return this._angle + this.parent.angle;
     }
@@ -54,6 +54,10 @@ export class Light {
         let ambientIntensity = (a.r + a.g + a.b) / 765;
 
         return this._intensity * clamp(1 - ambientIntensity, .1, 1);
+    }
+
+    remove(){
+        Light.list.splice(Light.list.indexOf(this),1);
     }
 
     static list: Light[] = [];

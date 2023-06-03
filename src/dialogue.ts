@@ -4,6 +4,9 @@ import { CustomGuiElement, DialogBox, DialogChoices, GUI } from "./gui/gui";
 
 const cinematicWrapper = document.getElementById("cinematicWrapper");
 
+type Awaitable = (() => Promise<void>) | (() => void);
+type AwaitableCondition = (() => Promise<boolean>) | (() => boolean);
+
 export class Dialogue {
     static speakersHidden = [true, true];
     static profiles: HTMLElement[] = [];
@@ -12,7 +15,9 @@ export class Dialogue {
 
         DialogBox.container = new CustomGuiElement("div", "", "messagesContainer").element;
         DialogBox.wrapper = new CustomGuiElement("div", "", "dialogContainer").element;
-        DialogBox.conversationElement = new CustomGuiElement("div", "", "conversationWrapper", "absolute", "centerX", "hidden", "ui").element;
+        const dbe = new CustomGuiElement("div", "", "conversationWrapper", "absolute", "centerX", "hidden", "ui")
+        dbe.addMouseListeners();
+        DialogBox.conversationElement = dbe.element;
         GUI.container.appendChild(DialogBox.conversationElement);
         DialogBox.wrapper.appendChild(DialogBox.container);
 
@@ -87,6 +92,16 @@ export class DialogueNode implements BaseNode {
         this.nextNode.topNode = this.topNode;
         return this.nextNode;
     }
+    callback(callback: Awaitable) {
+        this.nextNode = new FunctionNode(callback);
+        this.nextNode.topNode = this.topNode;
+        return this.nextNode;
+    }
+    condition(test: AwaitableCondition, nodeTrue?: TopNode, nodeFalse?: TopNode) {
+        this.nextNode = new ConditionNode(test, nodeTrue, nodeFalse);
+        this.nextNode.topNode = this.topNode;
+        return this.nextNode;
+    }
     async execute() {
         if (Dialogue.speakersHidden[this.speaker - 1]) {
             await showSpeaker(this.speaker - 1);
@@ -96,9 +111,12 @@ export class DialogueNode implements BaseNode {
     }
     private async showBox() {
         new DialogBox(this.content, this.speaker);
-        let delay = this.content.length * 40 + 1000;
-        //delay = 300;
+        let delay = this.content.length * 45 + 1000;
+        //delay = 100;
         await sleep(delay);
+        await this.showNext();
+    }
+    async showNext() {
         if (this.nextNode) {
             if (Dialogue.speakersHidden[this.nextNode.speaker - 1]) {
                 await showSpeaker(this.nextNode.speaker - 1);
@@ -110,6 +128,44 @@ export class DialogueNode implements BaseNode {
     finish() {
         return this.topNode.getTop();
     }
+}
+
+export class ConditionNode extends DialogueNode {
+    _callback: AwaitableCondition;
+    nodeTrue: TopNode;
+    nodeFalse: TopNode;
+    constructor(callback: AwaitableCondition, nodeTrue?: TopNode, nodeFalse?: TopNode) {
+        super();
+        this.speaker = 0;
+        this._callback = callback;
+        this.nodeTrue = nodeTrue;
+        this.nodeFalse = nodeFalse;
+    }
+    async execute() {
+        if (await this._callback()) {
+            if (this.nodeFalse) await this.nodeTrue.execute();
+        }
+        else {
+            if (this.nodeFalse) await this.nodeFalse.execute();
+        }
+        await this.showNext();
+    }
+
+}
+
+
+export class FunctionNode extends DialogueNode {
+    _callback: Awaitable;
+    constructor(callback: Awaitable) {
+        super();
+        this.speaker = 0;
+        this._callback = callback;
+    }
+    async execute() {
+        await this._callback();
+        await this.showNext();
+    }
+
 }
 
 export class NodeStack extends DialogueNode {
@@ -181,4 +237,4 @@ export class ChoiceNode extends DialogueNode {
     };
 }
 
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));

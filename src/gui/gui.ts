@@ -1,15 +1,11 @@
 import { mouse, worldToScreen } from "../game";
 import { clamp } from "../utils";
 import { Vector } from "../vector";
-import { DialogueNode } from "../dialogue";
+import { DialogueNode, sleep } from "../dialogue";
 import { SoundEffect } from "../sound";
 
 export class GUI {
     static init() {
-        this.sounds.hover.volume = .7;
-        this.sounds.click.volume = .8;
-        this.sounds.appear.volume = .6;
-        this.sounds.discovery.volume = .1;
         let elements = document.getElementsByClassName("ui");
         for (let i = 0; i < elements.length; i++) {
             const element = elements[i];
@@ -36,13 +32,14 @@ export class GUI {
     }
     static container = document.getElementById("guiContainer");
     static sounds = {
-        hover: new SoundEffect("sound/fx/hover3.wav"),
-        click: new SoundEffect("sound/fx/click.wav"),
+        hover: new SoundEffect("sound/fx/hover3.wav",.7),
+        click: new SoundEffect("sound/fx/click.wav",.8),
         talk: new SoundEffect("sound/fx/talk.wav"),
-        appear: new SoundEffect("sound/fx/appear.wav"),
+        appear: new SoundEffect("sound/fx/appear.wav",.6),
         hide: new SoundEffect("sound/fx/hide.wav"),
         unhide: new SoundEffect("sound/fx/unhide.wav"),
-        discovery: new SoundEffect("sound/fx/ping.wav"),
+        discovery: new SoundEffect("sound/fx/ping.wav",.1),
+        tutorial: new SoundEffect("sound/fx/tutorial.wav",.2),
     };
 }
 
@@ -51,6 +48,10 @@ interface GuiElementOptions {
     content?: string,
     blankStyle?: boolean,
     fillContainer?: boolean
+    flexDirection?: "row" | "column";
+    fadeIn?: boolean
+    flex?: boolean
+    hidden?: boolean
 }
 
 interface PositionableGuiElementOptions extends GuiElementOptions {
@@ -61,12 +62,18 @@ interface PositionableGuiElementOptions extends GuiElementOptions {
     invertVerticalPosition?: boolean,
 }
 
+interface TutorialPromptOptions extends PositionableGuiElementOptions {
+    keys?: string[]
+    duration?: number
+}
+
 interface GuiPanelOptions extends GuiElementOptions {
-    flexDirection?: "row" | "column";
 }
 
 interface GuiButtonOptions extends PositionableGuiElementOptions {
-    callback: () => void
+    callback: () => void,
+    image?: string,
+    enabled?: boolean
 }
 
 export class BaseGuiElement {
@@ -77,6 +84,10 @@ export class BaseGuiElement {
             this.element.classList.add(c);
         }
     }
+    addMouseListeners() {
+        this.element.addEventListener("mouseenter", (e) => { mouse.gui++; });
+        this.element.addEventListener("mouseleave", (e) => { mouse.gui = 0; });
+    }
 }
 
 export class CustomGuiElement extends BaseGuiElement {
@@ -84,6 +95,7 @@ export class CustomGuiElement extends BaseGuiElement {
         super(type, ...classes)
         this.element.innerText = content;
     }
+
 }
 
 class GuiElement extends BaseGuiElement {
@@ -91,7 +103,11 @@ class GuiElement extends BaseGuiElement {
     moving = false;
     removed = false;
     constructor(options: GuiElementOptions) {
-        super("div", "flex");
+        super("div");
+        if (options.flex === undefined || options.flex) {
+            this.element.classList.add("flex");
+        }
+        this.element.style.flexDirection = options.flexDirection ?? "column";
         GUI.container.appendChild(this.element);
         if (!options.blankStyle)
             this.element.classList.add("ui");
@@ -102,6 +118,8 @@ class GuiElement extends BaseGuiElement {
         if (options.parent) {
             options.parent.addChild(this);
         }
+        if (options.hidden) this.element.classList.add("hidden");
+        if (options.fadeIn) this.fadeIn();
     }
     remove() {
         if (this.removed) return;
@@ -126,15 +144,52 @@ class GuiElement extends BaseGuiElement {
     private _content = "text";
 
     public set content(content) {
+        this._content = content;
         this.element.innerHTML = content.replace(GuiElement.highlightRegex, `<em>$1</em>`).replace(GuiElement.keyPromptRegex, `<kbd>$1</kbd>`);
+        for (const node of this.element.childNodes) {
+            if (node.nodeType == node.ELEMENT_NODE) {
+                const element = node as HTMLElement;
+                if (element.tagName == "KBD") {
+                    document.addEventListener("keydown", (e) => {
+                        if (e.key.toLowerCase() == element.innerText.toLowerCase()) {
+                            element.classList.add("pressed");
+                        }
+                    })
+                    document.addEventListener("keyup", (e) => {
+                        if (e.key.toLowerCase() == element.innerText.toLowerCase()) {
+                            element.classList.remove("pressed");
+                        }
+                    })
+                }
+            }
+        }
+
     }
     public get content() {
         return this._content;
     }
 
+    async fadeOut() {
+        return new Promise<void>(resolve => {
+            this.element.classList.add("hidden");
+            setTimeout(() => {
+                resolve();
+                this.remove();
+            }, 1000);
+        })
+    }
+
+    async fadeIn() {
+        this.element.classList.add("hidden");
+        setTimeout(() => {
+            this.element.classList.remove("hidden");
+        }, 10);
+        return await sleep(1000);
+    }
+
     static list: GuiElement[] = [];
-    static keyPromptRegex = /\[(.+)\]/g;
-    static highlightRegex = /\*(.+)\*/g;
+    static keyPromptRegex = /\[(.+?)\]/g;
+    static highlightRegex = /\*(.+?)\*/g;
 }
 
 export class PositionableGuiElement extends GuiElement {
@@ -148,8 +203,7 @@ export class PositionableGuiElement extends GuiElement {
             this.position = options.position;
             this.invertHorizontalPosition = options.invertHorizontalPosition;
             this.invertVerticalPosition = options.invertVerticalPosition;
-            this.element.addEventListener("mouseenter", (e) => { mouse.gui++; });
-            this.element.addEventListener("mouseleave", (e) => { mouse.gui = 0; });
+            this.addMouseListeners();
             this.element.classList.add("absolute");
             if (options.centerX) this.element.classList.add("centerX");
             else if (options.position) {
@@ -171,10 +225,50 @@ export class PositionableGuiElement extends GuiElement {
     }
 }
 
+export class TutorialPrompt extends PositionableGuiElement {
+    awaitDone: Promise<void>;
+    constructor(options: TutorialPromptOptions) {
+        let c = options.content;
+        options.content = ""
+        options.centerX = true;
+        super(options);
+        this.element.classList.add("tutorialPrompt");
+        options.parent = this;
+        options.blankStyle = true;
+        options.flex = false;
+        options.content = c;
+        new GuiPanel(options);
+        GUI.sounds.tutorial.play();
+        this.awaitDone = new Promise((resolve, reject) => {
+            if (options.keys) {
+                document.addEventListener("keyup", (e) => {
+                    if (this.removed) return;
+                    for (const k of options.keys) {
+                        if (e.key.toLowerCase() == k.toLowerCase()) {
+                            this.fadeOut().then(
+                                resolve
+                            );
+                            return;
+                        }
+                    }
+                });
+            }
+            if (options.duration) {
+                setTimeout(() => {
+                    this.fadeOut().then(
+                        resolve
+                    );
+                }, options.duration * 1000);
+            }
+        })
+
+        this.fadeIn();
+    }
+}
+
 export class GuiPanel extends GuiElement {
     constructor(options: GuiPanelOptions) {
         super(options);
-        this.element.style.flexDirection = options.flexDirection ?? "row";
     }
 }
 
@@ -285,13 +379,34 @@ export class GuiTooltip extends PositionableGuiElement {
 }
 
 export class GuiButton extends PositionableGuiElement {
+    private _enabled = true;
     private callback: () => void;
     constructor(options: GuiButtonOptions) {
         super(options);
         this.element.classList.add("button");
+        if (options.image) {
+            let c = "<img src=" + options.image + ">";
+            if (!options.content)
+                this.element.classList.add("img");
+            else c = c + options.content;
+            this.content = c;
+        }
+        if (options.enabled !== undefined) {
+            this.enabled = options.enabled;
+        }
         this.callback = options.callback;
         this.element.onclick = this.click.bind(this);
         this.element.onmouseenter = () => { GUI.sounds.hover.play(); }
+    }
+    set enabled(e) {
+        this._enabled = e;
+        if (e)
+            this.element.classList.remove("disabled");
+        else
+            this.element.classList.add("disabled");
+    }
+    get enabled() {
+        return this._enabled;
     }
     click() {
         GUI.sounds.click.play();
@@ -301,22 +416,18 @@ export class GuiButton extends PositionableGuiElement {
 
 export class GuiSplash {
     element: HTMLElement;
-    constructor(content = "none", duration = 5) {
+    constructor(content = "none", newDiscovery=true, duration = 5) {
         this.element = document.createElement("h1");
         GUI.container.appendChild(this.element);
         this.element.classList.add("splash");
         this.element.innerText = content;
         this.element.style.animationDuration = duration + "s";
-        GUI.sounds.discovery.play();
+        if(newDiscovery){
+            GUI.sounds.discovery.play();
+            this.element.classList.add("discovery");
+        }
         setTimeout(() => {
             this.element.remove();
         }, duration * 1000);
     }
-}
-
-export class KeyPrompt extends BaseGuiElement {
-    constructor(key: string) {
-        super("kbd");
-        this.element.innerText = key;
-    };
 }
