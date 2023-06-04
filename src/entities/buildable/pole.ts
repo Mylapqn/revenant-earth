@@ -24,6 +24,7 @@ export class Pole extends Buildable {
             this.cable = new Cable(position.result().add(new Vector(-3, 55)), position, 200);
             this.cable.graphics.alpha = this.graphics.alpha;
         }
+        this.name = "Power pole";
     }
     update(dt: number): void {
         super.update(dt);

@@ -13,6 +13,7 @@ export class Buildable extends Entity {
     placing = true;
     validPlace = false;
     graphics: Sprite;
+    buildStatus = "Cannot place";
     constructor(graphics: Sprite, position = player.position.result(), placeInstantly = false) {
         const graph = graphics;
         graph.anchor.set(0.5, 1);
@@ -32,8 +33,8 @@ export class Buildable extends Entity {
             this.position = screenToWorld(mouse);
 
             this.validPlace = this.checkValidPlace();
+            this.tooltip.text = this.buildStatus;
             if (this.validPlace) {
-                this.tooltip.content = "Ready to place";
                 this.graphics.tint = 0x00FF00;
                 if (mouse.pressed == 1) {
                     mouse.pressed = 0;
@@ -42,7 +43,6 @@ export class Buildable extends Entity {
 
             }
             else {
-                this.tooltip.content = "Cannot place";
                 this.graphics.tint = 0xFF0000
             };
             if (mouse.pressed == 2) {
@@ -55,6 +55,7 @@ export class Buildable extends Entity {
         if (this.culling) this.cullDisplay();
     }
     place() {
+        this.hoverable = true;
         if (Buildable.currentBuildable == this) Buildable.currentBuildable = null;
         this.tooltip?.remove();
         Buildable.placeCooldown = .2;
@@ -73,7 +74,13 @@ export class Buildable extends Entity {
     checkValidPlace(adjust = 0): boolean {
         //console.log(adjust);
         if (adjust == 0) this.checkOffset = 0;
-        if (Buildable.placeCooldown != 0 || adjust > 20) return false;
+        if (Buildable.placeCooldown != 0 || adjust > 20) {
+            this.buildStatus = "Can't place: ";
+            if(this.checkOffset >= 20) this.buildStatus += "no free space";
+            else if(this.checkOffset <= -20) this.buildStatus += "no ground";
+            else this.buildStatus += "uneven terrain";
+            return false;
+        }
         let grounded = 0;
         for (let x = 0; x < this.graphics.width; x++) {
             for (let y = 0; y < this.graphics.height; y++) {
@@ -90,6 +97,7 @@ export class Buildable extends Entity {
         }
         if (grounded > this.graphics.width) {
             this.position.y += this.checkOffset;
+            this.buildStatus = "Ready to place";
             return true
         }
         this.checkOffset--;

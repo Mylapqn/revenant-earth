@@ -65,7 +65,7 @@ export class SoundEffect extends Sound {
 
 export class SoundManager {
     static volume = {
-        music: .8,
+        music: .0,
         fx: 1
     }
     static update(dt: number) {

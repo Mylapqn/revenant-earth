@@ -181,6 +181,11 @@ class GuiElement extends BaseGuiElement {
         return this._content;
     }
 
+    public set text(content:string) {
+        this._content = content;
+        this.element.innerText = content;
+    }
+
     async fadeOut() {
         this.element.classList.add("hidden");
         await sleep(1000);

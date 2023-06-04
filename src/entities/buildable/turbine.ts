@@ -33,6 +33,7 @@ export class Turbine extends Buildable {
             this.cable = new Cable(position.result().add(new Vector(-3, 55)), position, 200);
             this.cable.graphics.alpha = this.graphics.alpha;
         }
+        this.name = "Wind turbine";
     }
     update(dt: number): void {
         super.update(dt);

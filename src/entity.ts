@@ -95,12 +95,14 @@ export class Entity {
             this.graphics.on("pointerenter", () => {
                 if (!this.hovered && mouse.gui == 0) {
                     this.hovered = true;
+                    Entity.hoveredEntity = this;
                     this.graphics.filters = [new HslAdjustmentFilter({ lightness: .3 }), new OutlineFilter(1, 0xFFFFFF, .1, 1)];
                     this.tooltip = new GuiTooltip(this.name);
                 }
             })
             this.graphics.on("pointerleave", () => {
                 if (this.hovered) {
+                    Entity.hoveredEntity = null;
                     this.hovered = false;
                     this.graphics.filters = [];
                     this.tooltip.remove();
@@ -123,4 +125,5 @@ export class Entity {
         this.toUpdate = this.tempToUpdate;
         this.tempToUpdate = new Set();
     }
+    static hoveredEntity:Entity;
 }
