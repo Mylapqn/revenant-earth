@@ -21,7 +21,7 @@ export class Buildable extends Entity {
         if (this.placing) {
             this.tooltip = new GuiTooltip("placing");
             Buildable.currentBuildable = this;
-            preferences.selectedTerrainType = 0;
+            //preferences.selectedTerrainType = 0;
             graph.tint = 0x00FF00
             graph.alpha = .4;
         }
@@ -35,13 +35,20 @@ export class Buildable extends Entity {
             if (this.validPlace) {
                 this.tooltip.content = "Ready to place";
                 this.graphics.tint = 0x00FF00;
-                if (mouse.pressed == 1) this.place();
+                if (mouse.pressed == 1) {
+                    mouse.pressed = 0;
+                    this.place();
+                }
+
             }
             else {
                 this.tooltip.content = "Cannot place";
                 this.graphics.tint = 0xFF0000
             };
-            if (mouse.pressed == 2) this.remove();
+            if (mouse.pressed == 2) {
+                mouse.pressed = 0;
+                this.remove();
+            }
         }
         this.updatePosition();
         this.queueUpdate();
@@ -65,12 +72,12 @@ export class Buildable extends Entity {
     checkOffset = 0;
     checkValidPlace(adjust = 0): boolean {
         //console.log(adjust);
-        if(adjust == 0) this.checkOffset = 0;
+        if (adjust == 0) this.checkOffset = 0;
         if (Buildable.placeCooldown != 0 || adjust > 20) return false;
         let grounded = 0;
         for (let x = 0; x < this.graphics.width; x++) {
             for (let y = 0; y < this.graphics.height; y++) {
-                const t = Terrain.getPixel(Math.round(this.position.x + x - this.graphics.width / 2), Math.round(this.position.y + y+this.checkOffset));
+                const t = Terrain.getPixel(Math.round(this.position.x + x - this.graphics.width / 2), Math.round(this.position.y + y + this.checkOffset));
                 if (y > 4) {
                     if (t != terrainType.void) {
                         this.checkOffset++;
@@ -81,8 +88,8 @@ export class Buildable extends Entity {
                 }
             }
         }
-        if (grounded > this.graphics.width){
-            this.position.y+=this.checkOffset;
+        if (grounded > this.graphics.width) {
+            this.position.y += this.checkOffset;
             return true
         }
         this.checkOffset--;

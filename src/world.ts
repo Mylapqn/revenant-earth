@@ -35,6 +35,7 @@ export class World {
 
 
     static getDataFrom(x: number) {
+        x = clamp(x, 0, Terrain.width-this.gap);
         const prevX = Math.floor(x / this.gap) * this.gap;
         const nextX = Math.ceil(x / this.gap) * this.gap;
 
@@ -44,15 +45,20 @@ export class World {
         const bias = (x % this.gap) / this.gap;
 
         const out: WorldData = { pollution: 0, co2: 0, };
-        for (const key in prevData) {
-            const k = key as keyof WorldData;
-            out[k] = lerp(prevData[k], nextData[k], bias);
+        try {
+            for (const key in prevData) {
+                const k = key as keyof WorldData;
+                out[k] = lerp(prevData[k], nextData[k], bias);
+            }
+        } catch (error) {
+            console.error(error, x, prevData, nextData);
         }
 
         return out;
     }
 
     static takeAt(x: number, data: Partial<WorldData>) {
+        x = clamp(x, 0, Terrain.width-this.gap);
         const prevX = Math.floor(x / this.gap) * this.gap;
         const nextX = Math.ceil(x / this.gap) * this.gap;
 
@@ -61,12 +67,16 @@ export class World {
 
         const nextRatio = (x % this.gap) / this.gap;
         const prevRatio = 1 - nextRatio;
-
-        for (const key in data) {
-            const k = key as keyof WorldData;
-            const ratio = prevData[k] / nextData[k]
-            prevData[k] -= data[k] * prevRatio * clamp(ratio, 0, 1);
-            nextData[k] -= data[k] * nextRatio * clamp(1 / ratio, 0, 1);
+        try {
+            for (const key in data) {
+                const k = key as keyof WorldData;
+                const d = clamp(data[k], 0, 1000); //Prevents NaN when dividing by zero, but I don't like this fix
+                const ratio = (prevData[k] / nextData[k]); //Prevents NaN when dividing by zero, but I don't like this fix
+                prevData[k] -= d * prevRatio * clamp(ratio, 0, 1);
+                nextData[k] -= d * nextRatio * clamp(1 / ratio, 0, 1);
+            }
+        } catch (error) {
+            console.error(error, x, data, prevData, nextData);
         }
     }
 

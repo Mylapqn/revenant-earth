@@ -1,12 +1,18 @@
 :root {
     --outline-color-inactive: #ffffff1a;
     --outline-color-active: #ffffff81;
-    --scale:calc(min(1px, .06vw));
+    --scale: calc(min(1px, .055vw));
     --borderWidth: .2em;
 }
 
 * {
     box-sizing: border-box;
+}
+
+img {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
 }
 
 @font-face {
@@ -30,39 +36,42 @@ canvas {
     scale: 100%;
     transition: scale 2s;
     position: absolute;
-    top:0
+    top: 0
 }
 
 .cinematicWrapper {
     width: 100vw;
-    height:100vh;
+    height: 100vh;
     max-height: 100vh;
     position: absolute;
     margin: auto;
-    top:0;
+    top: 0;
     bottom: 0;
     transition: max-height 2s;
     z-index: 1;
 }
 
-.cinematicWrapper.active{
+.cinematicWrapper.active {
     max-height: 42.8vw;
 }
 
-.cinematicWrapper::before, .cinematicWrapper::after{
+.cinematicWrapper::before,
+.cinematicWrapper::after {
     display: block;
     content: "";
     width: 100vw;
     background: rgba(0, 0, 0, 0);
-    backdrop-filter: blur(20em) contrast(.5)  saturate(3) brightness(.2);
+    backdrop-filter: blur(20em) contrast(.5) saturate(3) brightness(.2);
     height: 50vh;
     position: absolute;
 }
-.cinematicWrapper::before{
-    top:-50vh;
+
+.cinematicWrapper::before {
+    top: -50vh;
 }
-.cinematicWrapper::after{
-    bottom:-50vh;
+
+.cinematicWrapper::after {
+    bottom: -50vh;
 }
 
 .absolute {
@@ -71,8 +80,8 @@ canvas {
 
 .fade {
     position: absolute;
-    left:0;
-    top:0;
+    left: 0;
+    top: 0;
     width: 100vw;
     height: 100vh;
     background: black;

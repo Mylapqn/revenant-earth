@@ -1,3 +1,4 @@
+import { Assets } from "pixi.js";
 import { initGame, mouse } from "./game";
 import { BaseGuiElement, CustomGuiElement, DialogBox, GUI, GuiButton, GuiPanel, GuiSplash, PositionableGuiElement } from "./gui/gui";
 import { SoundManager } from "./sound";
@@ -29,8 +30,8 @@ class MenuBackground {
         mainMenuContainer.element.appendChild(this.element);
     }
     update() {
-        this.element.style.left = -(mouse.x - window.innerWidth / 2) * this.depth + "px";
-        this.element.style.top = -(mouse.y - window.innerHeight / 2) * this.depth + "px";
+        this.element.style.left = -(mouse.x - window.innerWidth / 2) * (this.depth - .1) + "px";
+        this.element.style.top = -(mouse.y - window.innerHeight / 2) * (this.depth - .1) + "px";
     }
     static list: MenuBackground[] = [];
 }

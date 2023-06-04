@@ -94,7 +94,7 @@ export class Branch extends Entity {
                     this.childLeaves.push(l);
                 }
             }
-            else {
+            else if (this.settings.main.leafAmount > 0) {
                 let l = new Leaf(this, this.seed, { position: new Vector(0, 0), angle: this.growAngle });
                 this.childLeaves.push(l);
                 l.update();
@@ -166,7 +166,7 @@ export class Branch extends Entity {
         for (let i = 0; i < this.points.length; i++) {
             const p = this.points[i];
             p.age++;
-            p.drawColor = this.leafColor.mix(this.barkColor, p.age * 2 / 1000 - .1).toPixi();
+            p.drawColor = this.leafColor.mix(this.barkColor, p.age * 2 / 1000 +this.settings.main.branchGreenStart).toPixi();
             if (p.age >= p.nextThickness && this.settings.main.growSpeed > 0) {
                 p.nextThickness *= 1.6;
                 p.thickness++;

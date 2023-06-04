@@ -3,6 +3,7 @@ import { clamp } from "../utils";
 import { Vector } from "../vector";
 import { DialogueNode, sleep } from "../dialogue";
 import { SoundEffect } from "../sound";
+import { removeListener } from "process";
 
 export class GUI {
     static init() {
@@ -32,14 +33,14 @@ export class GUI {
     }
     static container = document.getElementById("guiContainer");
     static sounds = {
-        hover: new SoundEffect("sound/fx/hover3.wav",.7),
-        click: new SoundEffect("sound/fx/click.wav",.8),
+        hover: new SoundEffect("sound/fx/hover3.wav", .7),
+        click: new SoundEffect("sound/fx/click.wav", .8),
         talk: new SoundEffect("sound/fx/talk.wav"),
-        appear: new SoundEffect("sound/fx/appear.wav",.6),
+        appear: new SoundEffect("sound/fx/appear.wav", .6),
         hide: new SoundEffect("sound/fx/hide.wav"),
         unhide: new SoundEffect("sound/fx/unhide.wav"),
-        discovery: new SoundEffect("sound/fx/ping.wav",.1),
-        tutorial: new SoundEffect("sound/fx/tutorial.wav",.2),
+        discovery: new SoundEffect("sound/fx/ping.wav", .1),
+        tutorial: new SoundEffect("sound/fx/tutorial.wav", .2),
     };
 }
 
@@ -49,9 +50,11 @@ interface GuiElementOptions {
     blankStyle?: boolean,
     fillContainer?: boolean
     flexDirection?: "row" | "column";
+    alignItems?: "center" | "start" | "end";
     fadeIn?: boolean
     flex?: boolean
     hidden?: boolean
+    width?: number
 }
 
 interface PositionableGuiElementOptions extends GuiElementOptions {
@@ -60,6 +63,7 @@ interface PositionableGuiElementOptions extends GuiElementOptions {
     centerY?: boolean,
     invertHorizontalPosition?: boolean,
     invertVerticalPosition?: boolean,
+    blockHover?: boolean
 }
 
 interface TutorialPromptOptions extends PositionableGuiElementOptions {
@@ -107,6 +111,8 @@ class GuiElement extends BaseGuiElement {
         if (options.flex === undefined || options.flex) {
             this.element.classList.add("flex");
         }
+        if (options.width) this.element.style.width = options.width + "em";
+        if (options.alignItems) this.element.style.alignItems = options.alignItems;
         this.element.style.flexDirection = options.flexDirection ?? "column";
         GUI.container.appendChild(this.element);
         if (!options.blankStyle)
@@ -150,16 +156,22 @@ class GuiElement extends BaseGuiElement {
             if (node.nodeType == node.ELEMENT_NODE) {
                 const element = node as HTMLElement;
                 if (element.tagName == "KBD") {
-                    document.addEventListener("keydown", (e) => {
-                        if (e.key.toLowerCase() == element.innerText.toLowerCase()) {
+                    let k = element.innerText.toLowerCase();
+                    if (k == "space") k = " ";
+                    let downListener = (e: KeyboardEvent) => {
+                        if (!document.body.contains(element)) document.removeEventListener("keydown", downListener);
+                        if (e.key.toLowerCase() == k) {
                             element.classList.add("pressed");
-                        }
-                    })
-                    document.addEventListener("keyup", (e) => {
-                        if (e.key.toLowerCase() == element.innerText.toLowerCase()) {
+                        };
+                    }
+                    let upListener = (e: KeyboardEvent) => {
+                        if (!document.body.contains(element)) document.removeEventListener("keyup", upListener);
+                        if (e.key.toLowerCase() == k) {
                             element.classList.remove("pressed");
                         }
-                    })
+                    };
+                    document.addEventListener("keydown", downListener);
+                    document.addEventListener("keyup", upListener);
                 }
             }
         }
@@ -170,21 +182,18 @@ class GuiElement extends BaseGuiElement {
     }
 
     async fadeOut() {
-        return new Promise<void>(resolve => {
-            this.element.classList.add("hidden");
-            setTimeout(() => {
-                resolve();
-                this.remove();
-            }, 1000);
-        })
+        this.element.classList.add("hidden");
+        await sleep(1000);
+        this.remove();
+        return;
     }
 
     async fadeIn() {
         this.element.classList.add("hidden");
-        setTimeout(() => {
-            this.element.classList.remove("hidden");
-        }, 10);
-        return await sleep(1000);
+        await sleep(50);
+        this.element.classList.remove("hidden");
+        await sleep(1000);
+        return;
     }
 
     static list: GuiElement[] = [];
@@ -203,7 +212,7 @@ export class PositionableGuiElement extends GuiElement {
             this.position = options.position;
             this.invertHorizontalPosition = options.invertHorizontalPosition;
             this.invertVerticalPosition = options.invertVerticalPosition;
-            this.addMouseListeners();
+            if (options.blockHover ?? true) this.addMouseListeners();
             this.element.classList.add("absolute");
             if (options.centerX) this.element.classList.add("centerX");
             else if (options.position) {
@@ -229,40 +238,38 @@ export class TutorialPrompt extends PositionableGuiElement {
     awaitDone: Promise<void>;
     constructor(options: TutorialPromptOptions) {
         let c = options.content;
-        options.content = ""
-        options.centerX = true;
+        options.content = "";
+        options.centerX = options.centerX ?? true;
         super(options);
         this.element.classList.add("tutorialPrompt");
+        this.fadeIn();
         options.parent = this;
         options.blankStyle = true;
         options.flex = false;
         options.content = c;
         new GuiPanel(options);
         GUI.sounds.tutorial.play();
-        this.awaitDone = new Promise((resolve, reject) => {
+        this.awaitDone = new Promise(async (resolve, reject) => {
             if (options.keys) {
-                document.addEventListener("keyup", (e) => {
+                let a = async (e: KeyboardEvent) => {
                     if (this.removed) return;
                     for (const k of options.keys) {
                         if (e.key.toLowerCase() == k.toLowerCase()) {
-                            this.fadeOut().then(
-                                resolve
-                            );
+                            document.removeEventListener("keyup", a);
+                            await this.fadeOut();
+                            resolve();
                             return;
                         }
                     }
-                });
+                };
+                document.addEventListener("keyup", a);
             }
             if (options.duration) {
-                setTimeout(() => {
-                    this.fadeOut().then(
-                        resolve
-                    );
-                }, options.duration * 1000);
+                await sleep(1000 * options.duration);
+                await this.fadeOut();
+                resolve();
             }
         })
-
-        this.fadeIn();
     }
 }
 
@@ -331,7 +338,6 @@ export class DialogChoices {
             choice.remove()
         }
         this.wrapper.remove();
-
     }
     async awaitSelection() {
         return new Promise<DialogueNode>((resolve, reject) => {
@@ -345,7 +351,7 @@ export class DialogChoices {
 export class GuiLabel extends PositionableGuiElement {
     worldPosition: Vector;
     moving = true;
-    lastOpacity = 0;
+    lastOpacity = 1;
     constructor(position: Vector, content = "none") {
         super({ position: new Vector(0, 0), content: content });
         this.worldPosition = position.result();
@@ -353,23 +359,23 @@ export class GuiLabel extends PositionableGuiElement {
     }
     update(): void {
         this.position = worldToScreen(this.worldPosition.result()).add(new Vector(0, 100));
-        const op = clamp((.25 - Math.abs(this.position.x / window.innerWidth - .5)) * 8);
-        if (this.lastOpacity != op) {
+        let op = clamp((.25 - Math.abs(this.position.x / window.innerWidth - .5)) * 8);
+        if (this.lastOpacity != op || op > 0) {
             if (op <= 0) this.element.style.display = "none";
             else {
                 this.element.style.opacity = op + "";
                 this.element.style.display = "flex";
+                super.update();
             }
             this.lastOpacity = op;
         }
-        super.update();
     }
 }
 
 export class GuiTooltip extends PositionableGuiElement {
     moving = true;
     constructor(content = "none") {
-        super({ position: new Vector(0, 0), content: content });
+        super({ position: new Vector(0, 0), content: content, blockHover: false });
         this.element.classList.add("tooltip");
     }
     update(): void {
@@ -416,13 +422,13 @@ export class GuiButton extends PositionableGuiElement {
 
 export class GuiSplash {
     element: HTMLElement;
-    constructor(content = "none", newDiscovery=true, duration = 5) {
+    constructor(content = "none", newDiscovery = true, duration = 5) {
         this.element = document.createElement("h1");
         GUI.container.appendChild(this.element);
         this.element.classList.add("splash");
         this.element.innerText = content;
         this.element.style.animationDuration = duration + "s";
-        if(newDiscovery){
+        if (newDiscovery) {
             GUI.sounds.discovery.play();
             this.element.classList.add("discovery");
         }

@@ -8,7 +8,7 @@ import { Container, Rectangle, SCALE_MODES, Sprite, Texture, Ticker } from "pixi
 import { Vector } from "./vector";
 import { Player } from "./entities/player/player";
 import { Backdrop, BackdropProp, ParallaxDrawer } from "./parallax";
-import { coniferousSettings, defaultTreeSettings } from "./entities/plants/tree/treeSettings";
+import { bushSettings, coniferousSettings, deadTreeSettings, defaultTreeSettings, poplarSettings, randomTreeSettings } from "./entities/plants/tree/treeSettings";
 import { HighlightFilter } from "./shaders/outline/highlightFilter";
 import { Rock } from "./entities/passive/rock";
 import { lerp, random, randomBool, randomInt } from "./utils";
@@ -39,6 +39,7 @@ import { ParticleSystem } from "./particles/particle";
 import { ParticleFilter } from "./shaders/particle/particleFilter";
 import { Progress } from "./progress";
 import { Turbine } from "./entities/buildable/turbine";
+import { Seed } from "./entities/plants/tree/seed";
 let seed = parseInt(window.location.toString().split('?')[1]);
 if (!seed) seed = Math.floor(Math.random() * 1000);
 Math.random = mulberry32(seed);
@@ -138,7 +139,12 @@ function terrainUpdate() {
     tps++;
 }
 
-export function initGame(skipIntro = false) {
+export async function initGame(skipIntro = false) {
+    PIXI.Assets.addBundle("images", {
+        landing: "entity/landing.png",
+        seed: "seed.png",
+    })
+    await PIXI.Assets.loadBundle(["images"]);
     console.log("skipIntro", skipIntro);
 
     Dialogue.init();
@@ -212,7 +218,7 @@ export function initGame(skipIntro = false) {
 
     const generator = new TerrainGenerator();
     Terrain.generator = generator;
-    let nextRock = randomInt(1, 10);
+
     const flatland: BiomeData = { stoneTop: 0.5, stoneBottom: 0.5, bottom: 360, top: 480, moisture: 2, minerals: 3, dirtDepth: 50, mineralDepthPenalty: -2, curveModifier: 0.5, curveLimiter: 0.1, biomeId: 1, name: "Urban Ruins", shortName: "Ruins", music: SoundManager.music.ruins, colorGrade: colorGradeFilter.styles.blank };
     const mountains: BiomeData = { stoneTop: 1, stoneBottom: 2, bottom: 550, top: 660, moisture: 2, minerals: 1, dirtDepth: 10, mineralDepthPenalty: 0, curveModifier: 1.5, curveLimiter: 1, biomeId: 2, name: "Melted Mountains", shortName: "Mountains", music: SoundManager.music.mountains, colorGrade: colorGradeFilter.styles.bleak };
     const swamp: BiomeData = { stoneTop: 2, stoneBottom: 0.5, bottom: 360, top: 400, moisture: 3, minerals: 0, dirtDepth: 80, mineralDepthPenalty: 0, curveModifier: 0.5, curveLimiter: 0.1, biomeId: 3, name: "Swampy Lowlands", shortName: "Lowlands", music: SoundManager.music.swamp, colorGrade: colorGradeFilter.styles.blank };
@@ -229,18 +235,25 @@ export function initGame(skipIntro = false) {
 
     generator.addToQueue(flatland, Terrain.width);
 
-
-    function rockSpawner(x: number, ty: number, biomeData: BiomeData) {
+    let nextRock = randomInt(1, 10);
+    let nextTree = randomInt(1, 10);
+    function objectSpawner(x: number, ty: number, biomeData: BiomeData) {
         if (x == nextRock) {
             let size = random(3, 8);
             nextRock += randomInt(1, 10) * Math.round(size);
             if (biomeData.biomeId == 2)
                 new Rock(new Vector(x, ty), null, size, random(.3, 1.2), random(-2, 2));
         }
+        if (x >= nextTree) {
+            nextTree = x + randomInt(40, 400);
+            if (biomeData.biomeId == 3) {
+                new Seed(new Vector(x, ty), null, null, deadTreeSettings);
+            }
+        }
     }
 
 
-    generator.generate(undefined, rockSpawner);
+    generator.generate(undefined, objectSpawner);
     generator.generate({ skipPlacement: true, padding: 250, scale: 1 / backdrop0.depth }, (x, ty) => backdrop0.setHeight(x, ty));
     generator.generate({ skipPlacement: true, padding: 500, scale: 1 / backdrop1.depth }, (x, ty) => backdrop1.setHeight(x, ty));
     generator.generate({ skipPlacement: true, padding: 1000, scale: 1 / backdrop2.depth }, (x, ty) => backdrop2.setHeight(x, ty));
@@ -442,7 +455,7 @@ export function initGame(skipIntro = false) {
 
 
 
-        if (mouse.pressed == 1 && preferences.selectedTerrainType != 0) {
+        if (mouse.pressed == 1 && !Buildable.currentBuildable) {
             const type = preferences.selectedTerrainType;
             const vol = preferences.penSize * preferences.penSize * 4;
             Terrain.addSound(type, vol);
@@ -453,7 +466,7 @@ export function initGame(skipIntro = false) {
                     ));
                 }
             }
-        } else if (mouse.pressed == 2) {
+        } else if (mouse.pressed == 2 && !Buildable.currentBuildable) {
             for (let x = 0; x < preferences.penSize; x++) {
                 for (let y = 0; y < preferences.penSize; y++) {
                     const coordX = Math.floor(wx + x - preferences.penSize / 2)
@@ -482,7 +495,7 @@ export function initGame(skipIntro = false) {
             if (preferences.penSize < 1) preferences.penSize = 1;
         }
 
-        if (key["e"]) {
+        /* if (key["e"]) {
             key["e"] = false;
             preferences.debugMode++;
             preferences.debugMode %= Object.keys(DebugMode).length / 2;
@@ -500,12 +513,11 @@ export function initGame(skipIntro = false) {
             key["r"] = false;
             preferences.showDebug = !preferences.showDebug;
             debugText.visible = preferences.showDebug;
-        }
+        } */
         seedCooldown -= dt;
         if (!Buildable.currentBuildable) {
             if (key["f"] && seedCooldown <= 0) {
-                seedCooldown = .2;
-                new Sapling(player.position.result(), randomBool() ? coniferousSettings : defaultTreeSettings);
+                placeSeed();
             }
             if (key["g"] && seedCooldown <= 0) {
                 seedCooldown = .2;
@@ -623,10 +635,11 @@ export function initGame(skipIntro = false) {
             { content: "Ne", callback: () => { new DialogBox("Nemám hlad.", 2) } }
         ]);
     }, 1000); */
-    let devBar = new PositionableGuiElement({ position: new Vector(50, 50), hidden: true })
+    let devBar = new PositionableGuiElement({ position: new Vector(25, 25), hidden: true })
     devBar.addChild(new CustomGuiElement("span", "Development options"));
     let devPanel = new GuiPanel({ blankStyle: true, parent: devBar, flexDirection: "row" });
     new GuiButton({ content: "Talk", callback: () => { introDialogue.execute(); }, parent: devPanel })
+    new GuiButton({ content: "Tutorial", callback: () => { moveTutorial() }, parent: devPanel })
     new GuiButton({ flexDirection: "row", image: "ui/icon-day.png", content: "Day", callback: () => { Atmosphere.settings.sunAngle = -2 }, parent: devPanel })
     new GuiButton({ flexDirection: "row", image: "ui/icon-night.png", content: "Night", callback: () => { Atmosphere.settings.sunAngle = 1; }, parent: devPanel })
 
@@ -634,7 +647,8 @@ export function initGame(skipIntro = false) {
     function placeSeed() {
         if (!Buildable.currentBuildable && seedCooldown <= 0) {
             seedCooldown = .2;
-            new Sapling(player.position.result(), randomBool() ? coniferousSettings : defaultTreeSettings);
+            new Sapling(player.position.result(), randomTreeSettings());
+            //new Sapling(player.position.result(), deadTreeSettings);
         }
     }
 
@@ -661,21 +675,31 @@ export function initGame(skipIntro = false) {
 
 
 
-    const hotbar = new PositionableGuiElement({ position: new Vector(50, 50), invertHorizontalPosition: true, hidden: true })
-    new GuiButton({ content: "Seed", callback: () => { placeSeed() }, parent: hotbar })
-    new GuiButton({ content: "Pole", callback: () => { placePole() }, parent: hotbar })
-    new GuiButton({ content: "Turbine", callback: () => { placeTurbine() }, parent: hotbar })
-    new GuiButton({ content: "Scanner", callback: () => { placeScanner() }, parent: hotbar })
+    const hotbar = new PositionableGuiElement({ alignItems: "end", blankStyle: true, position: new Vector(25, 25), invertHorizontalPosition: true, hidden: true })
+    let hotbarPanel = new GuiPanel({ content: "Build menu", parent: hotbar, flexDirection: "column" });
+    let hotbarSubPanel = new GuiPanel({ blankStyle: true, parent: hotbarPanel, flexDirection: "row" });
+    new GuiButton({ width: 5, content: "Seed", callback: () => { placeSeed() }, parent: hotbarSubPanel })
+    new GuiButton({ width: 5, content: "Pole", callback: () => { placePole() }, parent: hotbarSubPanel })
+    new GuiButton({ width: 5, content: "Turbine", callback: () => { placeTurbine() }, parent: hotbarSubPanel })
+    new GuiButton({ width: 5, content: "Scanner", callback: () => { placeScanner() }, parent: hotbarSubPanel })
+
+    hotbarPanel = new GuiPanel({ content: "Terrain editing", parent: hotbar, flexDirection: "column" });
+    hotbarSubPanel = new GuiPanel({ blankStyle: true, parent: hotbarPanel, flexDirection: "row" });
+    new GuiButton({ width: 5, image: "ui/dirt.png", content: "Dirt", callback: () => { preferences.selectedTerrainType = terrainType.dirt00 }, parent: hotbarSubPanel })
+    new GuiButton({ width: 5, image: "ui/sand.png", content: "Sand", callback: () => { preferences.selectedTerrainType = terrainType.sand }, parent: hotbarSubPanel })
+    new GuiButton({ width: 5, image: "ui/water.png", content: "Water", callback: () => { preferences.selectedTerrainType = terrainType.water1 }, parent: hotbarSubPanel })
+    new GuiButton({ width: 5, image: "ui/grass.png", content: "Grass", callback: () => { preferences.selectedTerrainType = terrainType.grass0 }, parent: hotbarSubPanel })
+    new GuiButton({ width: 5, image: "ui/delete.png", content: "Remove", callback: () => { preferences.selectedTerrainType = terrainType.void }, parent: hotbarSubPanel })
 
 
-    scannerData = new PositionableGuiElement({ position: new Vector(50, 50), invertHorizontalPosition: true, invertVerticalPosition: true, hidden: true })
+    scannerData = new PositionableGuiElement({ position: new Vector(25, 25), invertHorizontalPosition: true, invertVerticalPosition: true, hidden: true })
 
     async function moveTutorial() {
         Progress.controlsUnlocked = true;
         await new TutorialPrompt({ content: "Press [A] and [D] to move around.", keys: ["A", "D"] }).awaitDone;
         await new TutorialPrompt({ content: "Hold [Shift] while moving to run faster.", keys: ["shift"] }).awaitDone;
         await new TutorialPrompt({ content: "Press [W] to jump.", keys: ["W"] }).awaitDone;
-        Progress.controlsUnlocked = false;
+        if (!skipIntro) Progress.controlsUnlocked = false;
     }
 
     async function activateTutorial() {
@@ -685,7 +709,9 @@ export function initGame(skipIntro = false) {
         await devBar.fadeIn();
         await hotbar.fadeIn();
         await scannerData.fadeIn();
-        await new TutorialPrompt({ content: "You can move around and plant seeds.", duration: 10 }).awaitDone;
+        await new TutorialPrompt({ content: "The *build menu* allows you to plant seeds or construct buildings.<br>Press [space] to dismiss.", keys: [" "], centerX: false, position: new Vector(300, 50), invertHorizontalPosition: true }).awaitDone;
+        await new TutorialPrompt({ content: "The *terrain editing toolbar* allows you to edit the terrain. Select a terrain type, then place it by clicking or holding the [Left mouse button] in the game world.<br>You can delete terrain with the [Right mouse button].<br>Press [space] to dismiss.", keys: [" "], centerX: false, position: new Vector(300, 50), invertHorizontalPosition: true }).awaitDone;
+        await new TutorialPrompt({ content: "Explore the game world and try all the different options!", duration: 10 }).awaitDone;
     }
 
     const key: Record<string, boolean> = {};
@@ -705,6 +731,7 @@ export function initGame(skipIntro = false) {
         }, 8000);
     }
     else {
+        moveTutorial();
         devBar.fadeIn();
         hotbar.fadeIn();
         scannerData.fadeIn();

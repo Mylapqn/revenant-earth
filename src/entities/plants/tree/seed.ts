@@ -11,7 +11,6 @@ import { OutlineFilter } from "@pixi/filter-outline";
 import { Camera } from "../../../camera";
 import { World } from "../../../world";
 
-
 export class Seed extends Entity {
     age = 0;
     energy = 100;
@@ -22,15 +21,16 @@ export class Seed extends Entity {
     label: GuiLabel;
     constructor(position: Vector, parent?: Entity, angle = 0, settings = defaultTreeSettings) {
 
-        const graph = Sprite.from("seed.png")
+        const graph = Sprite.from("seed")
         //console.log(graph);
         graph.anchor.set(0.5);
         super(graph, position, parent, angle);
-        this.hoverable = true;
         this.settings = settings;
-        this.label = new GuiLabel(position.result().add(new Vector(0, 20)), settings.name);
-        new GuiButton({ content: "remobe 💀", callback: () => { this.remove(); }, parent: this.label });
+        this.name = this.settings.name.charAt(0).toUpperCase()+this.settings.name.slice(1);
+        //this.label = new GuiLabel(position.result().add(new Vector(0, 0)), this.name);
+        //new GuiButton({ content: "remobe 💀", callback: () => { this.remove(); }, parent: this.label });
         this.culling = true;
+        this.hoverable = true;
     }
 
     update(dt: number) {
@@ -49,11 +49,11 @@ export class Seed extends Entity {
             this.energy = 0;
         }
 
-        if (true) {
+        if (this.settings.main.pollutionClean > 0) {
             let data = World.getDataFrom(this.position.x);
 
-            if (data.pollution > 0) data.pollution = 0.01;
-            if (data.co2 > 200) data.co2 = 0.1;
+            if (data.pollution > 0) data.pollution = 0.01*this.settings.main.pollutionClean;
+            if (data.co2 > 200) data.co2 = 0.1*this.settings.main.pollutionClean;
 
             World.takeAt(this.position.x, data);
         }
@@ -67,7 +67,11 @@ export class Seed extends Entity {
     }
     remove(): void {
         this.branch.remove();
-        this.label.remove();
+        this.label?.remove();
         super.remove();
+    }
+    set hoverable(val: boolean) {
+        this.graphics.hitArea = new Rectangle(-20, -80, 40, 100);
+        super.hoverable = val;
     }
 }

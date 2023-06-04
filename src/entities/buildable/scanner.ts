@@ -36,7 +36,7 @@ export class Scanner extends Buildable {
             if (this.timer <= 0) {
                 this.timer = 1;
                 let data = World.getDataFrom(this.position.x);
-                this.label.content = this.name + "\n" + data.co2.toFixed(0) + "ppm" + "\n" + data.pollution.toFixed(1) + "%"
+                this.label.content = "*" + this.name + "*<br>" + data.co2.toFixed(0) + "ppm" + "\n" + data.pollution.toFixed(1) + "%"
             }
 
             if (this.timer % 0.7 < 0.2) {

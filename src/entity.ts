@@ -4,6 +4,8 @@ import { Terrain } from "./terrain";
 import { Vector } from "./vector";
 import { OutlineFilter } from "@pixi/filter-outline";
 import { GuiTooltip } from "./gui/gui";
+import { HslAdjustmentFilter } from "@pixi/filter-hsl-adjustment";
+import { mouse } from "./game";
 
 export class Entity {
     static graphic: Container;
@@ -18,6 +20,7 @@ export class Entity {
     culling = false;
     cullExtend = 100;
     removed = false;
+    name = "Entity";
     constructor(graphics: Container, position: Vector, parent?: Entity | Container, angle = 0) {
         this.graphics = graphics;
         this.position = position;
@@ -88,12 +91,12 @@ export class Entity {
     set hoverable(val: boolean) {
         this.graphics.interactive = val;
         if (val) {
-            this.graphics.filterArea = new Rectangle(0, 0, Camera.width, Camera.height);
+            this.graphics.filterArea = Camera.rect;
             this.graphics.on("pointerenter", () => {
-                if (!this.hovered) {
+                if (!this.hovered && mouse.gui == 0) {
                     this.hovered = true;
-                    this.graphics.filters = [new OutlineFilter(1, 0xFFFFFF, .1, .3)];
-                    this.tooltip = new GuiTooltip("entity");
+                    this.graphics.filters = [new HslAdjustmentFilter({ lightness: .3 }), new OutlineFilter(1, 0xFFFFFF, .1, 1)];
+                    this.tooltip = new GuiTooltip(this.name);
                 }
             })
             this.graphics.on("pointerleave", () => {

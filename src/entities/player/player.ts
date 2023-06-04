@@ -47,7 +47,10 @@ export class Player extends Entity {
     screenCenterNorm = new Vector();
     screenDimensionsNorm = new Vector();
     light = new Light(this, new Vector(0, 25), Math.PI + .2, 1.2, new Color(150, 255, 255), 300, 3);
-    stepSound: SoundEffect[] = [];
+    stepSound = {
+        dirt: [] as SoundEffect[],
+        water: [] as SoundEffect[],
+    }
 
 
 
@@ -59,7 +62,10 @@ export class Player extends Entity {
         graph.anchor.set(.5, 1);
         super(graph, position, null, 0);
         for (let i = 1; i <= 6; i++) {
-            this.stepSound.push(new SoundEffect(`sound/fx/steps/dirt${i}.ogg`, .2));
+            this.stepSound.dirt.push(new SoundEffect(`sound/fx/steps/dirt${i}.ogg`, .27));
+        }
+        for (let i = 1; i <= 5; i++) {
+            this.stepSound.water.push(new SoundEffect(`sound/fx/steps/water${i}.ogg`, .08));
         }
     }
     update(dt: number): void {
@@ -98,7 +104,7 @@ export class Player extends Entity {
             }
             if (highestDensity == 1) {
                 if (this.step == 0) {
-                    this.stepSound[randomInt(0, this.stepSound.length - 1)].play();
+                    this.stepSound.dirt[randomInt(0, this.stepSound.dirt.length - 1)].play();
                     this.step += .001;
                 }
                 if ((this.velocity.y) < -250) {
@@ -113,6 +119,15 @@ export class Player extends Entity {
                 this.position.y -= j;
                 this.grounded = true;
                 break;
+            }
+        }
+        if (highestDensity > 0 && highestDensity < 1) {
+            if ((this.velocity.y) < -250) {
+                Terrain.addSound(terrainType.water1, Math.abs(this.velocity.y) * 3);
+            }
+            if (this.step == 0) {
+                this.stepSound.water[randomInt(0, this.stepSound.water.length - 1)].play();
+                this.step += .001;
             }
         }
         if (!this.grounded) {
@@ -162,9 +177,10 @@ export class Player extends Entity {
         //let diff = pos.sub(this.camTarget).add(new Vector());
         this.camTarget.add(diff.mult(5 * dt));
         this.step += Math.abs(this.velocity.x) * dt;
-        if (this.step > 10 && this.grounded) {
+        if (this.step > 10) {
             this.step = 0;
-            new Cloud(this.position.result(), Math.abs(this.velocity.x), new Vector(this.velocity.x * random(-.5, .1), -5));
+            if (this.grounded)
+                new Cloud(this.position.result(), Math.abs(this.velocity.x), new Vector(this.velocity.x * random(-.5, .1), -5));
         }
 
 

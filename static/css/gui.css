@@ -30,7 +30,7 @@
 .menubg {
     pointer-events: none;
     /* transform: translate(-50%,-50%); */
-    scale: 120%;
+    scale: 110%;
     width: 100vw;
     height: 100vh;
     position: absolute;
@@ -176,13 +176,16 @@ kbd {
     border-radius: .3em;
     font-family: inherit;
     /* border-bottom: var(--borderWidth) solid rgb(216, 216, 216); */
-    transition: outline-width .13s ease-in-out;
+    transition-property: outline-width, outline-offset;
+    transition-timing-function: ease-in-out;
+    transition-duration: .1s;
     outline: 0 solid var(--outline-color-active);
 }
 
 kbd.pressed {
     outline-width: var(--borderWidth);
     border-bottom-width: 0;
+    outline-offset: var(--borderWidth);
     /* translate: 0px var(--borderWidth); */
 }
 
@@ -193,10 +196,12 @@ kbd.pressed {
 
 .button {
     /* display: block; */
+    overflow: hidden;
     cursor: pointer;
     flex-grow: 0;
     width: fit-content;
     outline: var(--borderWidth) solid var(--outline-color-inactive);
+    will-change: scale;
 }
 
 .button.disabled {
