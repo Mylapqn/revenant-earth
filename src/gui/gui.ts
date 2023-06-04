@@ -24,8 +24,10 @@ export class GUI {
                 element.addEventListener("mouseleave", (e) => { mouse.gui = 0; });
             }
         }
+        GuiTooltip.container.moving = true;
     }
     static update(dt: number) {
+        GuiTooltip.update();
         for (const el of GuiElement.list) {
             if (el.moving)
                 el.update();
@@ -55,6 +57,7 @@ interface GuiElementOptions {
     flex?: boolean
     hidden?: boolean
     width?: number
+    classes?: string[]
 }
 
 interface PositionableGuiElementOptions extends GuiElementOptions {
@@ -110,6 +113,11 @@ class GuiElement extends BaseGuiElement {
         super("div");
         if (options.flex === undefined || options.flex) {
             this.element.classList.add("flex");
+        }
+        if (options.classes) {
+            for (const c of options.classes) {
+                this.element.classList.add(c);
+            }
         }
         if (options.width) this.element.style.width = options.width + "em";
         if (options.alignItems) this.element.style.alignItems = options.alignItems;
@@ -181,7 +189,7 @@ class GuiElement extends BaseGuiElement {
         return this._content;
     }
 
-    public set text(content:string) {
+    public set text(content: string) {
         this._content = content;
         this.element.innerText = content;
     }
@@ -377,15 +385,14 @@ export class GuiLabel extends PositionableGuiElement {
     }
 }
 
-export class GuiTooltip extends PositionableGuiElement {
-    moving = true;
+export class GuiTooltip extends GuiElement {
     constructor(content = "none") {
-        super({ position: new Vector(0, 0), content: content, blockHover: false });
+        super({ content: content, parent: GuiTooltip.container });
         this.element.classList.add("tooltip");
     }
-    update(): void {
-        this.position = new Vector(mouse.x + 10, mouse.y + 10);
-        super.update();
+    static container = new PositionableGuiElement({ position: new Vector(0, 0), blockHover: false, blankStyle: true, alignItems: "start",classes:["tooltipContainer"]});
+    static update() {
+        this.container.position = new Vector(mouse.x + 10, mouse.y + 10);
     }
 }
 

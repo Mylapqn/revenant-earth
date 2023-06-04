@@ -137,6 +137,10 @@
     white-space: nowrap;
 }
 
+.tooltipContainer {
+    gap: 5px;
+}
+
 .label {
     z-index: 0;
     right: unset;

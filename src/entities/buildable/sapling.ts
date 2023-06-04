@@ -18,12 +18,6 @@ export class Sapling extends Buildable {
         super(graph, position, placeInstantly);
         this.settings = structuredClone(settings);
     }
-    update(dt: number): void {
-        super.update(dt);
-    }
-    checkValidPlace(adjust = 0): boolean {
-        return super.checkValidPlace(adjust);
-    }
     place(): void {
         new Seed(this.position, undefined, 0, this.settings);
         super.place();

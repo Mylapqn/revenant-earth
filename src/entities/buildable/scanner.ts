@@ -4,7 +4,7 @@ import { Camera } from "../../camera";
 import { Entity } from "../../entity";
 import { Terrain, terrainType } from "../../terrain";
 import { Vector } from "../../vector";
-import { Buildable } from "./buildable";
+import { BuildStatus, Buildable } from "./buildable";
 import { Cable } from "../passive/cable";
 import { Seed } from "../plants/tree/seed";
 import { TreeSettings, defaultTreeSettings } from "../plants/tree/treeSettings";
@@ -49,7 +49,7 @@ export class Scanner extends Buildable {
 
         super.update(dt);
     }
-    checkValidPlace(adjust = 0): boolean {
+    checkValidPlace(adjust = 0): BuildStatus {
         return super.checkValidPlace(adjust);
     }
     place(): void {

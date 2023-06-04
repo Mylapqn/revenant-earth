@@ -6,14 +6,17 @@ import { Terrain, terrainType } from "../../terrain";
 import { Camera } from "../../camera";
 import { GuiTooltip } from "../../gui/gui";
 
+export interface BuildStatus {
+    valid: boolean, message: string
+}
+
 export class Buildable extends Entity {
     static graphic: Container;
     static placeCooldown = 0;
     static currentBuildable: Buildable;
     placing = true;
-    validPlace = false;
     graphics: Sprite;
-    buildStatus = "Cannot place";
+    buildStatus: BuildStatus = { valid: false, message: "Cannot place" };
     constructor(graphics: Sprite, position = player.position.result(), placeInstantly = false) {
         const graph = graphics;
         graph.anchor.set(0.5, 1);
@@ -32,9 +35,9 @@ export class Buildable extends Entity {
         if (this.placing) {
             this.position = screenToWorld(mouse);
 
-            this.validPlace = this.checkValidPlace();
-            this.tooltip.text = this.buildStatus;
-            if (this.validPlace) {
+            this.buildStatus = this.checkValidPlace();
+            this.tooltip.text = (this.buildStatus.valid ? "" : "Cannot place: ") + this.buildStatus.message;
+            if (this.buildStatus.valid) {
                 this.graphics.tint = 0x00FF00;
                 if (mouse.pressed == 1) {
                     mouse.pressed = 0;
@@ -71,15 +74,15 @@ export class Buildable extends Entity {
     }
 
     checkOffset = 0;
-    checkValidPlace(adjust = 0): boolean {
+    checkValidPlace(adjust = 0): BuildStatus {
         //console.log(adjust);
         if (adjust == 0) this.checkOffset = 0;
         if (Buildable.placeCooldown != 0 || adjust > 20) {
-            this.buildStatus = "Can't place: ";
-            if(this.checkOffset >= 20) this.buildStatus += "no free space";
-            else if(this.checkOffset <= -20) this.buildStatus += "no ground";
-            else this.buildStatus += "uneven terrain";
-            return false;
+            let buildStatus: string;
+            if (this.checkOffset >= 20) buildStatus = "no free space";
+            else if (this.checkOffset <= -20) buildStatus = "no ground";
+            else buildStatus = "uneven terrain";
+            return { valid: false, message: buildStatus };
         }
         let grounded = 0;
         for (let x = 0; x < this.graphics.width; x++) {
@@ -97,8 +100,7 @@ export class Buildable extends Entity {
         }
         if (grounded > this.graphics.width) {
             this.position.y += this.checkOffset;
-            this.buildStatus = "Ready to place";
-            return true
+            return { valid: true, message: "Ready to place" }
         }
         this.checkOffset--;
         return this.checkValidPlace(adjust + 1);
