@@ -19,6 +19,9 @@ export class Stamps {
             this.loadTexture("bigbuilding", "stamp/bigbuilding.png"),
             this.loadTexture("landing", "stamp/landing.png"),
             this.loadTexture("foundationSmall", "stamp/foundationSmall.png"),
+            this.loadTexture("chimney", "stamp/chimney.png"),
+            this.loadTexture("pipeOut", "stamp/pipeOut.png"),
+            this.loadTexture("factory", "stamp/factory.png"),
 
         ]);
     }

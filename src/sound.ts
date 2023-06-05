@@ -65,7 +65,7 @@ export class SoundEffect extends Sound {
 
 export class SoundManager {
     static volume = {
-        music: .0,
+        music: .8,
         fx: 1
     }
     static update(dt: number) {
@@ -79,7 +79,8 @@ export class SoundManager {
         mountains: new Music("sound/music/melted_mountains.ogg"),
         ruins: new Music("sound/music/urban_ruins.ogg"),
         wasteland: new Music("sound/music/industrial_wasteland.ogg"),
-        swamp: new Music("sound/music/industrial_wasteland.ogg"),
+        forest: new Music("sound/music/dead_forest.ogg"),
+        swamp: new Music("sound/music/dead_forest.ogg"),
         menu: new Music("sound/music/menu.ogg"),
     }
 }

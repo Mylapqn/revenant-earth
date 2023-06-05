@@ -88,6 +88,7 @@ canvas {
     z-index: 20;
     transition: opacity 2s;
     opacity: 0;
+    cursor: none;
 }
 
 .centerX {

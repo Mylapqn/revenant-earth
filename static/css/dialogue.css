@@ -187,9 +187,11 @@
     from {
         outline-offset: 0px;
         outline-color: var(--outline-color-active);
+        background-color: #21212173;
     }
-
+    
     to {
+        background-color: #00000073;
         outline-offset: var(--borderWidth);
         outline-color: var(--outline-color-inactive);
     }

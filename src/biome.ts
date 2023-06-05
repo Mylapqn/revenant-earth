@@ -72,7 +72,8 @@ export class TerrainGenerator {
             if (ty > currentState.top) trend -= currentState.curveLimiter;
             if (ty < currentState.bottom) trend += currentState.curveLimiter;
             lastY = ty;
-            ty += trend;
+            let ct = clamp(Math.abs(trend),currentState.slopeMin,currentState.slopeMax)*Math.sign(trend);
+            ty += ct
             if (!settings.skipPlacement) {
                 this.heights[x] = ty;
                 for (let y = 0; y < ty; y++) {
@@ -118,6 +119,8 @@ export type BiomeData = {
     mineralDepthPenalty: number;
     curveModifier: number;
     curveLimiter: number;
+    slopeMax?:number;
+    slopeMin?:number;
     bottom: number;
     top: number;
     name: string;

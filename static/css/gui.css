@@ -241,10 +241,21 @@ kbd.pressed {
     padding: 2em;
     top: 15vh;
     outline: var(--borderWidth) solid white;
-    animation: pulse .5s cubic-bezier(0.41, 0, 0.14, 1) infinite alternate;
+    opacity: 0;
+    outline-color: transparent;
     text-align: center;
     max-width: 30vw;
     line-height: 1.5em;
+}
+
+.tutorialPrompt:last-of-type{
+    outline-color: white;
+    opacity: 1;
+    animation: pulse .5s cubic-bezier(0.41, 0, 0.14, 1) infinite alternate;
+}
+
+.tutorialPrompt:last-of-type.hidden{
+    opacity: 0;
 }
 
 .tutorialPrompt br {

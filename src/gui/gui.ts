@@ -249,6 +249,7 @@ export class PositionableGuiElement extends GuiElement {
 
 export class TutorialPrompt extends PositionableGuiElement {
     awaitDone: Promise<void>;
+    panel: GuiPanel;
     constructor(options: TutorialPromptOptions) {
         let c = options.content;
         options.content = "";
@@ -260,18 +261,21 @@ export class TutorialPrompt extends PositionableGuiElement {
         options.blankStyle = true;
         options.flex = false;
         options.content = c;
-        new GuiPanel(options);
+        this.panel = new GuiPanel(options);
         GUI.sounds.tutorial.play();
+        TutorialPrompt.list.push(this);
         this.awaitDone = new Promise(async (resolve, reject) => {
             if (options.keys) {
                 let a = async (e: KeyboardEvent) => {
                     if (this.removed) return;
-                    for (const k of options.keys) {
-                        if (e.key.toLowerCase() == k.toLowerCase()) {
-                            document.removeEventListener("keyup", a);
-                            await this.fadeOut();
-                            resolve();
-                            return;
+                    if (TutorialPrompt.list[TutorialPrompt.list.length - 1] == this) {
+                        for (const k of options.keys) {
+                            if (e.key.toLowerCase() == k.toLowerCase()) {
+                                document.removeEventListener("keyup", a);
+                                await this.fadeOut();
+                                resolve();
+                                return;
+                            }
                         }
                     }
                 };
@@ -284,6 +288,11 @@ export class TutorialPrompt extends PositionableGuiElement {
             }
         })
     }
+    remove(): void {
+        TutorialPrompt.list.pop();
+        super.remove();
+    }
+    static list: TutorialPrompt[] = [];
 }
 
 export class GuiPanel extends GuiElement {
@@ -390,7 +399,7 @@ export class GuiTooltip extends GuiElement {
         super({ content: content, parent: GuiTooltip.container });
         this.element.classList.add("tooltip");
     }
-    static container = new PositionableGuiElement({ position: new Vector(0, 0), blockHover: false, blankStyle: true, alignItems: "start",classes:["tooltipContainer"]});
+    static container = new PositionableGuiElement({ position: new Vector(0, 0), blockHover: false, blankStyle: true, alignItems: "start", classes: ["tooltipContainer"] });
     static update() {
         this.container.position = new Vector(mouse.x + 10, mouse.y + 10);
     }

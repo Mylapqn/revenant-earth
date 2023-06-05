@@ -30,7 +30,7 @@ import { Drone } from "./entities/enemy/drone/drone";
 import { DebugDraw } from "./debugDraw";
 import { World } from "./world";
 import { Lightmap, Shadowmap } from "./shaders/lighting/light";
-import { Dialogue, NodeStack, TopNode } from "./dialogue";
+import { Dialogue, NodeStack, TopNode, sleep } from "./dialogue";
 import { CrashPod } from "./entities/passive/landingPod";
 import { Scanner } from "./entities/buildable/scanner";
 import { colorGradeFilter, colorGradeOptions } from "./shaders/colorGrade/colorGrade";
@@ -219,21 +219,22 @@ export async function initGame(skipIntro = false) {
     const generator = new TerrainGenerator();
     Terrain.generator = generator;
 
-    const flatland: BiomeData = { stoneTop: 0.5, stoneBottom: 0.5, bottom: 360, top: 480, moisture: 2, minerals: 3, dirtDepth: 50, mineralDepthPenalty: -2, curveModifier: 0.5, curveLimiter: 0.1, biomeId: 1, name: "Urban Ruins", shortName: "Ruins", music: SoundManager.music.ruins, colorGrade: colorGradeFilter.styles.blank };
-    const mountains: BiomeData = { stoneTop: 1, stoneBottom: 2, bottom: 550, top: 660, moisture: 2, minerals: 1, dirtDepth: 10, mineralDepthPenalty: 0, curveModifier: 1.5, curveLimiter: 1, biomeId: 2, name: "Melted Mountains", shortName: "Mountains", music: SoundManager.music.mountains, colorGrade: colorGradeFilter.styles.bleak };
-    const swamp: BiomeData = { stoneTop: 2, stoneBottom: 0.5, bottom: 360, top: 400, moisture: 3, minerals: 0, dirtDepth: 80, mineralDepthPenalty: 0, curveModifier: 0.5, curveLimiter: 0.1, biomeId: 3, name: "Swampy Lowlands", shortName: "Lowlands", music: SoundManager.music.swamp, colorGrade: colorGradeFilter.styles.blank };
+    const ruins: BiomeData = { stoneTop: 0.5, stoneBottom: 0.5, bottom: 360, top: 480, moisture: 2, minerals: 3, dirtDepth: 50, mineralDepthPenalty: -2, curveModifier: 0.5, curveLimiter: 0.1, biomeId: 1, name: "Urban Ruins", shortName: "Ruins", music: SoundManager.music.ruins, colorGrade: colorGradeFilter.styles.dust };
+    const mountains: BiomeData = { stoneTop: 1, stoneBottom: 2, bottom: 530, top: 660, moisture: 2, minerals: 1, dirtDepth: 10, mineralDepthPenalty: 0, curveModifier: .8, slopeMin: .7, slopeMax: 1.2, curveLimiter: 5, biomeId: 2, name: "Melted Mountains", shortName: "Mountains", music: SoundManager.music.mountains, colorGrade: colorGradeFilter.styles.bleak };
+    const swamp: BiomeData = { stoneTop: 2, stoneBottom: 0.5, bottom: 360, top: 400, moisture: 3, minerals: 0, dirtDepth: 80, mineralDepthPenalty: 0, curveModifier: 0.5, curveLimiter: 0.1, biomeId: 3, name: "Swampy Lowlands", shortName: "Lowlands", music: SoundManager.music.swamp, colorGrade: colorGradeFilter.styles.green };
+    const wasteland: BiomeData = { stoneTop: .5, stoneBottom: 3, bottom: 340, top: 450, moisture: 0, minerals: 2, dirtDepth: 30, mineralDepthPenalty: -1, curveModifier: .3, slopeMax: .25, curveLimiter: .1, biomeId: 4, name: "Industrial Wasteland", shortName: "Wasteland", music: SoundManager.music.wasteland, colorGrade: colorGradeFilter.styles.industry };
     generator.addToQueue(swamp, 1000);
     generator.addToQueue(mountains, 1000);
-    generator.addToQueue(flatland, 1000);
-    generator.addToQueue(mountains, 1000);
+    generator.addToQueue(ruins, 1000);
+    generator.addToQueue(wasteland, 1000);
     generator.addToQueue(swamp, 1000);
     generator.addToQueue(mountains, 1000);
-    generator.addToQueue(flatland, 1000);
+    generator.addToQueue(ruins, 1000);
     generator.addToQueue(mountains, 1000);
     generator.addToQueue(swamp, 1000);
 
 
-    generator.addToQueue(flatland, Terrain.width);
+    generator.addToQueue(ruins, Terrain.width);
 
     let nextRock = randomInt(1, 10);
     let nextTree = randomInt(1, 10);
@@ -261,6 +262,11 @@ export async function initGame(skipIntro = false) {
     generator.generate({ skipPlacement: true, padding: 0, scale: .5 }, (x, ty) => { foredrop.setHeight(x, ty); });
     new Cloud(new Vector(100, 500));
     backdrop3.placeSprite(2050, 0, (() => { const a = Sprite.from("building.png"); return a })(), false, 100);
+    backdrop1.placeSprite(3250, 0, Sprite.from("BG/factory.png"), false, 150);
+    backdrop1.placeSprite(3500, 0, Sprite.from("BG/pipes1.png"), false, 200);
+    backdrop2.placeSprite(3500, 0, Sprite.from("BG/pipes2.png"), false, 300);
+    backdrop0.placeSprite(3701, 0, Sprite.from("BG/pipes3.png"), false, 300);
+    backdrop0.placeSprite(3200, 0, Sprite.from("BG/pipes4.png"), false, 300);
     backdrop0.placeSprite(2300, 0, (() => { const a = Sprite.from("building2.png"); return a })(), false, 70);
     backdrop0.placeSprite(2600, 0, (() => { const a = Sprite.from("building3.png"); return a })(), false, 70);
     backdrop1.placeSprite(2050, 0, (() => { const a = Sprite.from("building4.png"); return a })(), false, 70);
@@ -295,9 +301,12 @@ export async function initGame(skipIntro = false) {
         new CrashPod(pos.add(new Vector(0, 1)));
         Stamps.stamp("stamp2", new Vector(2800, 0), { useDirtFrom: generator, replaceMatching: (r, w) => TerrainManager.isDirt(r) });
         Stamps.stamp("stamp5", new Vector(2650, 0), { useDirtFrom: generator, replaceMatching: (r, w) => TerrainManager.isDirt(r) });
-        Stamps.stamp("stamp3", new Vector(3450, -36), { useDirtFrom: generator, replaceMatching: (r, w) => TerrainManager.isDirt(r) });
+        Stamps.stamp("stamp3", new Vector(3250, -36), { useDirtFrom: generator, replaceMatching: (r, w) => TerrainManager.isDirt(r) });
         Stamps.stamp("stamp4", new Vector(2200, -36), { useDirtFrom: generator, replaceMatching: (r, w) => TerrainManager.isDirt(r) });
         Stamps.stamp("bigbuilding", new Vector(800, 0), { useDirtFrom: generator, replaceMatching: (r, w) => TerrainManager.isDirt(r), replace: [terrainType.stone] });
+        Stamps.stamp("chimney", new Vector(3200, -5), { useDirtFrom: generator, replaceMatching: (r, w) => TerrainManager.isDirt(r) });
+        Stamps.stamp("pipeOut", new Vector(4050, 0), { useDirtFrom: generator, replaceMatching: (r, w) => TerrainManager.isDirt(r), replace: [terrainType.stone] });
+        Stamps.stamp("factory", new Vector(3700, -30), { useDirtFrom: generator, replaceMatching: (r, w) => TerrainManager.isDirt(r), replace: [terrainType.stone] });
     });
 
     World.init();
@@ -316,7 +325,8 @@ export async function initGame(skipIntro = false) {
     background = PIXI.RenderTexture.create({ width: Camera.width, height: Camera.height });
     entityRender = PIXI.RenderTexture.create({ width: Camera.width, height: Camera.height });
 
-    new Drone(new Vector(3500, 600), undefined);
+    new Drone(new Vector(4500, 460), undefined);
+    new Drone(new Vector(4400, 530), undefined);
 
 
     DebugDraw.graphics.addChild(Shadowmap.graphic);
@@ -334,7 +344,7 @@ export async function initGame(skipIntro = false) {
         terrainNoises[name].volume = 0;
     }
 
-    let colorGradeOld: colorGradeOptions = {};
+    let colorGradeOld: colorGradeOptions = colorGradeFilter.styles.dust;
     let colorGradeNew: colorGradeOptions = {};
     let biomeTime = 0;
 
@@ -368,8 +378,8 @@ export async function initGame(skipIntro = false) {
 
         updateInfo -= diff;
 
-
-        Atmosphere.settings.sunAngle += dt / 20;
+        if (Progress.timeUnlocked)
+            Atmosphere.settings.sunAngle += dt / 20;
         //Atmosphere.settings.sunAngle = new Vector((mouse.x / window.innerWidth - .5) * window.innerWidth/window.innerHeight, mouse.y / window.innerHeight - .5).toAngle();
         //Atmosphere.settings.sunAngle = -1.5;
 
@@ -390,7 +400,7 @@ export async function initGame(skipIntro = false) {
 
         let worldData = World.getDataFrom(player.position.x);
         colorGradeBiome = colorGradeFilter.mixSettings(colorGradeOld, colorGradeNew, biomeTime / 2);
-        let colorGradePollution = colorGradeFilter.mixSettings(colorGradeBiome, colorGradeFilter.styles.dust, worldData.pollution / 100);
+        let colorGradePollution = colorGradeFilter.mixSettings(colorGradeFilter.styles.blank, colorGradeBiome, worldData.pollution / 100);
         colorGrade.options = colorGradeFilter.mixSettings(colorGradeFilter.mixSettings(colorGradeFilter.styles.night, colorGradeFilter.styles.sunset, (sunFac * 3 + 1.5)), colorGradePollution, sunFac * 4 + 1);
 
 
@@ -453,27 +463,27 @@ export async function initGame(skipIntro = false) {
             }
         }
 
-
-
-        if (mouse.pressed == 1 && !Buildable.currentBuildable) {
-            const type = preferences.selectedTerrainType;
-            const vol = preferences.penSize * preferences.penSize * 4;
-            Terrain.addSound(type, vol);
-            for (let x = 0; x < preferences.penSize; x++) {
-                for (let y = 0; y < preferences.penSize; y++) {
-                    Terrain.setAndUpdatePixel(Math.floor(wx + x - preferences.penSize / 2), Math.floor(wy + y - preferences.penSize / 2), preferences.selectedTerrainType != terrainType.dirt00 ? preferences.selectedTerrainType : generator.getLocalDirt(
-                        new Vector(Math.floor(wx + x - preferences.penSize / 2), Math.floor(wy + y - preferences.penSize / 2))
-                    ));
+        if (Progress.terrainUnlocked) {
+            if (mouse.pressed == 1 && !Buildable.currentBuildable) {
+                const type = preferences.selectedTerrainType;
+                const vol = preferences.penSize * preferences.penSize * 4;
+                Terrain.addSound(type, vol);
+                for (let x = 0; x < preferences.penSize; x++) {
+                    for (let y = 0; y < preferences.penSize; y++) {
+                        Terrain.setAndUpdatePixel(Math.floor(wx + x - preferences.penSize / 2), Math.floor(wy + y - preferences.penSize / 2), preferences.selectedTerrainType != terrainType.dirt00 ? preferences.selectedTerrainType : generator.getLocalDirt(
+                            new Vector(Math.floor(wx + x - preferences.penSize / 2), Math.floor(wy + y - preferences.penSize / 2))
+                        ));
+                    }
                 }
-            }
-        } else if (mouse.pressed == 2 && !Buildable.currentBuildable) {
-            for (let x = 0; x < preferences.penSize; x++) {
-                for (let y = 0; y < preferences.penSize; y++) {
-                    const coordX = Math.floor(wx + x - preferences.penSize / 2)
-                    const coordY = Math.floor(wy + y - preferences.penSize / 2)
-                    const type = Terrain.getPixel(coordX, coordY);
-                    Terrain.addSound(type, 10);
-                    Terrain.setAndUpdatePixel(coordX, coordY, terrainType.void);
+            } else if (mouse.pressed == 2 && !Buildable.currentBuildable) {
+                for (let x = 0; x < preferences.penSize; x++) {
+                    for (let y = 0; y < preferences.penSize; y++) {
+                        const coordX = Math.floor(wx + x - preferences.penSize / 2)
+                        const coordY = Math.floor(wy + y - preferences.penSize / 2)
+                        const type = Terrain.getPixel(coordX, coordY);
+                        Terrain.addSound(type, 10);
+                        Terrain.setAndUpdatePixel(coordX, coordY, terrainType.void);
+                    }
                 }
             }
         }
@@ -619,7 +629,7 @@ export async function initGame(skipIntro = false) {
             ])
             .chain("The Director or whoever it is has disconnected.", 0)
             .chain("Get to work.")
-            .chain("Press [F] to plant a tree. *Plant 2 trees*.")
+            .callback(() => sleep(3000))
             .finish()
     )
 
@@ -675,16 +685,16 @@ export async function initGame(skipIntro = false) {
 
 
 
-    const hotbar = new PositionableGuiElement({ alignItems: "end", blankStyle: true, position: new Vector(25, 25), invertHorizontalPosition: true, hidden: true })
-    let hotbarPanel = new GuiPanel({ content: "Build menu", parent: hotbar, flexDirection: "column" });
-    let hotbarSubPanel = new GuiPanel({ blankStyle: true, parent: hotbarPanel, flexDirection: "row" });
+    const hotbar = new PositionableGuiElement({ alignItems: "end", blankStyle: true, position: new Vector(25, 25), invertHorizontalPosition: true })
+    let hotbarPanelBuild = new GuiPanel({ content: "Build menu", parent: hotbar, flexDirection: "column", hidden: true });
+    let hotbarSubPanel = new GuiPanel({ blankStyle: true, parent: hotbarPanelBuild, flexDirection: "row" });
     new GuiButton({ width: 5, content: "Seed", callback: () => { placeSeed() }, parent: hotbarSubPanel })
     new GuiButton({ width: 5, content: "Pole", callback: () => { placePole() }, parent: hotbarSubPanel })
     new GuiButton({ width: 5, content: "Turbine", callback: () => { placeTurbine() }, parent: hotbarSubPanel })
     new GuiButton({ width: 5, content: "Scanner", callback: () => { placeScanner() }, parent: hotbarSubPanel })
 
-    hotbarPanel = new GuiPanel({ content: "Terrain editing", parent: hotbar, flexDirection: "column" });
-    hotbarSubPanel = new GuiPanel({ blankStyle: true, parent: hotbarPanel, flexDirection: "row" });
+    let hotbarPanelTerrain = new GuiPanel({ content: "Terrain editing", parent: hotbar, flexDirection: "column", hidden: true });
+    hotbarSubPanel = new GuiPanel({ blankStyle: true, parent: hotbarPanelTerrain, flexDirection: "row" });
     new GuiButton({ width: 5, image: "ui/dirt.png", content: "Dirt", callback: () => { preferences.selectedTerrainType = terrainType.dirt00 }, parent: hotbarSubPanel })
     new GuiButton({ width: 5, image: "ui/sand.png", content: "Sand", callback: () => { preferences.selectedTerrainType = terrainType.sand }, parent: hotbarSubPanel })
     new GuiButton({ width: 5, image: "ui/water.png", content: "Water", callback: () => { preferences.selectedTerrainType = terrainType.water1 }, parent: hotbarSubPanel })
@@ -706,12 +716,21 @@ export async function initGame(skipIntro = false) {
         await introDialogue.execute();
         //await moveTutorial();
         Progress.controlsUnlocked = true;
-        await devBar.fadeIn();
-        await hotbar.fadeIn();
-        await scannerData.fadeIn();
-        await new TutorialPrompt({ content: "The *build menu* allows you to plant seeds or construct buildings.<br>Press [space] to dismiss.", keys: [" "], centerX: false, position: new Vector(300, 50), invertHorizontalPosition: true }).awaitDone;
-        await new TutorialPrompt({ content: "The *terrain editing toolbar* allows you to edit the terrain. Select a terrain type, then place it by clicking or holding the [Left mouse button] in the game world.<br>You can delete terrain with the [Right mouse button].<br>Press [space] to dismiss.", keys: [" "], centerX: false, position: new Vector(300, 50), invertHorizontalPosition: true }).awaitDone;
-        await new TutorialPrompt({ content: "Explore the game world and try all the different options!", duration: 10 }).awaitDone;
+        await uiTutorial();
+    }
+
+    async function uiTutorial() {
+        await new TutorialPrompt({ content: "Welcome to *Revenant Earth*! This tutorial will guide you through the user interface.<br>Press [space] to continue.", keys: [" "] }).awaitDone;
+        hotbarPanelBuild.fadeIn();
+        await new TutorialPrompt({ content: "The *build menu* allows you to plant seeds or construct buildings.<br>Press [space] to continue.", keys: [" "], centerX: false, position: new Vector(25, 170), invertHorizontalPosition: true }).awaitDone;
+        hotbarPanelTerrain.fadeIn();
+        Progress.terrainUnlocked = true;
+        await new TutorialPrompt({ content: "The *terrain editing toolbar* allows you to edit the terrain. Select a terrain type, then place it by clicking or holding the [Left mouse button] in the game world.<br>You can delete terrain with the [Right mouse button].<br>Press [space] to continue.", keys: [" "], centerX: false, position: new Vector(25, 340), invertHorizontalPosition: true }).awaitDone;
+        devBar.fadeIn();
+        await new TutorialPrompt({ content: "This is the *Development menu*. It allows you to access special functions to test features of the game.<br>It is recommended to *avoid using it* if you want to enjoy the game as intended.<br>Press [space] to continue.", keys: [" "], centerX: false, position: new Vector(25, 170) }).awaitDone;
+        scannerData.fadeIn();
+        Progress.timeUnlocked = true;
+        await new TutorialPrompt({ content: "That's it! Explore the game world and try all the different options!", duration: 8 }).awaitDone;
     }
 
     const key: Record<string, boolean> = {};
@@ -731,11 +750,15 @@ export async function initGame(skipIntro = false) {
         }, 8000);
     }
     else {
-        moveTutorial();
+        //uiTutorial();
+        //moveTutorial();
         devBar.fadeIn();
-        hotbar.fadeIn();
+        hotbarPanelBuild.fadeIn();
+        hotbarPanelTerrain.fadeIn();
         scannerData.fadeIn();
         Progress.controlsUnlocked = true;
+        Progress.timeUnlocked = true;
+        Progress.terrainUnlocked = true;
     }
 
 }

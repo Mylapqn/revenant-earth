@@ -73,8 +73,10 @@ export class colorGradeFilter extends Filter {
         blank: {} as colorGradeOptions,
         night: { strength: 1, contrast: 1.1, brightness: 1, saturation: .4, tintColor: new Color(0, 150, 200), tintStrength: .2} as colorGradeOptions,
         dust: { strength: 1, contrast: 1.3, brightness: .8, saturation: .8, tintColor: new Color(255, 120, 0), tintStrength: 1.2 } as colorGradeOptions,
-        sunset: { strength: .2, contrast: 1.1, brightness: 1.3, saturation: .7, tintColor: new Color(255, 100, 40), tintStrength: .3 } as colorGradeOptions,
-        bleak: { strength: 1, contrast: .8, brightness: 1, saturation: .4, tintColor: new Color(0, 230, 230), tintStrength: .5 } as colorGradeOptions,
+        sunset: { strength: .2, contrast: 1.1, brightness: 1.3, saturation: .8, tintColor: new Color(255, 100, 40), tintStrength: .3 } as colorGradeOptions,
+        bleak: { strength: 1, contrast: .8, brightness: .9, saturation: .35, tintColor: new Color(40, 200, 160), tintStrength: .5 } as colorGradeOptions,
+        industry: { strength: 1, contrast:1.4, brightness: .6, saturation: .2, tintColor: new Color(200, 130, 0), tintStrength: 1.2 } as colorGradeOptions,
+        green: { strength: 1, contrast: .9, brightness: 1., saturation: .6, tintColor: new Color(130, 230, 40), tintStrength: .6 } as colorGradeOptions,
 
     }
 
