@@ -10,7 +10,7 @@
         "watch": "watchify src/index.ts -t brfs --debug -p [ tsify --noImplicitAny ] -o static/bundle.js",
         "build": "browserify src/index.ts -t brfs --debug -p [ tsify --noImplicitAny ] -o static/bundle.js",
         "no-maps": "browserify src/index.ts -t brfs -p [ tsify --noImplicitAny ] -o static/bundle.js",
-        "electon-build": "browserify src/index.ts -t brfs -p [ tsify --noImplicitAny ] -o static/bundle.js && electron-builder -wl"
+        "electron-build": "browserify src/index.ts -t brfs -p [ tsify --noImplicitAny ] -o static/bundle.js && electron-builder -wl"
     },
     "dependencies": {
         "@pixi/filter-godray": "^5.1.1",
