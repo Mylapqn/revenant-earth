@@ -3,7 +3,7 @@
     width: 100vw;
     height: 100vh;
     overflow: hidden;
-    font-family: "Bahnschrift",sans-serif;
+    font-family: "Bahnschrift", "Dinish", sans-serif;
     color: white;
     z-index: 1;
     background-size: cover;
@@ -92,7 +92,6 @@
     backdrop-filter: blur(2em);
     transition: transform 0.1s, outline 0.1s, opacity 1s;
     color: white;
-    font-family: "Bahnschrift";
     border-radius: 0.3em;
     z-index: 1;
     font-size: calc(var(--scale) * 20);
@@ -102,7 +101,7 @@
 .ui em {
     font-style: inherit;
     font-weight: 700;
-    color:#fff04a;
+    color: #fff04a;
 }
 
 .flex.hidden {
@@ -248,20 +247,23 @@ kbd.pressed {
     line-height: 1.5em;
 }
 
-.tutorialPrompt:last-of-type{
+.tutorialPrompt:last-of-type {
     outline-color: white;
     opacity: 1;
     animation: pulse .5s cubic-bezier(0.41, 0, 0.14, 1) infinite alternate;
 }
 
-.tutorialPrompt:last-of-type.hidden{
+.tutorialPrompt:last-of-type.hidden {
     opacity: 0;
 }
 
 .tutorialPrompt br {
-    display: block; /* makes it have a width */
-    content: ""; /* clears default height */
-    margin-top: 1.5em; /* change this to whatever height you want it */
+    display: block;
+    /* makes it have a width */
+    content: "";
+    /* clears default height */
+    margin-top: 1.5em;
+    /* change this to whatever height you want it */
 }
 
 .introText {
