@@ -70,6 +70,10 @@ export class Terrain {
         return new Vector(x, y);
     }
 
+    static testValid(x:number, y:number) {
+        return !(x < 2 || y < 2 || y > this.height-2 || x > this.width-2);
+    }
+
     static setPixel(x: number, y: number, type: terrainType) {
         const i = x + y * this.width
         this.view.setUint8(i, type);

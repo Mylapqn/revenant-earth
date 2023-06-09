@@ -1,12 +1,13 @@
 import { BLEND_MODES, Container, ParticleContainer, Sprite } from "pixi.js";
 import { Vector } from "../vector";
 import { player } from "../game";
-import { Entity } from "../entity";
 import { Camera } from "../camera";
-import { clamp, random } from "../utils";
+import { clamp, lerp, random } from "../utils";
 import { randomInt } from "crypto";
 import { Color } from "../color";
 import { ParticleFilter } from "../shaders/particle/particleFilter";
+import { Player } from "../entities/player/player";
+import { Terrain, terrainType } from "../terrain";
 
 interface ParticleSystemSettings {
     position: Vector,
@@ -16,17 +17,27 @@ interface ParticleSystemSettings {
 }
 
 export class ParticleSystem {
+    parent: Player;
     position: Vector;
-    angle: number;
+    angle = 1.5;
+    angleSpread = .5;
     particles: Particle[] = [];
     maxParticles = 256;
     emitRate = 1;
     emitBuildup = 0;
     container: ParticleContainer;
     wrapper: Container;
+    emitSpeed = 100;
+    particleLifeTime = 1;
+    enabled = true;
+    scaleFrom = .2;
+    scaleTo = 1;
+    alphaFrom = .3;
+    alphaTo = .1;
+    collision = false;
     constructor(settings: ParticleSystemSettings) {
-        this.emitRate = settings.emitRate??1;
-        this.maxParticles = 256*this.emitRate;
+        this.emitRate = settings.emitRate ?? 1;
+        this.maxParticles = 256 * this.emitRate;
         this.container = new ParticleContainer(this.maxParticles);
         this.wrapper = new Container();
         this.position = settings.position.result();
@@ -39,14 +50,15 @@ export class ParticleSystem {
     }
 
     update(dt: number) {
-        this.emitBuildup += dt*100*this.emitRate;
-        if (this.particles.length < this.maxParticles) {
-            while (this.emitBuildup > 0) {
-                this.emitBuildup--;
-                this.spawnParticle();
+        if (this.enabled) {
+            this.emitBuildup += dt * 100 * this.emitRate;
+            if (this.particles.length < this.maxParticles) {
+                while (this.emitBuildup > 0) {
+                    this.emitBuildup--;
+                    this.spawnParticle();
+                }
             }
         }
-
         for (let i = 0; i < this.particles.length; i++) {
             const p = this.particles[i];
             i -= p.update(dt);
@@ -54,9 +66,11 @@ export class ParticleSystem {
     }
 
     spawnParticle() {
-        const p = new Particle(this, this.position, Vector.fromAngle(random(1, 2)).mult(100));
+        let v = Vector.fromAngle(random(-1, 1) * this.angleSpread + this.angle).mult(this.emitSpeed)
+        if (this.parent) v.add(this.parent.velocity)
+        const p = new Particle(this, this.position, v);
         p.system = this;
-        p.maxAge = random(.8, 2);
+        p.maxAge = random(.8, 2) * this.particleLifeTime;
         this.particles.push(p);
     }
 
@@ -100,10 +114,14 @@ class Particle {
         const ageRatio = 1 - (this.age / this.maxAge);
         this.velocity.y += dt * 200;
         this.velocity.x += dt * 100;
-        this.sprite.alpha = (ageRatio * .3 + .2) * .5;
-        this.sprite.scale.set((1 - ageRatio) * .8 + .2);
+        this.sprite.alpha = lerp(this.system.alphaFrom, this.system.alphaTo, 1 - ageRatio);
+        this.sprite.scale.set(lerp(this.system.scaleFrom, this.system.scaleTo, 1 - ageRatio));
         this.sprite.tint = Color.fromHsl(0, 0, (ageRatio));
         this.position.add(this.velocity.result().mult(dt).mult(ageRatio));
+        if (this.system.collision) {
+            let pos = this.position.result().add(this.velocity.result().mult(dt).mult(ageRatio)).round().xy();
+            if (Terrain.testValid(...pos) && Terrain.getPixel(...pos) != terrainType.void) this.velocity.mult(-.1);
+        }
         //const pos = this.position.result().round();
         this.sprite.position.set(this.position.x, -this.position.y);
         return 0;
