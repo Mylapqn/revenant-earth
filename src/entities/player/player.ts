@@ -239,6 +239,17 @@ export class Player extends Entity {
             }
         }
 
+
+        if (this.climb > 0) {
+            if (Math.sign(this.input.x) == this.climbDir) {
+                this.climb--;
+                this.position.y++;
+                this.velocity.y = 20;
+            } else {
+                this.climb = 0;
+            }
+        }
+
         this.graphics.animationSpeed = Math.abs(this.velocity.x * (this.run ? 0.22 : 1) / 300);
 
 
