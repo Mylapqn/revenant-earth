@@ -3,7 +3,7 @@
     width: 100vw;
     height: 100vh;
     overflow: hidden;
-    font-family: "Bahnschrift";
+    font-family: "Bahnschrift",sans-serif;
     color: white;
     z-index: 1;
     background-size: cover;
