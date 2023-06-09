@@ -33,6 +33,12 @@ const playerSprites = {
         "animation/run/run5.png",
         "animation/run/run6.png",
     ]),
+    climb: AnimatedSprite.fromFrames([
+        "animation/climb/climb6.png",
+        "animation/climb/climb12.png",
+        "animation/climb/climb18.png",
+        "animation/climb/climb24.png",
+    ]),
     fall: AnimatedSprite.fromFrames(["animation/fall/fall.png"]),
 }
 
@@ -51,6 +57,8 @@ export class Player extends Entity {
     private step = 1;
     screenCenterNorm = new Vector();
     screenDimensionsNorm = new Vector();
+    climb = 0;
+    climbDir = 0;
     light = new Light(this, new Vector(0, 25), Math.PI + .2, 1.2, new Color(150, 255, 255), 300, 3);
     stepSound = {
         dirt: [] as SoundEffect[],
@@ -61,9 +69,6 @@ export class Player extends Entity {
         jetpackStart: new SoundEffect("sound/fx/jetpack_start.ogg", .2)
     }
     jetpackLight = new Light(this, new Vector(-5, 15), -Math.PI/2+.2, 1.8, new Color(255, 255, 255), 200, 0);
-
-
-
 
     constructor(position: Vector) {
         const graph = new AnimatedSprite(playerSprites.stand.textures);
@@ -120,11 +125,17 @@ export class Player extends Entity {
             this.graphics.play();
         }
 
+        if(this.climb > 0){
+            this.graphics.textures = playerSprites.climb.textures;
+            this.graphics.currentFrame = Math.floor(this.climb/25 * playerSprites.climb.totalFrames);
+            this.animState = 0;
+        }
+
         this.grounded = false;
         let highestDensity = 0;
         for (let j = -5; j <= -Math.min(this.velocity.y * dt, 0); j++) {
             let solid: terrainType;
-            for (let i = -4; i <= 4; i++) {
+            for (let i = -3; i <= 3; i++) {
                 let t = Terrain.getPixel(Math.floor(this.position.x + i), Math.floor(this.position.y - j));
                 highestDensity = Math.max(highestDensity, lookup[t].density);
                 if (lookup[t].density > 0) solid = t;
@@ -148,6 +159,7 @@ export class Player extends Entity {
                 break;
             }
         }
+    
         if (highestDensity > 0 && highestDensity < 1) {
             if ((this.velocity.y) < -250) {
                 Terrain.addSound(terrainType.water1, Math.abs(this.velocity.y) * 3);
@@ -218,6 +230,10 @@ export class Player extends Entity {
             }
 
             if (j >= 5) {
+                if ( j > 10 && j < 25 && this.climb == 0 && this.input.x != 0 && this.input.y > 0) {
+                    this.climb = j;
+                    this.climbDir = Math.sign(this.input.x);
+                }
                 this.velocity.x = (i - 4) * Math.sign(this.input.x);
                 break;
             }

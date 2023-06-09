@@ -510,7 +510,8 @@ export async function initGame(skipIntro = false) {
             if (preferences.penSize < 1) preferences.penSize = 1;
         }
 
-        /* if (key["e"]) {
+        /*
+         if (key["e"]) {
             key["e"] = false;
             preferences.debugMode++;
             preferences.debugMode %= Object.keys(DebugMode).length / 2;
@@ -523,12 +524,12 @@ export async function initGame(skipIntro = false) {
                 Entity.graphic.filters = [new HighlightFilter(1, 0xFF9955, .1)];
                 PixelDrawer.graphic.filters = [new HighlightFilter(1, 0xFF9955, .6), new AtmosphereFilter(.9)];
             }
-        }
-        if (key["r"]) {
-            key["r"] = false;
+        }*/
+        if (key["f10"]) {
+            key["f10"] = false;
             preferences.showDebug = !preferences.showDebug;
             debugText.visible = preferences.showDebug;
-        } */
+        }
         seedCooldown -= dt;
         if (!Buildable.currentBuildable) {
             if (key["f"] && seedCooldown <= 0) {
@@ -739,7 +740,7 @@ export async function initGame(skipIntro = false) {
     }
 
     const key: Record<string, boolean> = {};
-    window.addEventListener("keydown", (e) => { key[e.key.toLowerCase()] = true });
+    window.addEventListener("keydown", (e) => { key[e.key.toLowerCase()] = true; });
     window.addEventListener("keyup", (e) => { key[e.key.toLowerCase()] = false });
     window.addEventListener("mousedown", (e) => { if (!mouse.gui) { mouse.pressed = e.buttons; } e.preventDefault() });
     window.addEventListener("mouseup", (e) => { mouse.pressed = e.buttons });
