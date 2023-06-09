@@ -1,22 +1,61 @@
 {
-  "scripts": {
-    "watch": "watchify src/index.ts -t brfs --debug -p [ tsify --noImplicitAny ] -o static/bundle.js",
-    "build": "browserify src/index.ts -t brfs --debug -p [ tsify --noImplicitAny ] -o static/bundle.js",
-    "no-maps": "browserify src/index.ts -t brfs -p [ tsify --noImplicitAny ] -o static/bundle.js"
-  },
-  "dependencies": {
-    "@pixi/filter-godray": "^5.1.1",
-    "@pixi/filter-hsl-adjustment": "^5.2.0",
-    "@pixi/filter-outline": "^5.2.0",
-    "@pixi/filter-reflection": "^5.1.1",
-    "brfs": "^2.0.2",
-    "browserify": "^17.0.0",
-    "pixi.js": "^7.2.0",
-    "tsify": "^5.0.4",
-    "typescript": "^4.9.4",
-    "watchify": "^4.0.0"
-  },
-  "devDependencies": {
-    "@types/node": "^18.15.3"
-  }
+    "main": "static/main.js",
+    "version": "0.0.1",
+    "author": {
+        "name": "Matouš Marek"
+    },
+    "description": "Revenant Earth",
+    "name": "revenant-earth",
+    "scripts": {
+        "watch": "watchify src/index.ts -t brfs --debug -p [ tsify --noImplicitAny ] -o static/bundle.js",
+        "build": "browserify src/index.ts -t brfs --debug -p [ tsify --noImplicitAny ] -o static/bundle.js",
+        "no-maps": "browserify src/index.ts -t brfs -p [ tsify --noImplicitAny ] -o static/bundle.js",
+        "electon-build": "browserify src/index.ts -t brfs -p [ tsify --noImplicitAny ] -o static/bundle.js && electron-builder -wl"
+    },
+    "dependencies": {
+        "@pixi/filter-godray": "^5.1.1",
+        "@pixi/filter-hsl-adjustment": "^5.2.0",
+        "@pixi/filter-outline": "^5.2.0",
+        "@pixi/filter-reflection": "^5.1.1",
+        "brfs": "^2.0.2",
+        "browserify": "^17.0.0",
+        "electron-squirrel-startup": "^1.0.0",
+        "pixi.js": "^7.2.0",
+        "tsify": "^5.0.4",
+        "typescript": "^4.9.4",
+        "watchify": "^4.0.0"
+    },
+    "devDependencies": {
+        "@types/node": "^18.15.3",
+        "electron": "^25.1.0",
+        "electron-builder": "^23.6.0"
+    },
+    "build": {
+      "appId": "com.electron.revenantearth",
+      "productName": "Revenant Earth",
+      "files": [
+        "static/**/*",
+        "!node_modules/**/*"
+      ],
+      "win": {
+        "target": [
+          {
+            "target": "portable",
+            "arch": "ia32"
+          },
+          {
+            "target": "nsis",
+            "arch": "ia32"
+          }
+        ]
+      },
+      "linux": {
+        "target": [
+          {
+            "target": "AppImage",
+            "arch": "x64"
+          }
+        ]
+      }
+    }
 }
