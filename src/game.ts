@@ -388,7 +388,7 @@ export async function initGame(skipIntro = false) {
 
         if (sunFac < 0 && !Progress.firstNight) {
             Progress.firstNight = true;
-            new TutorialPrompt({ content: "*The sun is setting.* At night, visibility is lowered and enemies are more dangerous. However, your *oxygen supply* depletes slower.<br>Press [Space] to dismiss.", keys: [" "] });
+            new TutorialPrompt({ content: "*The sun is setting.* At night, visibility is lowered and enemies are more dangerous. However, your *oxygen supply* depletes slower.<br>Press [e] to dismiss.", keys: ["e"] });
         }
 
         let sunHor = 1 - Math.abs(Vector.fromAngle(Atmosphere.settings.sunAngle).y);
@@ -431,10 +431,10 @@ export async function initGame(skipIntro = false) {
         if (Progress.controlsUnlocked) {
             if (key["a"]) player.input.x -= 1;
             if (key["d"]) player.input.x += 1;
-            if (key["w"]) player.input.y += 1;
+            if (key["w"] || key[" "]) player.input.y += 1;
             if (key["s"]) player.input.y -= 1;
-            if (key["shift"]) player.run = true;
-            else player.run = false;
+            if (key["shift"]) player.run = false;
+            else player.run = true;
         }
 
         const [wx, wy] = screenToWorld(mouse).xy();
@@ -450,7 +450,7 @@ export async function initGame(skipIntro = false) {
                 }
                 else {
                     if (Progress.visitedBiomes.length == 1) {
-                        new TutorialPrompt({ content: "You have just visited a *new biome*. The game has multiple areas, or biomes, that you can explore. Each biome offers unique resources, challenges, and sights.<br>Press [Space] to dismiss.", keys: [" "] });
+                        new TutorialPrompt({ content: "You have just visited a *new biome*. The game has multiple areas, or biomes, that you can explore. Each biome offers unique resources, challenges, and sights.<br>Press [e] to dismiss.", keys: ["e"] });
                     }
                     Progress.visitedBiomes.push(newBiome.biomeId);
                     new GuiSplash(newBiome.name, true)
@@ -470,9 +470,12 @@ export async function initGame(skipIntro = false) {
                 Terrain.addSound(type, vol);
                 for (let x = 0; x < preferences.penSize; x++) {
                     for (let y = 0; y < preferences.penSize; y++) {
-                        Terrain.setAndUpdatePixel(Math.floor(wx + x - preferences.penSize / 2), Math.floor(wy + y - preferences.penSize / 2), preferences.selectedTerrainType != terrainType.dirt00 ? preferences.selectedTerrainType : generator.getLocalDirt(
-                            new Vector(Math.floor(wx + x - preferences.penSize / 2), Math.floor(wy + y - preferences.penSize / 2))
-                        ));
+                        const xx = Math.floor(wx + x - preferences.penSize / 2)
+                        const yy = Math.floor(wy + y - preferences.penSize / 2)
+                        if (Terrain.testValid(xx, yy))
+                            Terrain.setAndUpdatePixel(xx, yy, preferences.selectedTerrainType != terrainType.dirt00 ? preferences.selectedTerrainType : generator.getLocalDirt(
+                                new Vector(Math.floor(wx + x - preferences.penSize / 2), Math.floor(wy + y - preferences.penSize / 2))
+                            ));
                     }
                 }
             } else if (mouse.pressed == 2 && !Buildable.currentBuildable) {
@@ -480,9 +483,11 @@ export async function initGame(skipIntro = false) {
                     for (let y = 0; y < preferences.penSize; y++) {
                         const coordX = Math.floor(wx + x - preferences.penSize / 2)
                         const coordY = Math.floor(wy + y - preferences.penSize / 2)
-                        const type = Terrain.getPixel(coordX, coordY);
-                        Terrain.addSound(type, 10);
-                        Terrain.setAndUpdatePixel(coordX, coordY, terrainType.void);
+                        if (Terrain.testValid(coordX, coordY)) {
+                            const type = Terrain.getPixel(coordX, coordY);
+                            Terrain.addSound(type, 10);
+                            Terrain.setAndUpdatePixel(coordX, coordY, terrainType.void);
+                        }
                     }
                 }
             }
@@ -721,14 +726,14 @@ export async function initGame(skipIntro = false) {
     }
 
     async function uiTutorial() {
-        await new TutorialPrompt({ content: "Welcome to *Revenant Earth*! This tutorial will guide you through the user interface.<br>Press [space] to continue.", keys: [" "] }).awaitDone;
+        await new TutorialPrompt({ content: "Welcome to *Revenant Earth*! This tutorial will guide you through the user interface.<br>Press [e] to continue.", keys: ["e"] }).awaitDone;
         hotbarPanelBuild.fadeIn();
-        await new TutorialPrompt({ content: "The *build menu* allows you to plant seeds or construct buildings.<br>Press [space] to continue.", keys: [" "], centerX: false, position: new Vector(25, 170), invertHorizontalPosition: true }).awaitDone;
+        await new TutorialPrompt({ content: "The *build menu* allows you to plant seeds or construct buildings.<br>Press [e] to continue.", keys: ["e"], centerX: false, position: new Vector(25, 170), invertHorizontalPosition: true }).awaitDone;
         hotbarPanelTerrain.fadeIn();
         Progress.terrainUnlocked = true;
-        await new TutorialPrompt({ content: "The *terrain editing toolbar* allows you to edit the terrain. Select a terrain type, then place it by clicking or holding the [Left mouse button] in the game world.<br>You can delete terrain with the [Right mouse button].<br>Press [space] to continue.", keys: [" "], centerX: false, position: new Vector(25, 340), invertHorizontalPosition: true }).awaitDone;
+        await new TutorialPrompt({ content: "The *terrain editing toolbar* allows you to edit the terrain. Select a terrain type, then place it by clicking or holding the [Left mouse button] in the game world.<br>You can delete terrain with the [Right mouse button].<br>Press [e] to continue.", keys: ["e"], centerX: false, position: new Vector(25, 340), invertHorizontalPosition: true }).awaitDone;
         devBar.fadeIn();
-        await new TutorialPrompt({ content: "This is the *Development menu*. It allows you to access special functions to test features of the game.<br>It is recommended to *avoid using it* if you want to enjoy the game as intended.<br>Press [space] to continue.", keys: [" "], centerX: false, position: new Vector(25, 170) }).awaitDone;
+        await new TutorialPrompt({ content: "This is the *Development menu*. It allows you to access special functions to test features of the game.<br>It is recommended to *avoid using it* if you want to enjoy the game as intended.<br>Press [e] to continue.", keys: ["e"], centerX: false, position: new Vector(25, 170) }).awaitDone;
         scannerData.fadeIn();
         Progress.timeUnlocked = true;
         await new TutorialPrompt({ content: "That's it! Explore the game world and try all the different options!", duration: 8 }).awaitDone;

@@ -11,6 +11,7 @@ import { Color } from "../../color";
 import { Light } from "../../shaders/lighting/light";
 import { DebugDraw } from "../../debugDraw";
 import { SoundEffect } from "../../sound";
+import { ParticleSystem } from "../../particles/particle";
 
 const playerSprites = {
     stand: AnimatedSprite.fromFrames(["player.png"]),
@@ -42,12 +43,16 @@ const playerSprites = {
 }
 
 export class Player extends Entity {
+    jetpackParticles: ParticleSystem;
     velocity = new Vector();
     input = new Vector();
     grounded = false;
     camTarget = Camera.position.result();
     graphics: AnimatedSprite;
     run = false;
+    jetpack = false;
+    jumping = false;
+    airTime = 0;
     animState = 0;
     private step = 1;
     screenCenterNorm = new Vector();
@@ -59,6 +64,11 @@ export class Player extends Entity {
         dirt: [] as SoundEffect[],
         water: [] as SoundEffect[],
     }
+    sounds = {
+        jetpackLoop: new SoundEffect("sound/fx/jetpack_loop.ogg", 0),
+        jetpackStart: new SoundEffect("sound/fx/jetpack_start.ogg", .2)
+    }
+    jetpackLight = new Light(this, new Vector(-5, 15), -Math.PI/2+.2, 1.8, new Color(255, 255, 255), 200, 0);
 
     constructor(position: Vector) {
         const graph = new AnimatedSprite(playerSprites.stand.textures);
@@ -72,10 +82,27 @@ export class Player extends Entity {
         for (let i = 1; i <= 5; i++) {
             this.stepSound.water.push(new SoundEffect(`sound/fx/steps/water${i}.ogg`, .08));
         }
+
+        this.sounds.jetpackLoop.loop = true;
+        this.sounds.jetpackLoop.play();
+
+        this.jetpackParticles = new ParticleSystem({ position: this.position, emitRate: 4, colorFrom: new Color(200, 255, 255), colorTo: new Color(200, 200, 200) })
+        this.jetpackParticles.angle = -Math.PI / 2;
+        this.jetpackParticles.emitSpeed = 300;
+        this.jetpackParticles.angleSpread = 0.15;
+        this.jetpackParticles.particleLifeTime = .3;
+        this.jetpackParticles.enabled = false;
+        this.jetpackParticles.scaleFrom = .1;
+        this.jetpackParticles.scaleTo = .8;
+        this.jetpackParticles.alphaFrom = 1;
+        this.jetpackParticles.alphaTo = 0;
+        this.jetpackParticles.parent = this;
+        this.jetpackParticles.collision = true;
     }
     update(dt: number): void {
+        this.jetpackParticles.position = this.position.result().add(new Vector(-this.graphics.scale.x * 4, 16));
         const lastvel = this.velocity.result();
-        if (Math.abs(this.velocity.x) <= 10) {
+        if (Math.abs(this.velocity.x) <= 10 || this.jetpack) {
             if (!this.grounded) {
                 this.animState = 3;
                 this.graphics.textures = playerSprites.fall.textures;
@@ -142,21 +169,53 @@ export class Player extends Entity {
                 this.step += .001;
             }
         }
+
         if (!this.grounded) {
-            this.velocity.y -= 4000 * dt * (1 - highestDensity);
+            this.airTime += dt;
+            if (this.input.y <= 0) {
+                this.jumping = false;
+                this.jetpack = false;
+            }
+            if (this.input.y > 0 && !this.jumping && this.airTime > .05 && !this.jetpack) {
+                this.sounds.jetpackStart.play();
+                this.sounds.jetpackLoop.volume = .2;
+                this.jetpack = true;
+                this.jetpackLight.intensity = 2;
+            }
+            if (this.jetpack && this.velocity.y < 300)
+                this.velocity.y += 800*dt;
+            else {
+                this.velocity.y -= 4000 * dt * (1 - highestDensity / 4);
+            }
             this.velocity.y = Math.max(-500 * (1 - highestDensity), this.velocity.y);
-        } else {
-            if (this.input.y > 0 && this.velocity.y <= 0) this.velocity.y += 300 * highestDensity;
+        }
+        if (highestDensity > 0) {
+            this.airTime = 0;
+            this.jumping = false;
+            this.jetpack = false;
+        }
+        if (this.airTime < .05 && !this.jumping) {
+            if (this.input.y > 0 && this.velocity.y <= 0) {
+                this.velocity.y = 500 * highestDensity;
+                if (highestDensity == 0) this.velocity.y = 500;
+                this.jumping = true;
+            }
+        }
+        this.jetpackParticles.enabled = this.jetpack;
+        if (!this.jetpack){
+            this.sounds.jetpackLoop.volume = 0;
+            this.sounds.jetpackStart.stop();
+            this.jetpackLight.intensity = 0;
         }
 
+
         this.velocity.x += this.input.x * 10000 * dt;
-        this.velocity.x = Math.sign(this.velocity.x) * Math.min(this.run ? 180 : 60, Math.abs(this.velocity.x));
+        this.velocity.x = Math.sign(this.velocity.x) * Math.min(this.run ? 250 : 60, Math.abs(this.velocity.x));
         if (this.velocity.x < 0) this.graphics.scale.x = -1;
         else this.graphics.scale.x = 1;
         if (this.input.x == 0) this.velocity.x *= (1 - 10 * dt);
         if (highestDensity > 0) {
             if (this.input.x == 0) this.velocity.x *= (1 - 1 * dt);
-            if (this.input.y > 0 && this.velocity.y <= 0) this.velocity.y += 300 * highestDensity;
         }
 
         for (let i = 4; i <= Math.abs(this.velocity.x * dt) + 4; i++) {
@@ -179,22 +238,14 @@ export class Player extends Entity {
                 break;
             }
         }
-        console.log(this.climb);
-        
-        if (this.climb > 0) {
-            if (Math.sign(this.input.x) == this.climbDir) {
-                this.climb--;
-                this.position.y++;
-                this.velocity.y = 20;
-            } else {
-                this.climb = 0;
-            }
-        }
 
-        this.graphics.animationSpeed = Math.abs(this.velocity.x * (this.run ? 0.3 : 1) / 300);
+        this.graphics.animationSpeed = Math.abs(this.velocity.x * (this.run ? 0.22 : 1) / 300);
+
 
         if (this.velocity.x < 0) this.graphics.scale.x = -1;
         if (this.velocity.x > 0) this.graphics.scale.x = 1;
+
+        if (this.position.y > Terrain.height - 35) this.velocity.y = Math.min(0, this.velocity.y)
 
         this.position.add(this.velocity.result().mult(dt));
 
@@ -208,6 +259,7 @@ export class Player extends Entity {
             if (this.grounded)
                 new Cloud(this.position.result(), Math.abs(this.velocity.x), new Vector(this.velocity.x * random(-.5, .1), -5));
         }
+
 
 
         // this.camTarget = this.position.result().sub(new Vector(Math.floor(Camera.width / 4) * 4, Camera.height).mult(.5).sub(lastvel.mult(dt)));

@@ -318,9 +318,11 @@ kbd.pressed {
     font-weight: 100;
     flex-direction: column;
     text-shadow: 0px 5px 30px black;
+    text-transform: uppercase;
 }
 
 .splash.discovery::after {
+    text-transform: lowercase;
     content: "new biome discovered";
     font-size: 0.4em;
     display: block;
