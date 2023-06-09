@@ -50,6 +50,8 @@ jobs:
          node-version: "18.x"
       - name: Installing modules
         run: yarn
+      - name: Set Wine prefix
+        run: export WINEPREFIX=/winetemp
       - name: Building binaries
         run: yarn electron-build
       - name: Zip windows
