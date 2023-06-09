@@ -39,7 +39,8 @@ jobs:
         uses: actions/deploy-pages@v2.0.0
 
   binaries:
-    runs-on: electronuserland/builder:wine
+    runs-on: ubuntu-latest
+    container: electronuserland/builder:wine
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
