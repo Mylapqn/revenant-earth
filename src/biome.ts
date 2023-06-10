@@ -32,12 +32,12 @@ export class TerrainGenerator {
                 } else {
                     const newData = {} as any;
                     for (let key in item.biome) {
-                        let k = key as keyof BiomeData; 
+                        let k = key as keyof BiomeData;
                         const prevVal = previous.biome[k]
                         const thisVal = item.biome[k]
                         if (isNumber(prevVal) && isNumber(thisVal))
                             newData[k] = lerp(prevVal, thisVal, lastX * this.transitionRate);
-                            else
+                        else
                             newData[k] = prevVal
 
                     }
@@ -69,10 +69,17 @@ export class TerrainGenerator {
 
             trend += random(-currentState.curveModifier, currentState.curveModifier);
             trend = trend / 1.2;
-            if (ty > currentState.top) trend -= currentState.curveLimiter;
-            if (ty < currentState.bottom) trend += currentState.curveLimiter;
+            let limited = false;
+            if (ty > currentState.top) {
+                limited = true;
+                trend -= currentState.curveLimiter;
+            }
+            if (ty < currentState.bottom) {
+                limited = true;
+                trend += currentState.curveLimiter
+            };
             lastY = ty;
-            let ct = clamp(Math.abs(trend),currentState.slopeMin,currentState.slopeMax)*Math.sign(trend);
+            let ct = clamp(Math.abs(trend), currentState.slopeMin, (currentState.slopeMax || .5) + (limited ? currentState.curveLimiter : 0)) * Math.sign(trend);
             ty += ct
             if (!settings.skipPlacement) {
                 this.heights[x] = ty;
@@ -119,14 +126,14 @@ export type BiomeData = {
     mineralDepthPenalty: number;
     curveModifier: number;
     curveLimiter: number;
-    slopeMax?:number;
-    slopeMin?:number;
+    slopeMax?: number;
+    slopeMin?: number;
     bottom: number;
     top: number;
     name: string;
     shortName: string;
     music: Music;
-    colorGrade:colorGradeOptions;
+    colorGrade: colorGradeOptions;
 }
 
 function isNumber(value: any): value is number {

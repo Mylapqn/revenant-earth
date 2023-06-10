@@ -21,21 +21,21 @@ img {
 }
 
 @font-face {
-    font-family: "Dinnish";
+    font-family: "Dinish";
     font-weight: normal;
     font-style: normal;
     src: url("../fonts/Dinish-Regular.otf");
 }
 
 @font-face {
-    font-family: "Dinnish";
+    font-family: "Dinish";
     font-weight: normal;
     font-style: italic;
     src: url("../fonts/Dinish-Italic.otf");
 }
 
 @font-face {
-    font-family: "Dinnish";
+    font-family: "Dinish";
     font-weight: bold;
     font-style: normal;
     src: url("../fonts/Dinish-Bold.otf");
@@ -43,6 +43,7 @@ img {
 
 
 body {
+    font-family: "Bahnschrift", "Dinish", sans-serif;
     overflow: hidden;
     margin: 0;
     padding: 0;

@@ -70,8 +70,8 @@ export class Terrain {
         return new Vector(x, y);
     }
 
-    static testValid(x:number, y:number) {
-        return !(x < 2 || y < 2 || y > this.height-2 || x > this.width-2);
+    static testValid(x: number, y: number) {
+        return !(x < 2 || y < 2 || y > this.height - 2 || x > this.width - 2);
     }
 
     static setPixel(x: number, y: number, type: terrainType) {
@@ -91,6 +91,14 @@ export class Terrain {
 
     static deferUpdate(index: number) {
         this.defferedUpdate.add(index);
+    }
+
+    static getHeight(x: number) {
+        for (let y = 0; y < Terrain.height; y++) {
+            if (Terrain.getPixel(x, y) == terrainType.void) {
+                return y;
+            }
+        }
     }
 
     static addSound(type: terrainType, vol: number) {

@@ -21,8 +21,8 @@ export class ParallaxDrawer {
     static update() {
         for (let i = 0; i < this.layers.length; i++) {
             const layer = this.layers[i];
-            let camPos = Camera.position.result().add(new Vector(Camera.width / 2, (layer.depth<=1)?-495:-530)).mult(-1 * layer.depth);
-            layer.sprite.position.set(Math.floor(Camera.width / 2 + camPos.x), Math.floor(-camPos.y)+50);
+            let camPos = Camera.position.result().add(new Vector(Camera.width / 2, (layer.depth <= 1) ? -495 : -530)).mult(-1 * layer.depth);
+            layer.sprite.position.set(Math.floor(Camera.width / 2 + camPos.x), Math.floor(-camPos.y) + 50);
         }
     }
     static addLayer(sprite: Container | string, depth: number) {
@@ -66,6 +66,7 @@ export class Backdrop {
         this.container.zIndex = depth;
         this.container.addChild(this.graphics);
         ParallaxDrawer.addLayer(this.container, depth);
+        Backdrop.list.push(this);
     }
 
     setHeight(x: number, y: number) {
@@ -92,20 +93,22 @@ export class Backdrop {
 
         this.container.addChildAt(sprite, 0);
     }
+    static list: Backdrop[] = [];
 }
 
 export class BackdropProp {
     depth: number;
     container: Container;
-    graphic: Container;
+    graphic: Sprite;
     depthScaling: boolean;
     scaleMult: number;
-    constructor(position: Vector, depth: number, graphic: Container, scale = 1, depthScaling = true) {
+    constructor(position: Vector, depth: number, graphic: Sprite, scale = 1, depthScaling = true) {
         this.scaleMult = scale;
         this.depthScaling = depthScaling;
         this.depth = depth;
         this.container = new Container();
         this.graphic = graphic;
+        this.graphic.anchor.set(.5,1);
         this.graphic.position = new Vector(Math.floor(position.x * depth), position.y);
         this.container.zIndex = depth;
         this.container.addChild(graphic);

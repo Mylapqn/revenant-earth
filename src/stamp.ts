@@ -55,12 +55,7 @@ export class Stamps {
                         }
                     }
                 } else {
-                    for (let y = surfaceLevel; y < Terrain.height; y++) {
-                        if (Terrain.getPixel(x, y) == terrainType.void) {
-                            surfaceLevel = y;
-                            break;
-                        }
-                    }
+                    surfaceLevel = Terrain.getHeight(x)
                 }
             }
         }

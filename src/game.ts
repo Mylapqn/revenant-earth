@@ -40,6 +40,7 @@ import { ParticleFilter } from "./shaders/particle/particleFilter";
 import { Progress } from "./progress";
 import { Turbine } from "./entities/buildable/turbine";
 import { Seed } from "./entities/plants/tree/seed";
+import { Prop } from "./entities/passive/prop";
 let seed = parseInt(window.location.toString().split('?')[1]);
 if (!seed) seed = Math.floor(Math.random() * 1000);
 Math.random = mulberry32(seed);
@@ -219,13 +220,14 @@ export async function initGame(skipIntro = false) {
     const generator = new TerrainGenerator();
     Terrain.generator = generator;
 
-    const ruins: BiomeData = { stoneTop: 0.5, stoneBottom: 0.5, bottom: 360, top: 480, moisture: 2, minerals: 3, dirtDepth: 50, mineralDepthPenalty: -2, curveModifier: 0.5, curveLimiter: 0.1, biomeId: 1, name: "Urban Ruins", shortName: "Ruins", music: SoundManager.music.ruins, colorGrade: colorGradeFilter.styles.dust };
+    const flatlands: BiomeData = { stoneTop: 0.5, stoneBottom: 0.5, bottom: 360, top: 480, moisture: 2, minerals: 3, dirtDepth: 50, mineralDepthPenalty: -2, curveModifier: 0.5, curveLimiter: 0.1, biomeId: 1, name: "Abandoned Flatlands", shortName: "Flatlands", music: SoundManager.music.ruins, colorGrade: colorGradeFilter.styles.dust };
     const mountains: BiomeData = { stoneTop: 1, stoneBottom: 2, bottom: 530, top: 660, moisture: 2, minerals: 1, dirtDepth: 10, mineralDepthPenalty: 0, curveModifier: .8, slopeMin: .7, slopeMax: 1.2, curveLimiter: 5, biomeId: 2, name: "Melted Mountains", shortName: "Mountains", music: SoundManager.music.mountains, colorGrade: colorGradeFilter.styles.bleak };
     const swamp: BiomeData = { stoneTop: 2, stoneBottom: 0.5, bottom: 360, top: 400, moisture: 3, minerals: 0, dirtDepth: 80, mineralDepthPenalty: 0, curveModifier: 0.5, curveLimiter: 0.1, biomeId: 3, name: "Swampy Lowlands", shortName: "Lowlands", music: SoundManager.music.swamp, colorGrade: colorGradeFilter.styles.green };
     const wasteland: BiomeData = { stoneTop: .5, stoneBottom: 3, bottom: 340, top: 450, moisture: 0, minerals: 2, dirtDepth: 30, mineralDepthPenalty: -1, curveModifier: .3, slopeMax: .25, curveLimiter: .1, biomeId: 4, name: "Industrial Wasteland", shortName: "Wasteland", music: SoundManager.music.wasteland, colorGrade: colorGradeFilter.styles.industry };
-    generator.addToQueue(swamp, 1000);
-    generator.addToQueue(mountains, 1000);
-    generator.addToQueue(ruins, 1000);
+    const ruins: BiomeData = { stoneTop: .5, stoneBottom: 3, bottom: 340, top: 450, moisture: 0, minerals: 2, dirtDepth: 30, mineralDepthPenalty: -1, curveModifier: .3, slopeMax: .25, curveLimiter: .5, biomeId: 5, name: "Urban Ruins", shortName: "Ruins", music: SoundManager.music.ruins, colorGrade: colorGradeFilter.styles.bleak };
+    generator.addToQueue(mountains, 500);
+    generator.addToQueue(ruins, 1500);
+    generator.addToQueue(flatlands, 1000);
     generator.addToQueue(wasteland, 1000);
     generator.addToQueue(swamp, 1000);
     generator.addToQueue(mountains, 1000);
@@ -238,6 +240,7 @@ export async function initGame(skipIntro = false) {
 
     let nextRock = randomInt(1, 10);
     let nextTree = randomInt(1, 10);
+    let nextCityBuilding = randomInt(40, 100);
     function objectSpawner(x: number, ty: number, biomeData: BiomeData) {
         if (x == nextRock) {
             let size = random(3, 8);
@@ -251,15 +254,25 @@ export async function initGame(skipIntro = false) {
                 new Seed(new Vector(x, ty), null, null, deadTreeSettings);
             }
         }
+        if (x >= nextCityBuilding) {
+            nextCityBuilding = x + randomInt(150, 250);
+            if (biomeData.biomeId == 5) {
+                for (const backdrop of Backdrop.list) {
+                    if (randomBool(backdrop.depth <= 1 ? .9 : .3)) backdrop.placeSprite(x + randomInt(-60, 60), 0, Sprite.from(`BG/city/${randomBool() ? "ruined_" : ""}Skyscraper_${randomInt(0, 4)}.png`), true, 200);
+                }
+                if (randomBool(.9)) new BackdropProp(new Vector(x, 720-ty), random(.68, .95), Sprite.from(`BG/city/${randomBool() ? "ruined_" : ""}Skyscraper_${randomInt(0, 4)}.png`), 1, true);
+                console.log(ty);
+            }
+        }
     }
 
 
-    generator.generate(undefined, objectSpawner);
     generator.generate({ skipPlacement: true, padding: 250, scale: 1 / backdrop0.depth }, (x, ty) => backdrop0.setHeight(x, ty));
     generator.generate({ skipPlacement: true, padding: 500, scale: 1 / backdrop1.depth }, (x, ty) => backdrop1.setHeight(x, ty));
     generator.generate({ skipPlacement: true, padding: 1000, scale: 1 / backdrop2.depth }, (x, ty) => backdrop2.setHeight(x, ty));
     generator.generate({ skipPlacement: true, padding: 3000, scale: 1 / backdrop3.depth }, (x, ty) => backdrop3.setHeight(x, ty));
     generator.generate({ skipPlacement: true, padding: 0, scale: .5 }, (x, ty) => { foredrop.setHeight(x, ty); });
+    generator.generate(undefined, objectSpawner);
     new Cloud(new Vector(100, 500));
     backdrop3.placeSprite(2050, 0, (() => { const a = Sprite.from("building.png"); return a })(), false, 100);
     backdrop1.placeSprite(3250, 0, Sprite.from("BG/factory.png"), false, 150);
@@ -267,14 +280,16 @@ export async function initGame(skipIntro = false) {
     backdrop2.placeSprite(3500, 0, Sprite.from("BG/pipes2.png"), false, 300);
     backdrop0.placeSprite(3701, 0, Sprite.from("BG/pipes3.png"), false, 300);
     backdrop0.placeSprite(3200, 0, Sprite.from("BG/pipes4.png"), false, 300);
+    backdrop1.placeSprite(1500, 0, Sprite.from("BG/highway1.png"), false, 200);
+    //backdrop1.placeSprite(2300, 0, (() => { const a = Sprite.from("BG/city/ruined_Skyscraper_0.png"); return a })(), true, 70);
     backdrop0.placeSprite(2300, 0, (() => { const a = Sprite.from("building2.png"); return a })(), false, 70);
     backdrop0.placeSprite(2600, 0, (() => { const a = Sprite.from("building3.png"); return a })(), false, 70);
-    backdrop1.placeSprite(2050, 0, (() => { const a = Sprite.from("building4.png"); return a })(), false, 70);
-    backdrop1.placeSprite(2850, 0, (() => { const a = Sprite.from("building4.png"); return a })(), true, 70);
     backdrop0.placeSprite(2900, 0, (() => { const a = Sprite.from("dump1.png"); return a })(), false, 120);
-    backdrop2.placeSprite(1400, 0, (() => { const a = Sprite.from("BG/mountains/mountain1.png"); return a })(), false, 100);
-    backdrop1.placeSprite(1500, 0, (() => { const a = Sprite.from("BG/mountains/mountain2.png"); return a })(), false, 100);
+    backdrop2.placeSprite(400, 0, (() => { const a = Sprite.from("BG/mountains/mountain1.png"); return a })(), false, 100);
+    backdrop1.placeSprite(500, 0, (() => { const a = Sprite.from("BG/mountains/mountain2.png"); return a })(), false, 100);
 
+
+    new Prop(new Vector(2150, -10), Sprite.from("entity/citySign.png"));
 
     player = new Player(new Vector(2510, 600));
 
@@ -283,12 +298,12 @@ export async function initGame(skipIntro = false) {
     cloudList = [];
 
     for (let i = 0; i <= 12; i++) {
-        const c = new BackdropProp(new Vector(randomInt(500, 2500), randomInt(80, 120)), random(.02, .7), (() => { const a = new Sprite(Texture.from("cloud.png")); a.alpha = .4; return a })(), 2, true);
+        const c = new BackdropProp(new Vector(randomInt(500, 2500), randomInt(180, 220)), random(.02, .7), (() => { const a = new Sprite(Texture.from("cloud.png")); a.alpha = .4; return a })(), 2, true);
         cloudList.push(c);
     }
 
     foredrop.placeSprite(2500, 0, (Sprite.from("FG/urban1.png")), false, 512);
-    foredrop.placeSprite(2200, 0, (Sprite.from("FG/urban2.png")), false, 512);
+    foredrop.placeSprite(1800, 0, (Sprite.from("FG/urban2.png")), false, 512);
     foredrop.placeSprite(2300, 0, (Sprite.from("FG/urban3.png")), false, 200);
 
     Camera.position.y = 400;
@@ -302,7 +317,7 @@ export async function initGame(skipIntro = false) {
         Stamps.stamp("stamp2", new Vector(2800, 0), { useDirtFrom: generator, replaceMatching: (r, w) => TerrainManager.isDirt(r) });
         Stamps.stamp("stamp5", new Vector(2650, 0), { useDirtFrom: generator, replaceMatching: (r, w) => TerrainManager.isDirt(r) });
         Stamps.stamp("stamp3", new Vector(3250, -36), { useDirtFrom: generator, replaceMatching: (r, w) => TerrainManager.isDirt(r) });
-        Stamps.stamp("stamp4", new Vector(2200, -36), { useDirtFrom: generator, replaceMatching: (r, w) => TerrainManager.isDirt(r) });
+        Stamps.stamp("stamp4", new Vector(2000, -36), { useDirtFrom: generator, replaceMatching: (r, w) => TerrainManager.isDirt(r) });
         Stamps.stamp("bigbuilding", new Vector(800, 0), { useDirtFrom: generator, replaceMatching: (r, w) => TerrainManager.isDirt(r), replace: [terrainType.stone] });
         Stamps.stamp("chimney", new Vector(3200, -5), { useDirtFrom: generator, replaceMatching: (r, w) => TerrainManager.isDirt(r) });
         Stamps.stamp("pipeOut", new Vector(4050, 0), { useDirtFrom: generator, replaceMatching: (r, w) => TerrainManager.isDirt(r), replace: [terrainType.stone] });

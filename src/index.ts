@@ -49,12 +49,12 @@ function init() {
     mainMenuContainer.addChild(new CustomGuiElement("h1", "Revenant Earth", "gameTitle"));
     let buttonPanel = new GuiPanel({ blankStyle: true, parent: mainMenuContainer, flexDirection: "column" });
     buttonPanel.addChild(
-        new GuiButton({ content: "NEW GAME", callback: startGame, fillContainer: true }),
-        new GuiPanel({ blankStyle: true, flexDirection: "row" })
-            .addChild(
-                new GuiButton({ content: "CONTINUE", callback: continueGame }),
-                new GuiButton({ content: "EXIT", callback: () => { window.location.href = "index.html"; } })
-            )
+        new GuiButton({ content: "NEW GAME", callback: startGame,width:10 }),
+        //new GuiPanel({ blankStyle: true, flexDirection: "row" })
+        //.addChild(
+        new GuiButton({ content: "CONTINUE", callback: continueGame ,width:10 }),
+        new GuiButton({ content: "EXIT", callback: () => { window.location.href = "index.html"; },width:10  })
+        //)
     );
     menuActive = true;
     menuUpdate();

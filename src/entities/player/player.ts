@@ -183,11 +183,11 @@ export class Player extends Entity {
                 this.jetpackLight.intensity = 2;
             }
             if (this.jetpack && this.velocity.y < 300)
-                this.velocity.y += 800*dt;
+                this.velocity.y += 500*dt;
             else {
-                this.velocity.y -= 4000 * dt * (1 - highestDensity / 4);
+                this.velocity.y -= 2800 * dt * (1 - highestDensity / 4);
             }
-            this.velocity.y = Math.max(-500 * (1 - highestDensity), this.velocity.y);
+            this.velocity.y = Math.max(-700 * (1 - highestDensity), this.velocity.y);
         }
         if (highestDensity > 0) {
             this.airTime = 0;
@@ -196,7 +196,7 @@ export class Player extends Entity {
         }
         if (this.airTime < .05 && !this.jumping) {
             if (this.input.y > 0 && this.velocity.y <= 0) {
-                this.velocity.y = 500 * highestDensity;
+                this.velocity.y = 400 * highestDensity;
                 if (highestDensity == 0) this.velocity.y = 500;
                 this.jumping = true;
             }
