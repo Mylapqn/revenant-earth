@@ -47,7 +47,7 @@ export class Player extends Entity {
     velocity = new Vector();
     input = new Vector();
     grounded = false;
-    camTarget = Camera.position.result();
+    camTarget:Vector;
     graphics: AnimatedSprite;
     run = false;
     jetpack = false;
@@ -86,6 +86,8 @@ export class Player extends Entity {
         this.sounds.jetpackLoop.loop = true;
         this.sounds.jetpackLoop.play();
 
+        this.camTarget = this.position.result();
+
         this.jetpackParticles = new ParticleSystem({ position: this.position, emitRate: 4, colorFrom: new Color(200, 255, 255), colorTo: new Color(200, 200, 200) })
         this.jetpackParticles.angle = -Math.PI / 2;
         this.jetpackParticles.emitSpeed = 300;
@@ -98,8 +100,10 @@ export class Player extends Entity {
         this.jetpackParticles.alphaTo = 0;
         this.jetpackParticles.parent = this;
         this.jetpackParticles.collision = true;
+        this.updatePosition();
     }
     update(dt: number): void {
+        
         this.jetpackParticles.position = this.position.result().add(new Vector(-this.graphics.scale.x * 4, 16));
         const lastvel = this.velocity.result();
         if (Math.abs(this.velocity.x) <= 10 || this.jetpack) {

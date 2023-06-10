@@ -292,7 +292,7 @@ export async function initGame(skipIntro = false) {
     new Prop(new Vector(2150, -10), Sprite.from("entity/citySign.png"));
 
     player = new Player(new Vector(2510, 600));
-
+    Camera.position = player.position.result();
     //new Robot(new Vector(2500, 600), undefined, 0);
 
     cloudList = [];
@@ -305,9 +305,6 @@ export async function initGame(skipIntro = false) {
     foredrop.placeSprite(2500, 0, (Sprite.from("FG/urban1.png")), false, 512);
     foredrop.placeSprite(1800, 0, (Sprite.from("FG/urban2.png")), false, 512);
     foredrop.placeSprite(2300, 0, (Sprite.from("FG/urban3.png")), false, 200);
-
-    Camera.position.y = 400;
-    Camera.position.x = 3000;
 
     Stamps.loadStamps().then(() => {
         //const pos = Stamps.stamp("stamp", new Vector(2500, 0), { useDirtFrom: generator });
@@ -364,6 +361,7 @@ export async function initGame(skipIntro = false) {
     let biomeTime = 0;
 
     ticker.add((delta) => {
+        
         if (terrainScore < 80 && tps / tpsMeter < 0.12 && (1000 / Math.max(...dtAvg)) > 50) {
             terrainUpdate();
         }
