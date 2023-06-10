@@ -4,7 +4,7 @@ import { debugPrint, worldToScreen } from "../../game";
 import { Camera } from "../../camera";
 import { Entity } from "../../entity";
 import { lookup, Terrain, terrainType } from "../../terrain";
-import { random, randomInt } from "../../utils";
+import { clamp, random, randomInt } from "../../utils";
 import { Vector } from "../../vector";
 import { Cloud } from "../passive/cloud";
 import { Color } from "../../color";
@@ -47,7 +47,7 @@ export class Player extends Entity {
     velocity = new Vector();
     input = new Vector();
     grounded = false;
-    camTarget:Vector;
+    camTarget: Vector;
     graphics: AnimatedSprite;
     run = false;
     jetpack = false;
@@ -68,7 +68,7 @@ export class Player extends Entity {
         jetpackLoop: new SoundEffect("sound/fx/jetpack_loop.ogg", 0),
         jetpackStart: new SoundEffect("sound/fx/jetpack_start.ogg", .2)
     }
-    jetpackLight = new Light(this, new Vector(-5, 15), -Math.PI/2+.2, 1.8, new Color(255, 255, 255), 200, 0);
+    jetpackLight = new Light(this, new Vector(-5, 15), -Math.PI / 2 + .2, 1.8, new Color(255, 255, 255), 200, 0);
 
     constructor(position: Vector) {
         const graph = new AnimatedSprite(playerSprites.stand.textures);
@@ -103,7 +103,7 @@ export class Player extends Entity {
         this.updatePosition();
     }
     update(dt: number): void {
-        
+
         this.jetpackParticles.position = this.position.result().add(new Vector(-this.graphics.scale.x * 4, 16));
         const lastvel = this.velocity.result();
         if (Math.abs(this.velocity.x) <= 10 || this.jetpack) {
@@ -129,9 +129,9 @@ export class Player extends Entity {
             this.graphics.play();
         }
 
-        if(this.climb > 0){
+        if (this.climb > 0) {
             this.graphics.textures = playerSprites.climb.textures;
-            this.graphics.currentFrame = Math.floor(this.climb/25 * playerSprites.climb.totalFrames);
+            this.graphics.currentFrame = Math.floor(this.climb / 25 * playerSprites.climb.totalFrames);
             this.animState = 0;
         }
 
@@ -163,7 +163,7 @@ export class Player extends Entity {
                 break;
             }
         }
-    
+
         if (highestDensity > 0 && highestDensity < 1) {
             if ((this.velocity.y) < -250) {
                 Terrain.addSound(terrainType.water1, Math.abs(this.velocity.y) * 3);
@@ -187,7 +187,7 @@ export class Player extends Entity {
                 this.jetpackLight.intensity = 2;
             }
             if (this.jetpack && this.velocity.y < 300)
-                this.velocity.y += 500*dt;
+                this.velocity.y += 500 * dt;
             else {
                 this.velocity.y -= 2800 * dt * (1 - highestDensity / 4);
             }
@@ -206,15 +206,15 @@ export class Player extends Entity {
             }
         }
         this.jetpackParticles.enabled = this.jetpack;
-        if (!this.jetpack){
-            this.sounds.jetpackLoop.volume = 0;
+        if (!this.jetpack) {
+            this.sounds.jetpackLoop.volume *= .9;
             this.sounds.jetpackStart.stop();
             this.jetpackLight.intensity = 0;
         }
 
 
         this.velocity.x += this.input.x * 10000 * dt;
-        this.velocity.x = Math.sign(this.velocity.x) * Math.min(this.run ? 250 : 60, Math.abs(this.velocity.x));
+        this.velocity.x = Math.sign(this.velocity.x) * Math.min((clamp(this.airTime/2+.9,1,1.4)) * (this.run ? 250 : 60), Math.abs(this.velocity.x));
         if (this.velocity.x < 0) this.graphics.scale.x = -1;
         else this.graphics.scale.x = 1;
         if (this.input.x == 0) this.velocity.x *= (1 - 10 * dt);
@@ -234,7 +234,7 @@ export class Player extends Entity {
             }
 
             if (j >= 5) {
-                if ( j > 10 && j < 25 && this.climb == 0 && this.input.x != 0 && this.input.y > 0) {
+                if (j > 10 && j < 25 && this.climb == 0 && this.input.x != 0 && this.input.y > 0) {
                     this.climb = j;
                     this.climbDir = Math.sign(this.input.x);
                 }

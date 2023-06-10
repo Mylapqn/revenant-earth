@@ -18,7 +18,7 @@ import { Cloud } from "./entities/passive/cloud";
 import { LightingFilter } from "./shaders/lighting/lightingFilter";
 import { BiomeData, TerrainGenerator } from "./biome";
 import { SkyFilter } from "./shaders/atmosphere/skyFilter";
-import { GUI, GuiButton, PositionableGuiElement, GuiSplash, BaseGuiElement, CustomGuiElement, GuiPanel, TutorialPrompt } from "./gui/gui";
+import { GUI, GuiButton, PositionableGuiElement, GuiSplash, BaseGuiElement, CustomGuiElement, GuiPanel, TutorialPrompt, CollapsibleGuiElement } from "./gui/gui";
 import { Color } from "./color";
 import { clamp } from "./utils";
 import { Stamps } from "./stamp";
@@ -224,7 +224,7 @@ export async function initGame(skipIntro = false) {
     const mountains: BiomeData = { stoneTop: 1, stoneBottom: 2, bottom: 530, top: 660, moisture: 2, minerals: 1, dirtDepth: 10, mineralDepthPenalty: 0, curveModifier: .8, slopeMin: .7, slopeMax: 1.2, curveLimiter: 5, biomeId: 2, name: "Melted Mountains", shortName: "Mountains", music: SoundManager.music.mountains, colorGrade: colorGradeFilter.styles.bleak };
     const swamp: BiomeData = { stoneTop: 2, stoneBottom: 0.5, bottom: 360, top: 400, moisture: 3, minerals: 0, dirtDepth: 80, mineralDepthPenalty: 0, curveModifier: 0.5, curveLimiter: 0.1, biomeId: 3, name: "Swampy Lowlands", shortName: "Lowlands", music: SoundManager.music.swamp, colorGrade: colorGradeFilter.styles.green };
     const wasteland: BiomeData = { stoneTop: .5, stoneBottom: 3, bottom: 340, top: 450, moisture: 0, minerals: 2, dirtDepth: 30, mineralDepthPenalty: -1, curveModifier: .3, slopeMax: .25, curveLimiter: .1, biomeId: 4, name: "Industrial Wasteland", shortName: "Wasteland", music: SoundManager.music.wasteland, colorGrade: colorGradeFilter.styles.industry };
-    const ruins: BiomeData = { stoneTop: .5, stoneBottom: 3, bottom: 340, top: 450, moisture: 0, minerals: 2, dirtDepth: 30, mineralDepthPenalty: -1, curveModifier: .3, slopeMax: .25, curveLimiter: .5, biomeId: 5, name: "Urban Ruins", shortName: "Ruins", music: SoundManager.music.ruins, colorGrade: colorGradeFilter.styles.bleak };
+    const ruins: BiomeData = { waterLevel:380, stoneTop: .5, stoneBottom: 3, bottom: 320, top: 380, moisture: 3, minerals: 2, dirtDepth: 30, mineralDepthPenalty: -1, curveModifier: .3, slopeMax: .25, curveLimiter: .5, biomeId: 5, name: "Urban Ruins", shortName: "Ruins", music: SoundManager.music.ruins, colorGrade: colorGradeFilter.styles.bleak };
     generator.addToQueue(mountains, 500);
     generator.addToQueue(ruins, 1500);
     generator.addToQueue(flatlands, 1000);
@@ -260,7 +260,7 @@ export async function initGame(skipIntro = false) {
                 for (const backdrop of Backdrop.list) {
                     if (randomBool(backdrop.depth <= 1 ? .9 : .3)) backdrop.placeSprite(x + randomInt(-60, 60), 0, Sprite.from(`BG/city/${randomBool() ? "ruined_" : ""}Skyscraper_${randomInt(0, 4)}.png`), true, 200);
                 }
-                if (randomBool(.9)) new BackdropProp(new Vector(x, 720-ty), random(.68, .95), Sprite.from(`BG/city/${randomBool() ? "ruined_" : ""}Skyscraper_${randomInt(0, 4)}.png`), 1, true);
+                if (randomBool(.9)) new BackdropProp(new Vector(x, 720 - ty), random(.68, .95), Sprite.from(`BG/city/${randomBool() ? "ruined_" : ""}Skyscraper_${randomInt(0, 4)}.png`), 1, true);
                 console.log(ty);
             }
         }
@@ -361,7 +361,7 @@ export async function initGame(skipIntro = false) {
     let biomeTime = 0;
 
     ticker.add((delta) => {
-        
+
         if (terrainScore < 80 && tps / tpsMeter < 0.12 && (1000 / Math.max(...dtAvg)) > 50) {
             terrainUpdate();
         }
@@ -664,13 +664,11 @@ export async function initGame(skipIntro = false) {
             { content: "Ne", callback: () => { new DialogBox("Nemám hlad.", 2) } }
         ]);
     }, 1000); */
-    let devBar = new PositionableGuiElement({ position: new Vector(25, 25), hidden: true })
-    devBar.addChild(new CustomGuiElement("span", "Development options"));
-    let devPanel = new GuiPanel({ blankStyle: true, parent: devBar, flexDirection: "row" });
-    new GuiButton({ content: "Talk", callback: () => { introDialogue.execute(); }, parent: devPanel })
-    new GuiButton({ content: "Tutorial", callback: () => { moveTutorial() }, parent: devPanel })
-    new GuiButton({ flexDirection: "row", image: "ui/icon-day.png", content: "Day", callback: () => { Atmosphere.settings.sunAngle = -2 }, parent: devPanel })
-    new GuiButton({ flexDirection: "row", image: "ui/icon-night.png", content: "Night", callback: () => { Atmosphere.settings.sunAngle = 1; }, parent: devPanel })
+    let devBar = new CollapsibleGuiElement({ position: 2, edge: "left", content: "Development options", flexDirection: "column", hidden: true })
+    new GuiButton({ width: 8, content: "Talk", callback: () => { introDialogue.execute(); }, parent: devBar.container })
+    new GuiButton({ width: 8, content: "Tutorial", callback: () => { moveTutorial() }, parent: devBar.container })
+    new GuiButton({ width: 8, flexDirection: "row", image: "ui/icon-day.png", content: "Day", callback: () => { Atmosphere.settings.sunAngle = -2 }, parent: devBar.container })
+    new GuiButton({ width: 8, flexDirection: "row", image: "ui/icon-night.png", content: "Night", callback: () => { Atmosphere.settings.sunAngle = 1; }, parent: devBar.container })
 
 
     function placeSeed() {
@@ -703,23 +701,20 @@ export async function initGame(skipIntro = false) {
     }
 
 
+    let buildingToolbar = new CollapsibleGuiElement({ position: 2, edge: "right", content: "Build menu", hidden: true });
 
-    const hotbar = new PositionableGuiElement({ alignItems: "end", blankStyle: true, position: new Vector(25, 25), invertHorizontalPosition: true })
-    let hotbarPanelBuild = new GuiPanel({ content: "Build menu", parent: hotbar, flexDirection: "column", hidden: true });
-    let hotbarSubPanel = new GuiPanel({ blankStyle: true, parent: hotbarPanelBuild, flexDirection: "row" });
-    new GuiButton({ width: 5, content: "Seed", callback: () => { placeSeed() }, parent: hotbarSubPanel })
-    new GuiButton({ width: 5, content: "Pole", callback: () => { placePole() }, parent: hotbarSubPanel })
-    new GuiButton({ width: 5, content: "Turbine", callback: () => { placeTurbine() }, parent: hotbarSubPanel })
-    new GuiButton({ width: 5, content: "Scanner", callback: () => { placeScanner() }, parent: hotbarSubPanel })
+    new GuiButton({ width: 5, content: "Seed", callback: () => { placeSeed() }, parent: buildingToolbar.container })
+    new GuiButton({ width: 5, content: "Pole", callback: () => { placePole() }, parent: buildingToolbar.container })
+    new GuiButton({ width: 5, content: "Turbine", callback: () => { placeTurbine() }, parent: buildingToolbar.container })
+    new GuiButton({ width: 5, content: "Scanner", callback: () => { placeScanner() }, parent: buildingToolbar.container })
 
-    let hotbarPanelTerrain = new GuiPanel({ content: "Terrain editing", parent: hotbar, flexDirection: "column", hidden: true });
-    hotbarSubPanel = new GuiPanel({ blankStyle: true, parent: hotbarPanelTerrain, flexDirection: "row" });
-    new GuiButton({ width: 5, image: "ui/dirt.png", content: "Dirt", callback: () => { preferences.selectedTerrainType = terrainType.dirt00 }, parent: hotbarSubPanel })
-    new GuiButton({ width: 5, image: "ui/sand.png", content: "Sand", callback: () => { preferences.selectedTerrainType = terrainType.sand }, parent: hotbarSubPanel })
-    new GuiButton({ width: 5, image: "ui/water.png", content: "Water", callback: () => { preferences.selectedTerrainType = terrainType.water1 }, parent: hotbarSubPanel })
-    new GuiButton({ width: 5, image: "ui/grass.png", content: "Grass", callback: () => { preferences.selectedTerrainType = terrainType.grass0 }, parent: hotbarSubPanel })
-    new GuiButton({ width: 5, image: "ui/delete.png", content: "Remove", callback: () => { preferences.selectedTerrainType = terrainType.void }, parent: hotbarSubPanel })
+    let terrainEditingToolbar = new CollapsibleGuiElement({ position: 11, edge: "right", content: "Terrain Editing", hidden: true });
 
+    new GuiButton({ width: 5, image: "ui/dirt.png", content: "Dirt", callback: () => { preferences.selectedTerrainType = terrainType.dirt00 }, parent: terrainEditingToolbar.container })
+    new GuiButton({ width: 5, image: "ui/sand.png", content: "Sand", callback: () => { preferences.selectedTerrainType = terrainType.sand }, parent: terrainEditingToolbar.container })
+    new GuiButton({ width: 5, image: "ui/water.png", content: "Water", callback: () => { preferences.selectedTerrainType = terrainType.water1 }, parent: terrainEditingToolbar.container })
+    new GuiButton({ width: 5, image: "ui/grass.png", content: "Grass", callback: () => { preferences.selectedTerrainType = terrainType.grass0 }, parent: terrainEditingToolbar.container })
+    new GuiButton({ width: 5, image: "ui/delete.png", content: "Remove", callback: () => { preferences.selectedTerrainType = terrainType.void }, parent: terrainEditingToolbar.container })
 
     scannerData = new PositionableGuiElement({ position: new Vector(25, 25), invertHorizontalPosition: true, invertVerticalPosition: true, hidden: true })
 
@@ -740,13 +735,19 @@ export async function initGame(skipIntro = false) {
 
     async function uiTutorial() {
         await new TutorialPrompt({ content: "Welcome to *Revenant Earth*! This tutorial will guide you through the user interface.<br>Press [e] to continue.", keys: ["e"] }).awaitDone;
-        hotbarPanelBuild.fadeIn();
-        await new TutorialPrompt({ content: "The *build menu* allows you to plant seeds or construct buildings.<br>Press [e] to continue.", keys: ["e"], centerX: false, position: new Vector(25, 170), invertHorizontalPosition: true }).awaitDone;
-        hotbarPanelTerrain.fadeIn();
+        await buildingToolbar.fadeIn();
+        await buildingToolbar.setCollapse(false);
+        await new TutorialPrompt({ content: "The *build menu* allows you to plant seeds or construct buildings.<br>Press [e] to continue.", keys: ["e"], centerX: false, position: new Vector(25, 220), invertHorizontalPosition: true }).awaitDone;
+        buildingToolbar.setCollapse(true);
+        await terrainEditingToolbar.fadeIn();
+        await terrainEditingToolbar.setCollapse(false);
         Progress.terrainUnlocked = true;
-        await new TutorialPrompt({ content: "The *terrain editing toolbar* allows you to edit the terrain. Select a terrain type, then place it by clicking or holding the [Left mouse button] in the game world.<br>You can delete terrain with the [Right mouse button].<br>Press [e] to continue.", keys: ["e"], centerX: false, position: new Vector(25, 340), invertHorizontalPosition: true }).awaitDone;
-        devBar.fadeIn();
-        await new TutorialPrompt({ content: "This is the *Development menu*. It allows you to access special functions to test features of the game.<br>It is recommended to *avoid using it* if you want to enjoy the game as intended.<br>Press [e] to continue.", keys: ["e"], centerX: false, position: new Vector(25, 170) }).awaitDone;
+        await new TutorialPrompt({ content: "The *terrain editing toolbar* allows you to edit the terrain. Select a terrain type, then place it by clicking or holding the [Left mouse button] in the game world.<br>You can delete terrain with the [Right mouse button].<br>Press [e] to continue.", keys: ["e"], centerX: false, position: new Vector(25, 420), invertHorizontalPosition: true }).awaitDone;
+        terrainEditingToolbar.setCollapse(true);
+        await devBar.fadeIn();
+        await devBar.setCollapse(false);
+        await new TutorialPrompt({ content: "This is the *Development menu*. It allows you to access special functions to test features of the game.<br>It is recommended to *avoid using it* if you want to enjoy the game as intended.<br>Press [e] to continue.", keys: ["e"], centerX: false, position: new Vector(25, 420) }).awaitDone;
+        await devBar.setCollapse(true);
         scannerData.fadeIn();
         Progress.timeUnlocked = true;
         await new TutorialPrompt({ content: "That's it! Explore the game world and try all the different options!", duration: 8 }).awaitDone;
@@ -772,8 +773,8 @@ export async function initGame(skipIntro = false) {
         //uiTutorial();
         //moveTutorial();
         devBar.fadeIn();
-        hotbarPanelBuild.fadeIn();
-        hotbarPanelTerrain.fadeIn();
+        buildingToolbar.fadeIn();
+        terrainEditingToolbar.fadeIn();
         scannerData.fadeIn();
         Progress.controlsUnlocked = true;
         Progress.timeUnlocked = true;

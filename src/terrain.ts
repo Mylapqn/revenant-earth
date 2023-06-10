@@ -95,7 +95,7 @@ export class Terrain {
 
     static getHeight(x: number) {
         for (let y = 0; y < Terrain.height; y++) {
-            if (Terrain.getPixel(x, y) == terrainType.void) {
+            if (Terrain.getPixel(x, y) <= terrainType.water3) {
                 return y;
             }
         }

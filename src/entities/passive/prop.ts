@@ -4,6 +4,7 @@ import { Entity } from "../../entity";
 import { random } from "../../utils";
 import { Vector } from "../../vector";
 import { Terrain } from "../../terrain";
+import { Falling } from "../falling";
 
 export class Prop extends Entity {
     constructor(position: Vector, graphics: Sprite) {

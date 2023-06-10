@@ -1,8 +1,9 @@
 :root {
     --outline-color-inactive: #ffffff1a;
     --outline-color-active: #ffffff81;
-    --scale: calc(min(1px, .055vw));
+    --scale: calc(min(1px, .06vw));
     --borderWidth: .2em;
+    --uibg:#00000062;
 }
 
 * {

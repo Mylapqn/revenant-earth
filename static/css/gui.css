@@ -86,7 +86,7 @@
 
 .ui {
     user-select: none;
-    background-color: #00000062;
+    background-color: var(--uibg);
     padding: 1em;
     backdrop-filter: blur(2em);
     transition: transform 0.1s, outline 0.1s, opacity 1s;
@@ -118,6 +118,106 @@
     padding: 0;
     background: none;
     backdrop-filter: none;
+}
+
+.collapsible {
+    min-height: 2em;
+    min-width: 4em;
+    padding: 0;
+    position: absolute;
+    background-color: var(--uibg);
+    transition: translate 1s, opacity 1s;
+    --reveal-width: 4em;
+    --rv: var(--reveal-width);
+    overflow: hidden;
+    gap: 0;
+}
+
+/* .collapsible.collapsed:hover {
+    --rv: calc(var(--reveal-width) + .5em);
+} */
+
+.collapsible-left {
+    left: 0;
+    flex-direction: row-reverse;
+    border-radius: 0 .3em .3em 0;
+}
+
+.collapsible-right {
+    right: 0;
+    flex-direction: row;
+    border-radius: .3em 0 0 .3em;
+}
+
+.collapsible-top {
+    top: 0;
+    flex-direction: column-reverse;
+    border-radius: 0 0 .3em .3em;
+}
+
+.collapsible-bottom {
+    bottom: 0;
+    flex-direction: column;
+    border-radius: .3em .3em 0 0;
+}
+
+.collapsible-left.collapsed {
+    translate: calc(-1 * (100% - var(--rv))) 0;
+}
+
+.collapsible-right.collapsed {
+    translate: calc(100% - var(--rv)) 0;
+}
+
+.collapsible-top.collapsed {
+    translate: 0 calc(-1 * (100% - var(--rv)));
+}
+
+.collapsible-bottom.collapsed {
+    translate: 0 calc(100% - var(--rv));
+}
+
+.collapsible-left .collapsibleClicker,
+.collapsible-right .collapsibleClicker {
+    writing-mode: vertical-lr;
+    padding: 1em 0;
+    width: var(--reveal-width);
+
+}
+
+.collapsible-top .collapsibleClicker,
+.collapsible-bottom .collapsibleClicker {
+    padding: 0 1em;
+    height: var(--reveal-width);
+
+}
+
+.collapsible-left .collapsibleContent,
+.collapsible-right .collapsibleContent {
+    flex-direction: row;
+
+}
+
+.collapsible-top .collapsibleContent,
+.collapsible-bottom .collapsibleContent {
+    flex-direction: column;
+
+}
+
+.collapsibleClicker {
+    background-color: transparent;
+    align-self: stretch;
+    transition: background-color .2s;
+    box-sizing: unset;
+}
+
+.collapsibleContent {
+    flex-direction: row;
+    padding: 1em;
+}
+
+.collapsibleClicker:hover {
+    background-color: rgba(255, 255, 255, 0.161);
 }
 
 .fill {
@@ -312,6 +412,7 @@ kbd.pressed {
     justify-content: center;
     text-align: center;
     font-size: 5em;
+    animation: none;
     animation: splash 7s;
     animation-fill-mode: both;
     animation-timing-function: linear;
@@ -320,6 +421,12 @@ kbd.pressed {
     flex-direction: column;
     text-shadow: 0px 5px 30px black;
     text-transform: uppercase;
+    display: none;
+    transition: opacity 1s;
+}
+
+.splash:last-of-type {
+    display: flex;
 }
 
 .splash.discovery::after {

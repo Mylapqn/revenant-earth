@@ -66,6 +66,7 @@ export class TerrainGenerator {
         let lastY;
         for (let x = -settings.padding; x < Terrain.width + settings.padding; x++) {
             currentState = this.getInterpolatedBiome(x);
+            currentState.waterLevel = currentState.waterLevel ?? 0;
 
             trend += random(-currentState.curveModifier, currentState.curveModifier);
             trend = trend / 1.2;
@@ -83,8 +84,11 @@ export class TerrainGenerator {
             ty += ct
             if (!settings.skipPlacement) {
                 this.heights[x] = ty;
-                for (let y = 0; y < ty; y++) {
-                    if (y + currentState.dirtDepth > ty) {
+                for (let y = 0; y < Math.max(ty, currentState.waterLevel); y++) {
+                    if (y > ty) {
+                        Terrain.setPixel(x, y, terrainType.water3);
+                    }
+                    else if (y + currentState.dirtDepth > ty) {
                         const dirtDepthRatio = (y - (ty - currentState.dirtDepth)) / currentState.dirtDepth;
                         const stoneBonus = lerp(currentState.stoneBottom, currentState.stoneTop, dirtDepthRatio);
                         if (Math.abs(noise(x, y, 0.2)) < (ty - y) / currentState.dirtDepth * stoneBonus) {
@@ -134,6 +138,7 @@ export type BiomeData = {
     shortName: string;
     music: Music;
     colorGrade: colorGradeOptions;
+    waterLevel?: number;
 }
 
 function isNumber(value: any): value is number {

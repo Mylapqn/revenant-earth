@@ -49,13 +49,13 @@ export class Stamps {
                 const x = Math.floor(position.x - texture.width / 2 + i);
                 if (options.lowest) {
                     for (let y = surfaceLevel; y > 0; y--) {
-                        if (Terrain.getPixel(x, y) != terrainType.void) {
+                        if (Terrain.getPixel(x, y) > terrainType.water3) {
                             surfaceLevel = y;
                             break;
                         }
                     }
                 } else {
-                    surfaceLevel = Terrain.getHeight(x)
+                    surfaceLevel = Terrain.getHeight(x);
                 }
             }
         }

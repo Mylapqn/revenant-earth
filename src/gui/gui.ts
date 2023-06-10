@@ -69,6 +69,13 @@ interface PositionableGuiElementOptions extends GuiElementOptions {
     blockHover?: boolean
 }
 
+interface CollapsibleGuiElementOptions extends GuiElementOptions {
+    edge: "left" | "right" | "top" | "bottom",
+    position: number,
+    positioningEdge?: "left" | "right" | "top" | "bottom",
+    collapsed?: boolean,
+}
+
 interface TutorialPromptOptions extends PositionableGuiElementOptions {
     keys?: string[]
     duration?: number
@@ -121,7 +128,7 @@ class GuiElement extends BaseGuiElement {
         }
         if (options.width) this.element.style.width = options.width + "em";
         if (options.alignItems) this.element.style.alignItems = options.alignItems;
-        this.element.style.flexDirection = options.flexDirection ?? "column";
+        this.element.style.flexDirection = options.flexDirection ?? "";
         GUI.container.appendChild(this.element);
         if (!options.blankStyle)
             this.element.classList.add("ui");
@@ -244,6 +251,47 @@ export class PositionableGuiElement extends GuiElement {
         else this.element.style.right = this.position.x + "px";
         if (!this.invertVerticalPosition) this.element.style.top = this.position.y + "px";
         else this.element.style.bottom = this.position.y + "px";
+    }
+}
+
+export class CollapsibleGuiElement extends GuiElement {
+    container: GuiElement;
+    constructor(options: CollapsibleGuiElementOptions) {
+        let text = options.content;
+        options.content = "";
+        let dir = options.flexDirection;
+        options.flexDirection = null;
+        super(options);
+        this.element.classList.add("collapsible","ui");
+        this.element.classList.add("collapsible-" + options.edge);
+        let edge: string;
+        if (options.positioningEdge) {
+            edge = options.positioningEdge;
+        }
+        else {
+            if (options.edge == "right" || options.edge == "left") edge = "top";
+            else edge = "left";
+        }
+        this.element.style[edge as any] = (options.position ?? 0) + "em";
+        let clicker = new GuiElement({ parent: this, content: text, blankStyle: true, classes: ["collapsibleClicker"] })
+        clicker.element.addEventListener("click", this.toggleCollapse.bind(this));
+        clicker.element.onmouseenter = () => { GUI.sounds.hover.play(); }
+        this.container = new GuiElement({ parent: this, blankStyle: true, classes: ["collapsibleContent"], flexDirection: dir });
+        clicker = new GuiElement({ parent: this, content: "Close", blankStyle: true, classes: ["collapsibleClicker"] })
+        clicker.element.addEventListener("click", this.toggleCollapse.bind(this));
+        clicker.element.onmouseenter = () => { GUI.sounds.hover.play(); }
+        this.addMouseListeners();
+        this.setCollapse(options.hidden);
+    }
+    async toggleCollapse() {
+        GUI.sounds.click.play();
+        this.element.classList.toggle("collapsed");
+        await sleep(1000);
+    }
+    async setCollapse(collapsed: boolean) {
+        if (collapsed) this.element.classList.add("collapsed");
+        else this.element.classList.remove("collapsed");
+        await sleep(1000);
     }
 }
 
