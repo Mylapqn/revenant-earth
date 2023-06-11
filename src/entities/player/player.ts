@@ -34,10 +34,10 @@ const playerSprites = {
         "animation/run/run6.png",
     ]),
     climb: AnimatedSprite.fromFrames([
-        "animation/climb/climb6.png",
-        "animation/climb/climb12.png",
-        "animation/climb/climb18.png",
-        "animation/climb/climb24.png",
+        "animation/climb/climb4.png",
+        "animation/climb/climb3.png",
+        "animation/climb/climb2.png",
+        "animation/climb/climb1.png",
     ]),
     fall: AnimatedSprite.fromFrames(["animation/fall/fall.png"]),
 }
@@ -131,8 +131,8 @@ export class Player extends Entity {
 
         if (this.climb > 0) {
             this.graphics.textures = playerSprites.climb.textures;
-            this.graphics.currentFrame = Math.floor(this.climb / 25 * playerSprites.climb.totalFrames);
-            this.animState = 0;
+            this.graphics.currentFrame = Math.floor(clamp((this.climb) / 25) * playerSprites.climb.totalFrames);
+            this.animState = 4;
         }
 
         this.grounded = false;
@@ -200,8 +200,8 @@ export class Player extends Entity {
         }
         if (this.airTime < .05 && !this.jumping) {
             if (this.input.y > 0 && this.velocity.y <= 0) {
-                this.velocity.y = 400 * highestDensity;
-                if (highestDensity == 0) this.velocity.y = 500;
+                this.velocity.y = 300 * highestDensity;
+                if (highestDensity == 0) this.velocity.y = 250;
                 this.jumping = true;
             }
         }
@@ -214,7 +214,7 @@ export class Player extends Entity {
 
 
         this.velocity.x += this.input.x * 10000 * dt;
-        this.velocity.x = Math.sign(this.velocity.x) * Math.min((clamp(this.airTime/2+.9,1,1.4)) * (this.run ? 250 : 60), Math.abs(this.velocity.x));
+        this.velocity.x = Math.sign(this.velocity.x) * Math.min((clamp(this.airTime / 2 + .9, 1, 1.4)) * (this.run ? 250 : 60), Math.abs(this.velocity.x));
         if (this.velocity.x < 0) this.graphics.scale.x = -1;
         else this.graphics.scale.x = 1;
         if (this.input.x == 0) this.velocity.x *= (1 - 10 * dt);
@@ -233,22 +233,25 @@ export class Player extends Entity {
                 highestDensity = Math.max(highestDensity, lookup[t].density);
             }
 
-            if (j >= 5) {
-                if (j > 10 && j < 25 && this.climb == 0 && this.input.x != 0 && this.input.y > 0) {
+            if (j >= 6) {
+                if (j > 6 && j < 25 && this.input.x != 0 && this.input.y > 0) {
                     this.climb = j;
                     this.climbDir = Math.sign(this.input.x);
                 }
+                else this.climb = 0;
                 this.velocity.x = (i - 4) * Math.sign(this.input.x);
                 break;
             }
+            else this.climb = 0;
         }
 
 
         if (this.climb > 0) {
             if (Math.sign(this.input.x) == this.climbDir) {
-                this.climb--;
-                this.position.y++;
-                this.velocity.y = 20;
+                //this.climb--;
+                //this.position.y++;
+                this.velocity.y = 80;
+                if (this.climb <= 7) this.velocity.y = 120
             } else {
                 this.climb = 0;
             }

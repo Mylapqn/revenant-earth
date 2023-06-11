@@ -44,13 +44,13 @@ async function showSpeaker(index: number) {
     GUI.sounds.appear.play();
     Dialogue.speakerProfiles[index].classList.remove("hidden");
     Dialogue.speakersHidden[index] = false;
-    sleep(800);
+    skippableSleep(800);
     return;
 }
 async function hideSpeaker(index: number) {
     Dialogue.speakerProfiles[index].classList.add("hidden");
     Dialogue.speakersHidden[index] = true;
-    sleep(800);
+    skippableSleep(800);
     return;
 }
 
@@ -106,21 +106,21 @@ export class DialogueNode implements BaseNode {
         if (Dialogue.speakersHidden[this.speaker - 1]) {
             await showSpeaker(this.speaker - 1);
         }
-        await sleep(10);
+        await skippableSleep(10);
         await this.showBox();
     }
     private async showBox() {
         new DialogBox(this.content, this.speaker);
         let delay = this.content.length * 45 + 1000;
         //delay = 100;
-        await sleep(delay);
+        await skippableSleep(delay);
         await this.showNext();
     }
     async showNext() {
         if (this.nextNode) {
             if (Dialogue.speakersHidden[this.nextNode.speaker - 1]) {
                 await showSpeaker(this.nextNode.speaker - 1);
-                await sleep(2000);
+                await skippableSleep(2000);
             }
             await this.nextNode.execute();
         }
@@ -181,7 +181,7 @@ export class NodeStack extends DialogueNode {
     }
     async execute() {
         await this.startNode.execute();
-        await sleep(800);
+        await skippableSleep(800);
         if (this.nextNode) {
             await this.nextNode.execute();
         }
@@ -236,5 +236,21 @@ export class ChoiceNode extends DialogueNode {
         return;
     };
 }
+
+export const skippableSleep = (ms: number) => new Promise((r) => {
+    const ck = () => {
+        r(null);
+        DialogBox.wrapper.removeEventListener("click", ck);
+        document.removeEventListener("keyup", kb);
+    };
+    const kb = (e: any) => {
+        if (e.key == "e") {
+            ck();
+        }
+    }
+    setTimeout(ck, ms);
+    DialogBox.conversationElement.addEventListener("click", ck);
+    document.addEventListener("keyup", kb);
+})
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
