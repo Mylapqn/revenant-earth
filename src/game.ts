@@ -18,7 +18,7 @@ import { Cloud } from "./entities/passive/cloud";
 import { LightingFilter } from "./shaders/lighting/lightingFilter";
 import { BiomeData, TerrainGenerator } from "./biome";
 import { SkyFilter } from "./shaders/atmosphere/skyFilter";
-import { GUI, GuiButton, PositionableGuiElement, GuiSplash, BaseGuiElement, CustomGuiElement, GuiPanel, TutorialPrompt, CollapsibleGuiElement } from "./gui/gui";
+import { GUI, GuiButton, PositionableGuiElement, GuiSplash, BaseGuiElement, CustomGuiElement, GuiPanel, TutorialPrompt, CollapsibleGuiElement, GuiProgressBar } from "./gui/gui";
 import { Color } from "./color";
 import { clamp } from "./utils";
 import { Stamps } from "./stamp";
@@ -224,7 +224,7 @@ export async function initGame(skipIntro = false) {
     const mountains: BiomeData = { stoneTop: 1, stoneBottom: 2, bottom: 530, top: 660, moisture: 2, minerals: 1, dirtDepth: 10, mineralDepthPenalty: 0, curveModifier: .8, slopeMin: .7, slopeMax: 1.2, curveLimiter: 5, biomeId: 2, name: "Melted Mountains", shortName: "Mountains", music: SoundManager.music.mountains, colorGrade: colorGradeFilter.styles.bleak };
     const swamp: BiomeData = { stoneTop: 2, stoneBottom: 0.5, bottom: 360, top: 400, moisture: 3, minerals: 0, dirtDepth: 80, mineralDepthPenalty: 0, curveModifier: 0.5, curveLimiter: 0.1, biomeId: 3, name: "Swampy Lowlands", shortName: "Lowlands", music: SoundManager.music.swamp, colorGrade: colorGradeFilter.styles.green };
     const wasteland: BiomeData = { stoneTop: .5, stoneBottom: 3, bottom: 340, top: 450, moisture: 0, minerals: 2, dirtDepth: 30, mineralDepthPenalty: -1, curveModifier: .3, slopeMax: .25, curveLimiter: .1, biomeId: 4, name: "Industrial Wasteland", shortName: "Wasteland", music: SoundManager.music.wasteland, colorGrade: colorGradeFilter.styles.industry };
-    const ruins: BiomeData = { waterLevel:380, stoneTop: .5, stoneBottom: 3, bottom: 320, top: 380, moisture: 3, minerals: 2, dirtDepth: 30, mineralDepthPenalty: -1, curveModifier: .3, slopeMax: .25, curveLimiter: .5, biomeId: 5, name: "Urban Ruins", shortName: "Ruins", music: SoundManager.music.ruins, colorGrade: colorGradeFilter.styles.bleak };
+    const ruins: BiomeData = { waterLevel: 380, stoneTop: .5, stoneBottom: 3, bottom: 320, top: 380, moisture: 3, minerals: 2, dirtDepth: 30, mineralDepthPenalty: -1, curveModifier: .3, slopeMax: .25, curveLimiter: .5, biomeId: 5, name: "Urban Ruins", shortName: "Ruins", music: SoundManager.music.ruins, colorGrade: colorGradeFilter.styles.bleak };
     generator.addToQueue(mountains, 500);
     generator.addToQueue(ruins, 1500);
     generator.addToQueue(flatlands, 1000);
@@ -717,6 +717,10 @@ export async function initGame(skipIntro = false) {
     new GuiButton({ width: 5, image: "ui/delete.png", content: "Remove", callback: () => { preferences.selectedTerrainType = terrainType.void }, parent: terrainEditingToolbar.container })
 
     scannerData = new PositionableGuiElement({ position: new Vector(25, 25), invertHorizontalPosition: true, invertVerticalPosition: true, hidden: true })
+    let statsBox = new PositionableGuiElement({ position: new Vector(25, 25), invertHorizontalPosition: false, invertVerticalPosition: true, hidden: false })
+    new GuiProgressBar({ parent: statsBox, progress: .9, label: "Health", labelWidth: 4, color: "health" });
+    new GuiProgressBar({ parent: statsBox, progress: .9, label: "Energy", labelWidth: 4, color: "energy" });
+    new GuiProgressBar({ parent: statsBox, progress: .9, label: "Oxygen", labelWidth: 4, color: "oxygen" });
 
     async function moveTutorial() {
         Progress.controlsUnlocked = true;
@@ -783,7 +787,10 @@ export async function initGame(skipIntro = false) {
 
 }
 GUI.init();
-window.addEventListener("mousemove", (e) => { mouse.x = e.clientX; mouse.y = e.clientY });
+
+
+window.addEventListener("mousemove", (e) => { mouse.x = e.clientX; mouse.y = e.clientY; GUI.cursorElement.style.top = `${e.clientY}px`; GUI.cursorElement.style.left = `${e.clientX}px`; });
+
 
 export function screenToWorld(vector: { x: number, y: number }) {
     const pixelRatio = Camera.height / window.innerHeight;

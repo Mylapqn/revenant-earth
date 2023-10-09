@@ -1,3 +1,10 @@
+:root {
+    --color-emphasis: #fff04a;
+    --color-health: #df6767;
+    --color-energy: #aef272;
+    --color-oxygen: #89b1cd;
+}
+
 #guiContainer {
     position: absolute;
     width: 100vw;
@@ -100,7 +107,7 @@
 .ui em {
     font-style: inherit;
     font-weight: 700;
-    color: #fff04a;
+    color: var(--color-emphasis);
 }
 
 .flex.hidden {
@@ -300,7 +307,7 @@ kbd.pressed {
 .button {
     /* display: block; */
     overflow: hidden;
-    cursor: pointer;
+    cursor: var(--cursor-pointer);
     flex-grow: 0;
     width: fit-content;
     outline: var(--borderWidth) solid var(--outline-color-inactive);
@@ -493,4 +500,18 @@ kbd.pressed {
         opacity: 0;
         letter-spacing: .25em;
     }
+}
+
+.progressBar {
+    background-color: rgba(0, 0, 0, 0.599);
+    height:.3em;
+    width:10em;
+    border-radius: .3em;
+    overflow: hidden;
+}
+
+.progressBarFill {
+    height: 100%;
+    width: 50%;
+    border-radius: .3em;
 }

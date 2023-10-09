@@ -34,6 +34,9 @@ export class Color {
             (100 * (2 * l - s)) / 2,
         ];
     }
+    toCSS() {
+        return `rgb(${this.r},${this.g},${this.b})`;
+    }
     mix(color: Color, ratio = 0.5) {
         ratio = Math.min(1, Math.max(0, ratio));
         return new Color(lerp(this.r, color.r, ratio), lerp(this.g, color.g, ratio), lerp(this.b, color.b, ratio))
@@ -66,5 +69,11 @@ export class Color {
     }
     static randomAroundHSL(h: number, hRand: number, s: number, sRand: number, l: number, lRand: number) {
         return this.fromHsl(h + random(-hRand, hRand), s + random(-sRand, sRand), l + random(-lRand, lRand))
+    }
+    static white(){
+        return new Color(255,255,255);
+    }
+    static black(){
+        return new Color(255,255,255);
     }
 }

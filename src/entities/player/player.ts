@@ -43,6 +43,9 @@ const playerSprites = {
 }
 
 export class Player extends Entity {
+    health = 10;
+    energy = 10;
+    oxygen = 10;
     jetpackParticles: ParticleSystem;
     velocity = new Vector();
     input = new Vector();
@@ -268,9 +271,9 @@ export class Player extends Entity {
         this.position.add(this.velocity.result().mult(dt));
 
         let pos = new Vector(this.graphics.position.x, -this.graphics.position.y).sub(new Vector(Camera.width, Camera.height).mult(.5));
-        let diff = pos.sub(this.camTarget).add(new Vector(this.velocity.result().mult(.7).x, Camera.yOffset));
+        let diff = pos.sub(this.camTarget).add(new Vector(this.velocity.result().mult(.2).x, Camera.yOffset));
         //let diff = pos.sub(this.camTarget).add(new Vector());
-        this.camTarget.add(diff.mult(5 * dt));
+        this.camTarget.add(diff.mult(4 * dt));
         this.step += Math.abs(this.velocity.x) * dt;
         if (this.step > 10) {
             this.step = 0;

@@ -4,9 +4,12 @@ import { Vector } from "../vector";
 import { DialogueNode, sleep } from "../dialogue";
 import { SoundEffect } from "../sound";
 import { removeListener } from "process";
+import { Color } from "../color";
 
 export class GUI {
     static init() {
+        GUI.cursorElement.id = "cursorElement";
+        GUI.container.appendChild(GUI.cursorElement);
         let elements = document.getElementsByClassName("ui");
         for (let i = 0; i < elements.length; i++) {
             const element = elements[i];
@@ -20,8 +23,8 @@ export class GUI {
                 p = p.parentElement;
             }
             if (topLevel) {
-                element.addEventListener("mouseenter", (e) => { mouse.gui++; });
-                element.addEventListener("mouseleave", (e) => { mouse.gui = 0; });
+                element.addEventListener("mouseenter", (e) => { mouse.gui++;});
+                element.addEventListener("mouseleave", (e) => { mouse.gui = 0;});
             }
         }
         GuiTooltip.container.moving = true;
@@ -44,6 +47,7 @@ export class GUI {
         discovery: new SoundEffect("sound/fx/ping.wav", .1),
         tutorial: new SoundEffect("sound/fx/tutorial.wav", .2),
     };
+    static cursorElement = document.createElement("div");
 }
 
 interface GuiElementOptions {
@@ -88,6 +92,13 @@ interface GuiButtonOptions extends PositionableGuiElementOptions {
     callback: () => void,
     image?: string,
     enabled?: boolean
+}
+
+interface GuiProgressBarOptions extends GuiElementOptions {
+    progress?: number,
+    color?: Color | string,
+    label?: string,
+    labelWidth?: number
 }
 
 export class BaseGuiElement {
@@ -262,7 +273,7 @@ export class CollapsibleGuiElement extends GuiElement {
         let dir = options.flexDirection;
         options.flexDirection = null;
         super(options);
-        this.element.classList.add("collapsible","ui");
+        this.element.classList.add("collapsible", "ui");
         this.element.classList.add("collapsible-" + options.edge);
         let edge: string;
         if (options.positioningEdge) {
@@ -275,11 +286,11 @@ export class CollapsibleGuiElement extends GuiElement {
         this.element.style[edge as any] = (options.position ?? 0) + "em";
         let clicker = new GuiElement({ parent: this, content: text, blankStyle: true, classes: ["collapsibleClicker"] })
         clicker.element.addEventListener("click", this.toggleCollapse.bind(this));
-        clicker.element.onmouseenter = () => { GUI.sounds.hover.play(); }
+        clicker.element.onmouseenter = () => { GUI.sounds.hover.play();}
         this.container = new GuiElement({ parent: this, blankStyle: true, classes: ["collapsibleContent"], flexDirection: dir });
         clicker = new GuiElement({ parent: this, content: "Close", blankStyle: true, classes: ["collapsibleClicker"] })
         clicker.element.addEventListener("click", this.toggleCollapse.bind(this));
-        clicker.element.onmouseenter = () => { GUI.sounds.hover.play(); }
+        clicker.element.onmouseenter = () => { GUI.sounds.hover.play();}
         this.addMouseListeners();
         this.setCollapse(options.hidden);
     }
@@ -346,6 +357,49 @@ export class TutorialPrompt extends PositionableGuiElement {
 export class GuiPanel extends GuiElement {
     constructor(options: GuiPanelOptions) {
         super(options);
+    }
+}
+
+export class GuiProgressBar extends GuiElement {
+    private fillElement: HTMLDivElement;
+    private barElement: HTMLDivElement;
+    private labelElement: HTMLDivElement;
+    private _fill: number;
+    constructor(options: GuiProgressBarOptions) {
+        options.color = options.color ?? Color.white();
+        options.blankStyle = true;
+        options.flex = true;
+        options.flexDirection = "row"
+        options.progress = options.progress ?? .66;
+        super(options);
+        this.element.classList.add("progressBarContainer")
+        if (options.label) {
+            this.labelElement = document.createElement("div");
+            this.element.appendChild(this.labelElement);
+            this.labelElement.innerText = options.label;
+            if (options.labelWidth) {
+                this.labelElement.style.minWidth = options.labelWidth + "em";
+                this.labelElement.style.textAlign = "right"
+            }
+        }
+        this.barElement = document.createElement("div");
+        this.barElement.classList.add("progressBar");
+        this.element.appendChild(this.barElement);
+        this.fillElement = document.createElement("div");
+        this.fillElement.classList.add("progressBarFill")
+        this.barElement.appendChild(this.fillElement);
+        if (options.color instanceof Color)
+            this.fillElement.style.backgroundColor = options.color.toCSS();
+        else
+            this.fillElement.style.backgroundColor = `var(--color-${options.color})`;
+        this.fill = options.progress;
+    }
+    set fill(f: number) {
+        this._fill = f;
+        this.fillElement.style.width = `${f * 100}%`;
+    }
+    get fill() {
+        return this._fill;
     }
 }
 

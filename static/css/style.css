@@ -3,11 +3,26 @@
     --outline-color-active: #ffffff81;
     --scale: calc(min(1px, .06vw));
     --borderWidth: .2em;
-    --uibg:#00000062;
+    --uibg: #00000062;
+    /* --cursor-normal: url("../cursors/cursor2.png") 0 0, auto;
+    --cursor-pointer: url("../cursors/cursor-pointer.png") 13 13, pointer; */
+    --cursor-normal:none;
+    --cursor-pointer:none;
 }
 
 * {
     box-sizing: border-box;
+}
+
+#cursorElement {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    border:5px solid white;
+    border-radius: 100%;
+    z-index: 100;
+    pointer-events: none;
+    margin: -15px -15px;
 }
 
 img {
@@ -52,6 +67,7 @@ body {
     /* background: linear-gradient(#3571b1 0%, #6f8eba 60%, #99a4a6); */
     width: 100vw;
     height: 100vh;
+    cursor: var(--cursor-normal);
 }
 
 canvas {
