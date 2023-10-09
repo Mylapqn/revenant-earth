@@ -9,6 +9,7 @@ import { Color } from "../color";
 export class GUI {
     static init() {
         GUI.cursorElement.id = "cursorElement";
+        GUI.cursorElement.classList.add("cursorElement");
         GUI.container.appendChild(GUI.cursorElement);
         let elements = document.getElementsByClassName("ui");
         for (let i = 0; i < elements.length; i++) {
@@ -48,6 +49,19 @@ export class GUI {
         tutorial: new SoundEffect("sound/fx/tutorial.wav", .2),
     };
     static cursorElement = document.createElement("div");
+    static hover(on:boolean){
+        if(on){
+            GUI.sounds.hover.play();
+            this.cursorElement.classList.add("hover")
+        }
+        else {
+            this.cursorElement.classList.remove("hover")
+        }
+    }
+    static addHoverListeners(element:HTMLElement){
+        element.addEventListener("mouseenter",()=>{GUI.hover(true)})
+        element.addEventListener("mouseleave",()=>{GUI.hover(false)})
+    }
 }
 
 interface GuiElementOptions {
@@ -286,11 +300,11 @@ export class CollapsibleGuiElement extends GuiElement {
         this.element.style[edge as any] = (options.position ?? 0) + "em";
         let clicker = new GuiElement({ parent: this, content: text, blankStyle: true, classes: ["collapsibleClicker"] })
         clicker.element.addEventListener("click", this.toggleCollapse.bind(this));
-        clicker.element.onmouseenter = () => { GUI.sounds.hover.play();}
+        GUI.addHoverListeners(clicker.element)
         this.container = new GuiElement({ parent: this, blankStyle: true, classes: ["collapsibleContent"], flexDirection: dir });
         clicker = new GuiElement({ parent: this, content: "Close", blankStyle: true, classes: ["collapsibleClicker"] })
         clicker.element.addEventListener("click", this.toggleCollapse.bind(this));
-        clicker.element.onmouseenter = () => { GUI.sounds.hover.play();}
+        GUI.addHoverListeners(clicker.element)
         this.addMouseListeners();
         this.setCollapse(options.hidden);
     }
@@ -432,7 +446,8 @@ class DialogChoice extends DialogBox {
             this.select();
             DialogBox.wrapper.scrollBy({ top: -1, behavior: "smooth" })
         };
-        this.element.onmouseenter = () => { GUI.sounds.hover.play(); }
+        GUI.addHoverListeners(this.element)
+
     }
     select() {
 
@@ -525,7 +540,8 @@ export class GuiButton extends PositionableGuiElement {
         }
         this.callback = options.callback;
         this.element.onclick = this.click.bind(this);
-        this.element.onmouseenter = () => { GUI.sounds.hover.play(); }
+        GUI.addHoverListeners(this.element)
+
     }
     set enabled(e) {
         this._enabled = e;

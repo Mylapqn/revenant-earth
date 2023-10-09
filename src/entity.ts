@@ -3,7 +3,7 @@ import { Camera } from "./camera";
 import { Terrain } from "./terrain";
 import { Vector } from "./vector";
 import { OutlineFilter } from "@pixi/filter-outline";
-import { GuiTooltip } from "./gui/gui";
+import { GUI, GuiTooltip } from "./gui/gui";
 import { HslAdjustmentFilter } from "@pixi/filter-hsl-adjustment";
 import { mouse } from "./game";
 
@@ -93,6 +93,7 @@ export class Entity {
         if (val) {
             this.graphics.filterArea = Camera.rect;
             this.graphics.on("pointerenter", () => {
+                GUI.hover(true);
                 if (!this.hovered && mouse.gui == 0) {
                     this.hovered = true;
                     Entity.hoveredEntity = this;
@@ -101,6 +102,7 @@ export class Entity {
                 }
             })
             this.graphics.on("pointerleave", () => {
+                GUI.hover(false);
                 if (this.hovered) {
                     Entity.hoveredEntity = null;
                     this.hovered = false;
