@@ -41,6 +41,7 @@ import { Progress } from "./progress";
 import { Turbine } from "./entities/buildable/turbine";
 import { Seed } from "./entities/plants/tree/seed";
 import { Prop } from "./entities/passive/prop";
+import { Projectile } from "./entities/projectile";
 let seed = parseInt(window.location.toString().split('?')[1]);
 if (!seed) seed = Math.floor(Math.random() * 1000);
 Math.random = mulberry32(seed);
@@ -475,6 +476,11 @@ export async function initGame(skipIntro = false) {
                 currentBiome = newBiome.biomeId;
             }
         }
+        if (mouse.pressed == 1) {
+            new Projectile(player, new Vector(wx, wy).sub(player.position).toAngle());
+            player.energy-=.05;
+            GUI.energyBar.fill = player.energy/10
+        }
 
         if (Progress.terrainUnlocked) {
             if (mouse.pressed == 1 && !Buildable.currentBuildable) {
@@ -718,9 +724,9 @@ export async function initGame(skipIntro = false) {
 
     scannerData = new PositionableGuiElement({ position: new Vector(25, 25), invertHorizontalPosition: true, invertVerticalPosition: true, hidden: true })
     let statsBox = new PositionableGuiElement({ position: new Vector(25, 25), invertHorizontalPosition: false, invertVerticalPosition: true, hidden: false })
-    new GuiProgressBar({ parent: statsBox, progress: .9, label: "Health", labelWidth: 4, color: "health" });
-    new GuiProgressBar({ parent: statsBox, progress: .9, label: "Energy", labelWidth: 4, color: "energy" });
-    new GuiProgressBar({ parent: statsBox, progress: .9, label: "Oxygen", labelWidth: 4, color: "oxygen" });
+    GUI.healthBar = new GuiProgressBar({ parent: statsBox, progress: .9, label: "Health", labelWidth: 4, color: "health" });
+    GUI.energyBar = new GuiProgressBar({ parent: statsBox, progress: .9, label: "Energy", labelWidth: 4, color: "energy" });
+    GUI.oxygenBar = new GuiProgressBar({ parent: statsBox, progress: .9, label: "Oxygen", labelWidth: 4, color: "oxygen" });
 
     async function moveTutorial() {
         Progress.controlsUnlocked = true;

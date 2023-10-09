@@ -12,6 +12,7 @@ import { Light } from "../../shaders/lighting/light";
 import { DebugDraw } from "../../debugDraw";
 import { SoundEffect } from "../../sound";
 import { ParticleSystem } from "../../particles/particle";
+import { GUI } from "../../gui/gui";
 
 const playerSprites = {
     stand: AnimatedSprite.fromFrames(["player.png"]),
@@ -183,7 +184,7 @@ export class Player extends Entity {
                 this.jumping = false;
                 this.jetpack = false;
             }
-            if (this.input.y > 0 && !this.jumping && this.airTime > .05 && !this.jetpack) {
+            if (this.input.y > 0 && !this.jumping && this.airTime > .05 && !this.jetpack && this.energy > 0) {
                 this.sounds.jetpackStart.play();
                 this.sounds.jetpackLoop.volume = .2;
                 this.jetpack = true;
@@ -209,7 +210,14 @@ export class Player extends Entity {
             }
         }
         this.jetpackParticles.enabled = this.jetpack;
-        if (!this.jetpack) {
+        if (this.jetpack) {
+            this.energy-=5*dt;
+            if(this.energy <0){
+                this.energy = 0;
+            }
+            GUI.energyBar.fill = this.energy/10;
+        }
+        else {
             this.sounds.jetpackLoop.volume *= .9;
             this.sounds.jetpackStart.stop();
             this.jetpackLight.intensity = 0;

@@ -24,11 +24,15 @@ export class GUI {
                 p = p.parentElement;
             }
             if (topLevel) {
-                element.addEventListener("mouseenter", (e) => { mouse.gui++;});
-                element.addEventListener("mouseleave", (e) => { mouse.gui = 0;});
+                element.addEventListener("mouseenter", (e) => { mouse.gui++; });
+                element.addEventListener("mouseleave", (e) => { mouse.gui = 0; });
             }
         }
         GuiTooltip.container.moving = true;
+
+
+
+
     }
     static update(dt: number) {
         GuiTooltip.update();
@@ -49,8 +53,8 @@ export class GUI {
         tutorial: new SoundEffect("sound/fx/tutorial.wav", .2),
     };
     static cursorElement = document.createElement("div");
-    static hover(on:boolean){
-        if(on){
+    static hover(on: boolean) {
+        if (on) {
             GUI.sounds.hover.play();
             this.cursorElement.classList.add("hover")
         }
@@ -58,10 +62,14 @@ export class GUI {
             this.cursorElement.classList.remove("hover")
         }
     }
-    static addHoverListeners(element:HTMLElement){
-        element.addEventListener("mouseenter",()=>{GUI.hover(true)})
-        element.addEventListener("mouseleave",()=>{GUI.hover(false)})
+    static addHoverListeners(element: HTMLElement) {
+        element.addEventListener("mouseenter", () => { GUI.hover(true) })
+        element.addEventListener("mouseleave", () => { GUI.hover(false) })
     }
+    static healthBar:GuiProgressBar;
+    static energyBar:GuiProgressBar;
+    static oxygenBar:GuiProgressBar;
+
 }
 
 interface GuiElementOptions {
