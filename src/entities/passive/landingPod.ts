@@ -5,6 +5,8 @@ import { random } from "../../utils";
 import { Vector } from "../../vector";
 import { Light } from "../../shaders/lighting/light";
 import { ParticleSystem } from "../../particles/particle";
+import { GuiSpeechBubble } from "../../gui/gui";
+import { player } from "../../game";
 
 export class CrashPod extends Entity {
     light: Light;
@@ -30,6 +32,9 @@ export class CrashPod extends Entity {
         this.intensity = Math.max(2, Math.min(5, this.intensity + random(-10, 10) * dt));
         this.light.intensity = this.intensity;
         this.queueUpdate()
+    }
+    click(){
+        new GuiSpeechBubble(player,"I could salvage some important components from the crashed pod. I could, but I won't.")
     }
     set hoverable(val: boolean) {
         this.graphics.hitArea = new Rectangle((this.graphics.width / 2)-20, -(this.graphics.height / 2)-20, 100, 40);

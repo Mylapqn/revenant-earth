@@ -6,13 +6,17 @@ import { Terrain, terrainType } from "../../../terrain";
 import { Vector } from "../../../vector";
 import { FlyingPatrolRobotTask, IFlyingPatrolRobot, RobotTask, collisionAvoidance, flyPatrol, flyTo } from "../robotBehaviour";
 import { DebugDraw } from "../../../debugDraw";
-import { Light } from "../../../shaders/lighting/light";
+import { Light, TempLight } from "../../../shaders/lighting/light";
 import { Color } from "../../../color";
 import { GuiLabel, GuiTooltip } from "../../../gui/gui";
 import { Cloud } from "../../passive/cloud";
-import { clamp, random, randomBool } from "../../../utils";
+import { clamp, random, randomBool, randomInt } from "../../../utils";
+import { DamageableEntity } from "../../damageableEntity";
+import { ParticleSystem } from "../../../particles/particle";
+import { SoundManager } from "../../../sound";
+import { Projectile } from "../../projectile";
 
-export class Drone extends Entity implements IFlyingPatrolRobot {
+export class Drone extends DamageableEntity implements IFlyingPatrolRobot {
     task: FlyingPatrolRobotTask
     velocity = new Vector();
     flightVector = new Vector();
@@ -21,6 +25,10 @@ export class Drone extends Entity implements IFlyingPatrolRobot {
     label: GuiLabel;
     light: Light;
     attacking = false;
+    projectileCooldown = 0;
+    aimTime = 0;
+    distToTarget = 0;
+    randomOffset = new Vector(randomInt(-200, 200), randomInt(-50, 100))
     constructor(position: Vector, parent: Entity, angle = 0) {
         const graph = Sprite.from("https://cdn.discordapp.com/attachments/767355244111331338/1107461643039936603/robo.png");
         graph.anchor.set(0.5);
@@ -29,6 +37,9 @@ export class Drone extends Entity implements IFlyingPatrolRobot {
         this.patrolPoints = [position.result(), new Vector(4200, 500), new Vector(4800, 500)]
         this.task = droneTask;
         this.queueUpdate();
+
+        this.deathSound = SoundManager.fx.robotDeath;
+        this.hitSound = SoundManager.fx.robotHit;
         //this.label = new GuiLabel(this.position, "hi :)");
     }
 
@@ -63,10 +74,21 @@ export class Drone extends Entity implements IFlyingPatrolRobot {
         }
 
         if (this.attacking) {
-            this.light.intensity = 10;
+            this.light.intensity = (5 + this.aimTime * 20);
             this.light.color = new Color(230, 30, 40);
+            this.aimTime += dt;
+            this.light.width = clamp(1 - this.aimTime, .05, .6);
+            let target = player.position.result().add(new Vector(0, this.distToTarget * .2).add(player.velocity.result().mult(this.distToTarget / 500)));
+            DebugDraw.drawCircle(target,5,"#55111155");
+            if (this.aimTime > 1) {
+                new Projectile(this, target);
+                this.aimTime = 0;
+                this.randomOffset = new Vector(randomInt(-200, 200), randomInt(-50, 50));
+            }
+
         }
         else {
+            this.aimTime = 0;
             this.light.intensity = 5;
             this.light.color = new Color(160, 40, 240);
             this.light.width = .2;
@@ -76,21 +98,31 @@ export class Drone extends Entity implements IFlyingPatrolRobot {
         this.updatePosition();
         this.queueUpdate();
     }
+    die() {
+        new ParticleSystem({ position: this.position.result(), maxAge: .2, emitRate: 3 })
+        new TempLight(this.position.result(), .5, 6);
+        super.die();
+    }
+    remove(): void {
+        this.light.remove();
+        super.remove();
+    }
 }
 
 function droneTask(robot: IFlyingPatrolRobot, dt: number) {
     const playerPosition = player.position.result();
-    const range = 130;
+    const range = 250;
     DebugDraw.drawCircle(robot.position, range, "#55111155");
     const dist = playerPosition.distanceSquared(robot.position)
-    if (dist < range * range && playerPosition.distanceSquared(robot.patrolPoints[0]) < 500 * 500) {
-        flyTo(robot, dt, playerPosition.add(new Vector(0, 40)));
+    if (dist < range * range && playerPosition.distanceSquared(robot.patrolPoints[0]) < (2000 * 2000)) {
+        flyTo(robot, dt, playerPosition.add(new Vector(0, 100).add(robot.randomOffset)));
         if (robot instanceof Drone) {
+            let actualDist = Math.sqrt(dist);
+            robot.distToTarget = actualDist;
             robot.attacking = true;
             let pdiff = player.position.result().sub(robot.position);
             pdiff.y += 30;
             if (robot.graphics.scale.x > 0) pdiff.x *= -1;
-            robot.light.width = clamp(1 - (dist / 15000), .1, .6);
             robot.light.angle = pdiff.toAngle();
         }
     } else {

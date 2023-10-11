@@ -19,6 +19,7 @@ export interface IFlyingTaskableRobot extends ITaskableRobot {
 
 export type FlyingPatrolRobotTask = (robot: IFlyingPatrolRobot, dt: number) => void
 export interface IFlyingPatrolRobot extends IFlyingTaskableRobot {
+    randomOffset:Vector;
     patrolPoints: Vector[]
     acceptableDeviation: number
     onPointReached?: () => void

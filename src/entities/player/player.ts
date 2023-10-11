@@ -1,6 +1,6 @@
 
 import { AnimatedSprite, Sprite } from "pixi.js";
-import { debugPrint, worldToScreen } from "../../game";
+import { debugPrint, gameOver, worldToScreen } from "../../game";
 import { Camera } from "../../camera";
 import { Entity } from "../../entity";
 import { lookup, Terrain, terrainType } from "../../terrain";
@@ -10,9 +10,10 @@ import { Cloud } from "../passive/cloud";
 import { Color } from "../../color";
 import { Light } from "../../shaders/lighting/light";
 import { DebugDraw } from "../../debugDraw";
-import { SoundEffect } from "../../sound";
+import { SoundEffect, SoundManager } from "../../sound";
 import { ParticleSystem } from "../../particles/particle";
-import { GUI } from "../../gui/gui";
+import { GUI, GuiSplash } from "../../gui/gui";
+import { DamageableEntity } from "../damageableEntity";
 
 const playerSprites = {
     stand: AnimatedSprite.fromFrames(["player.png"]),
@@ -43,7 +44,7 @@ const playerSprites = {
     fall: AnimatedSprite.fromFrames(["animation/fall/fall.png"]),
 }
 
-export class Player extends Entity {
+export class Player extends DamageableEntity {
     health = 10;
     energy = 10;
     oxygen = 10;
@@ -64,6 +65,12 @@ export class Player extends Entity {
     climb = 0;
     climbDir = 0;
     light = new Light(this, new Vector(0, 25), Math.PI + .2, 1.2, new Color(150, 255, 255), 300, 3);
+    hitboxOffset = new Vector(0, 15);
+    hitboxSize = 15;
+    hitSound = SoundManager.fx.playerHit;
+    weaponArmed = false;
+    weaponCooldown = 0;
+    weaponCooldownMax = .5;
     stepSound = {
         dirt: [] as SoundEffect[],
         water: [] as SoundEffect[],
@@ -139,6 +146,15 @@ export class Player extends Entity {
             this.animState = 4;
         }
 
+        if (this.weaponArmed) {
+            console.log(this.weaponCooldown);
+
+            this.weaponCooldown = Math.max(0, this.weaponCooldown - dt);
+            if (this.weaponCooldown == 0 && this.energy > 0) {
+                GUI.cursorElement.classList.remove("reloading");
+            }
+        }
+
         this.grounded = false;
         let highestDensity = 0;
         for (let j = -5; j <= -Math.min(this.velocity.y * dt, 0); j++) {
@@ -211,11 +227,12 @@ export class Player extends Entity {
         }
         this.jetpackParticles.enabled = this.jetpack;
         if (this.jetpack) {
-            this.energy-=5*dt;
-            if(this.energy <0){
+            this.energy -= 5 * dt;
+            if (this.energy < 0) {
                 this.energy = 0;
+                this.jetpack = false;
             }
-            GUI.energyBar.fill = this.energy/10;
+            GUI.energyBar.fill = this.energy / 10;
         }
         else {
             this.sounds.jetpackLoop.volume *= .9;
@@ -355,5 +372,29 @@ export class Player extends Entity {
         */
         this.updatePosition();
         this.queueUpdate();
+    }
+    toggleWeapon() {
+        this.weaponArmed = !this.weaponArmed;
+        if (this.weaponArmed) {
+            GUI.cursorElement.classList.add("combat");
+            GUI.weaponButton.content = "Disarm weapon";
+            GUI.weaponButton.element.classList.add("flashRed");
+            this.weaponCooldown = this.weaponCooldownMax;
+            GUI.cursorElement.classList.add("reloading");
+        }
+        else {
+            GUI.cursorElement.classList.remove("combat");
+            GUI.cursorElement.classList.remove("reloading");
+            GUI.weaponButton.content = "Arm weapon";
+            GUI.weaponButton.element.classList.remove("flashRed");
+        }
+    }
+    damage(amount: number): void {
+        super.damage(amount);
+        GUI.healthBar.fill = this.health / 10;
+    }
+    die() {
+        gameOver();
+        super.die();
     }
 }

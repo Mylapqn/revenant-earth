@@ -504,14 +504,63 @@ kbd.pressed {
 
 .progressBar {
     background-color: rgba(0, 0, 0, 0.599);
-    height:.3em;
-    width:10em;
+    height: .3em;
+    width: 10em;
     border-radius: .3em;
     overflow: hidden;
+
 }
 
 .progressBarFill {
     height: 100%;
     width: 50%;
     border-radius: .3em;
+}
+
+.flashRed {
+    outline: var(--borderWidth) solid red;
+    animation: flashRed .5s cubic-bezier(0.1, 0, 0.9, 1) infinite alternate;
+}
+
+
+@keyframes flashRed {
+    from {
+        outline-color: red;
+    }
+
+    to {
+        outline-color: rgba(255, 0, 0, 0.283);
+    }
+}
+
+.speechBubble {
+    translate: -50% 0;
+    overflow: hidden;
+    text-wrap: nowrap;
+    max-width: 200em;
+    animation: speechAppear .3s linear forwards;
+    padding: .6em;
+    text-align: center;
+}
+
+@keyframes speechAppear {
+    from {
+        max-width: 0em;
+        opacity: 0;
+    }
+    50% {
+        opacity: 1;
+    }
+
+    99% {
+        text-wrap: nowrap;
+    }
+    to {
+        max-width:30em;
+        text-wrap: wrap;
+    }
+}
+
+.centered {
+    text-align: center;
 }

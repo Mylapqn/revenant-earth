@@ -5,6 +5,7 @@ import { DialogueNode, sleep } from "../dialogue";
 import { SoundEffect } from "../sound";
 import { removeListener } from "process";
 import { Color } from "../color";
+import { Entity } from "../entity";
 
 export class GUI {
     static init() {
@@ -38,7 +39,7 @@ export class GUI {
         GuiTooltip.update();
         for (const el of GuiElement.list) {
             if (el.moving)
-                el.update();
+                el.update(dt);
         }
     }
     static container = document.getElementById("guiContainer");
@@ -66,9 +67,10 @@ export class GUI {
         element.addEventListener("mouseenter", () => { GUI.hover(true) })
         element.addEventListener("mouseleave", () => { GUI.hover(false) })
     }
-    static healthBar:GuiProgressBar;
-    static energyBar:GuiProgressBar;
-    static oxygenBar:GuiProgressBar;
+    static healthBar: GuiProgressBar;
+    static energyBar: GuiProgressBar;
+    static oxygenBar: GuiProgressBar;
+    static weaponButton:GuiButton;
 
 }
 
@@ -120,7 +122,8 @@ interface GuiProgressBarOptions extends GuiElementOptions {
     progress?: number,
     color?: Color | string,
     label?: string,
-    labelWidth?: number
+    labelWidth?: number,
+    warnThreshold?: number
 }
 
 export class BaseGuiElement {
@@ -182,7 +185,7 @@ class GuiElement extends BaseGuiElement {
         //GUI.container.removeChild(this.element);
         GuiElement.list.splice(GuiElement.list.indexOf(this), 1);
     }
-    update() {
+    update(dt: number) {
 
     }
     addChild(...children: BaseGuiElement[]) {
@@ -279,7 +282,7 @@ export class PositionableGuiElement extends GuiElement {
             }
         }
     }
-    update() {
+    update(dt: number) {
         if (!this.invertHorizontalPosition) this.element.style.left = this.position.x + "px";
         else this.element.style.right = this.position.x + "px";
         if (!this.invertVerticalPosition) this.element.style.top = this.position.y + "px";
@@ -387,6 +390,7 @@ export class GuiProgressBar extends GuiElement {
     private barElement: HTMLDivElement;
     private labelElement: HTMLDivElement;
     private _fill: number;
+    warnThreshold = .3;
     constructor(options: GuiProgressBarOptions) {
         options.color = options.color ?? Color.white();
         options.blankStyle = true;
@@ -394,6 +398,7 @@ export class GuiProgressBar extends GuiElement {
         options.flexDirection = "row"
         options.progress = options.progress ?? .66;
         super(options);
+        this.warnThreshold = options.warnThreshold ?? 0;
         this.element.classList.add("progressBarContainer")
         if (options.label) {
             this.labelElement = document.createElement("div");
@@ -417,6 +422,10 @@ export class GuiProgressBar extends GuiElement {
         this.fill = options.progress;
     }
     set fill(f: number) {
+        if (this.warnThreshold > f && this.warnThreshold < this._fill)
+            this.barElement.classList.add("flashRed");
+        if (this.warnThreshold < f && this.warnThreshold > this._fill)
+            this.barElement.classList.remove("flashRed");
         this._fill = f;
         this.fillElement.style.width = `${f * 100}%`;
     }
@@ -504,7 +513,7 @@ export class GuiLabel extends PositionableGuiElement {
         this.worldPosition = position.result();
         this.element.classList.add("label");
     }
-    update(): void {
+    update(dt: number): void {
         this.position = worldToScreen(this.worldPosition.result()).add(new Vector(0, 100));
         let op = clamp((.25 - Math.abs(this.position.x / window.innerWidth - .5)) * 8);
         if (this.lastOpacity != op || op > 0) {
@@ -512,10 +521,31 @@ export class GuiLabel extends PositionableGuiElement {
             else {
                 this.element.style.opacity = op + "";
                 this.element.style.display = "flex";
-                super.update();
+                super.update(dt);
             }
             this.lastOpacity = op;
         }
+    }
+}
+
+export class GuiSpeechBubble extends PositionableGuiElement {
+    parentEntity: Entity;
+    moving = true;
+    lastOpacity = 1;
+    duration = 5;
+    age = 0;
+    constructor(entity: Entity, content = "none", duration = 3) {
+        super({ position: new Vector(0, 0), content: content,classes:["speechBubble"]});
+        this.parentEntity = entity;
+        this.duration = duration/2; //TODO Stupid fix because deltatime in the whole game is divided by half and I don't have time to fix it now
+    }
+    update(dt: number): void {
+        this.position = worldToScreen(this.parentEntity.position.result()).add(new Vector(0, -250));
+        this.age += dt;
+        if (this.age >= this.duration)
+            this.remove();
+        else
+            super.update(dt);
     }
 }
 

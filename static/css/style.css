@@ -24,14 +24,38 @@
     z-index: 100;
     pointer-events: none;
     translate: -50% -50%;
-    transition: width .2s, height .2s;
+    transition: width .2s, height .2s, border-radius .2s;
     will-change: width,height;
     filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.214));
+    /* overflow: hidden;
+    text-align: center;
+    font-weight: bold;
+    font-size: .9em; */
 }
 
 .cursorElement.hover {
     width: 30px;
     height: 30px;
+}
+.cursorElement.square {
+    border-radius: 0;
+}
+.cursorElement.combat {
+    border-color: rgb(194, 56, 56);
+    outline: var(--borderWidth) solid rgba(37, 181, 34, 0.462);
+    outline-offset: .5em;
+}
+.cursorElement.reloading {
+    outline-color: rgba(194, 0, 0, 0.219);
+    animation: cursor-reloading 1s linear forwards;
+}
+@keyframes cursor-reloading {
+    from{
+        outline-offset: 0em;
+    }
+    to {
+        outline-offset: .5em;
+    }
 }
 
 img {

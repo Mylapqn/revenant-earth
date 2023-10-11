@@ -18,7 +18,7 @@ import { Cloud } from "./entities/passive/cloud";
 import { LightingFilter } from "./shaders/lighting/lightingFilter";
 import { BiomeData, TerrainGenerator } from "./biome";
 import { SkyFilter } from "./shaders/atmosphere/skyFilter";
-import { GUI, GuiButton, PositionableGuiElement, GuiSplash, BaseGuiElement, CustomGuiElement, GuiPanel, TutorialPrompt, CollapsibleGuiElement, GuiProgressBar } from "./gui/gui";
+import { GUI, GuiButton, PositionableGuiElement, GuiSplash, BaseGuiElement, CustomGuiElement, GuiPanel, TutorialPrompt, CollapsibleGuiElement, GuiProgressBar, GuiLabel, GuiSpeechBubble } from "./gui/gui";
 import { Color } from "./color";
 import { clamp } from "./utils";
 import { Stamps } from "./stamp";
@@ -51,7 +51,7 @@ export enum DebugMode {
     off,
     updates,
 }
-export const preferences = { debugMode: DebugMode.off, selectedTerrainType: terrainType.water3, penSize: 4, showDebug: false }
+export const preferences = { debugMode: DebugMode.off, selectedTerrainType: terrainType.void, penSize: 4, showDebug: false }
 console.log(status);
 export const app = new PIXI.Application<HTMLCanvasElement>({ sharedTicker: false, autoStart: false });
 //PIXI.settings.SCALE_MODE = SCALE_MODES.NEAREST;
@@ -127,7 +127,7 @@ for (const name in Terrain.sound) {
 
 }
 
-export const mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2, pressed: 0, gui: 0 };
+export const mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2, pressed: 0, clicked: 0, gui: 0 };
 
 function terrainUpdateCycle() {
     setTimeout(terrainUpdateCycle, 7);
@@ -262,7 +262,7 @@ export async function initGame(skipIntro = false) {
                     if (randomBool(backdrop.depth <= 1 ? .9 : .3)) backdrop.placeSprite(x + randomInt(-60, 60), 0, Sprite.from(`BG/city/${randomBool() ? "ruined_" : ""}Skyscraper_${randomInt(0, 4)}.png`), true, 200);
                 }
                 if (randomBool(.9)) new BackdropProp(new Vector(x, 720 - ty), random(.68, .95), Sprite.from(`BG/city/${randomBool() ? "ruined_" : ""}Skyscraper_${randomInt(0, 4)}.png`), 1, true);
-                console.log(ty);
+                //console.log(ty);
             }
         }
     }
@@ -276,6 +276,7 @@ export async function initGame(skipIntro = false) {
     generator.generate(undefined, objectSpawner);
     new Cloud(new Vector(100, 500));
     backdrop3.placeSprite(2050, 0, (() => { const a = Sprite.from("building.png"); return a })(), false, 100);
+    backdrop3.placeSprite(4000, 0, Sprite.from("BG/factory_far.png"), false, 100);
     backdrop1.placeSprite(3250, 0, Sprite.from("BG/factory.png"), false, 150);
     backdrop1.placeSprite(3500, 0, Sprite.from("BG/pipes1.png"), false, 200);
     backdrop2.placeSprite(3500, 0, Sprite.from("BG/pipes2.png"), false, 300);
@@ -290,7 +291,7 @@ export async function initGame(skipIntro = false) {
     backdrop1.placeSprite(500, 0, (() => { const a = Sprite.from("BG/mountains/mountain2.png"); return a })(), false, 100);
 
 
-    new Prop(new Vector(2150, -10), Sprite.from("entity/citySign.png"));
+    new Prop(new Vector(2150, -10), Sprite.from("entity/citySign.png"), "Rusted sign", "\"Welcome to...\" I can't make out the name of the city.");
 
     player = new Player(new Vector(2510, 600));
     Camera.position = player.position.result();
@@ -340,6 +341,8 @@ export async function initGame(skipIntro = false) {
 
     new Drone(new Vector(4500, 460), undefined);
     new Drone(new Vector(4400, 530), undefined);
+    new Drone(new Vector(1700, 530), undefined);
+    new Drone(new Vector(2100, 530), undefined);
 
 
     DebugDraw.graphics.addChild(Shadowmap.graphic);
@@ -476,14 +479,22 @@ export async function initGame(skipIntro = false) {
                 currentBiome = newBiome.biomeId;
             }
         }
-        if (mouse.pressed == 1) {
-            new Projectile(player, new Vector(wx, wy).sub(player.position).toAngle());
-            player.energy-=.05;
-            GUI.energyBar.fill = player.energy/10
+        if (mouse.clicked == 1) {
+            if (player.energy > 0 && player.weaponCooldown == 0 && player.weaponArmed) {
+                player.weaponCooldown = player.weaponCooldownMax;
+                GUI.cursorElement.classList.add("reloading");
+                new Projectile(player, new Vector(wx, wy), new Vector(0, -20));
+                player.energy -= .2;
+            }
+            GUI.energyBar.fill = player.energy / 10;
+            if (Entity.hoveredEntity) {
+                GUI.sounds.click.play();
+                Entity.hoveredEntity.click();
+            }
         }
 
         if (Progress.terrainUnlocked) {
-            if (mouse.pressed == 1 && !Buildable.currentBuildable) {
+            if (mouse.pressed == 1 && !Buildable.currentBuildable && !Entity.hoveredEntity && !player.weaponArmed) {
                 const type = preferences.selectedTerrainType;
                 const vol = preferences.penSize * preferences.penSize * 4;
                 Terrain.addSound(type, vol);
@@ -529,8 +540,8 @@ export async function initGame(skipIntro = false) {
             if (preferences.penSize < 1) preferences.penSize = 1;
         }
 
-        /*
-         if (key["e"]) {
+
+        if (key["e"]) {
             key["e"] = false;
             preferences.debugMode++;
             preferences.debugMode %= Object.keys(DebugMode).length / 2;
@@ -543,7 +554,7 @@ export async function initGame(skipIntro = false) {
                 Entity.graphic.filters = [new HighlightFilter(1, 0xFF9955, .1)];
                 PixelDrawer.graphic.filters = [new HighlightFilter(1, 0xFF9955, .6), new AtmosphereFilter(.9)];
             }
-        }*/
+        }
         if (key["f10"]) {
             key["f10"] = false;
             preferences.showDebug = !preferences.showDebug;
@@ -602,6 +613,7 @@ export async function initGame(skipIntro = false) {
         DebugDraw.clear()
         Camera.position.x = Math.round(player.camTarget.x);
         Camera.position.y = Math.round(player.camTarget.y);
+        mouse.clicked = 0;
     });
 
     let introDialogue = new NodeStack(
@@ -723,10 +735,13 @@ export async function initGame(skipIntro = false) {
     new GuiButton({ width: 5, image: "ui/delete.png", content: "Remove", callback: () => { preferences.selectedTerrainType = terrainType.void }, parent: terrainEditingToolbar.container })
 
     scannerData = new PositionableGuiElement({ position: new Vector(25, 25), invertHorizontalPosition: true, invertVerticalPosition: true, hidden: true })
-    let statsBox = new PositionableGuiElement({ position: new Vector(25, 25), invertHorizontalPosition: false, invertVerticalPosition: true, hidden: false })
-    GUI.healthBar = new GuiProgressBar({ parent: statsBox, progress: .9, label: "Health", labelWidth: 4, color: "health" });
-    GUI.energyBar = new GuiProgressBar({ parent: statsBox, progress: .9, label: "Energy", labelWidth: 4, color: "energy" });
-    GUI.oxygenBar = new GuiProgressBar({ parent: statsBox, progress: .9, label: "Oxygen", labelWidth: 4, color: "oxygen" });
+    let characterToolbar = new PositionableGuiElement({ position: new Vector(25, 25), invertHorizontalPosition: false, invertVerticalPosition: true, hidden: false, flexDirection: "row" })
+    let statsPanel = new GuiPanel({ blankStyle: true, parent: characterToolbar })
+    GUI.healthBar = new GuiProgressBar({ parent: statsPanel, progress: 1, label: "Health", labelWidth: 4, color: "health", warnThreshold: .5 });
+    GUI.energyBar = new GuiProgressBar({ parent: statsPanel, progress: 1, label: "Energy", labelWidth: 4, color: "energy", warnThreshold: .3 });
+    GUI.oxygenBar = new GuiProgressBar({ parent: statsPanel, progress: 1, label: "Oxygen", labelWidth: 4, color: "oxygen", warnThreshold: .3 });
+
+    GUI.weaponButton = new GuiButton({ width: 5, content: "Arm weapon", callback: () => { player.toggleWeapon() }, parent: characterToolbar, classes: ["centered"] })
 
     async function moveTutorial() {
         Progress.controlsUnlocked = true;
@@ -766,7 +781,7 @@ export async function initGame(skipIntro = false) {
     const key: Record<string, boolean> = {};
     window.addEventListener("keydown", (e) => { key[e.key.toLowerCase()] = true; });
     window.addEventListener("keyup", (e) => { key[e.key.toLowerCase()] = false });
-    window.addEventListener("mousedown", (e) => { if (!mouse.gui) { mouse.pressed = e.buttons; } e.preventDefault() });
+    window.addEventListener("mousedown", (e) => { if (!mouse.gui) { mouse.pressed = e.buttons; mouse.clicked = e.buttons } e.preventDefault() });
     window.addEventListener("mouseup", (e) => { mouse.pressed = e.buttons });
 
     ticker.start();
@@ -823,4 +838,26 @@ export function worldToRender(vector: { x: number, y: number }) {
     return new Vector(
         (vector.x - Camera.position.x) / pixelRatio,
         ((-vector.y) + Camera.position.y + Camera.height) / pixelRatio);
+}
+
+export function gameOver() {
+    let s = new GuiSplash("You died", false);
+    let black = document.createElement("div");
+    black.classList.add("fade");
+    document.body.appendChild(black);
+    setTimeout(() => {
+        black.style.opacity = "1";
+        setTimeout(() => {
+            let a = new CustomGuiElement("div", "You died.", "introText", "ui", "blank", "small");
+            black.appendChild(a.element);
+            setTimeout(() => {
+                let b = new CustomGuiElement("div", "I didn't develop this screen yet so you can enjoy staring at the black screen and listening as the drones bombard your corpse.", "introText", "ui", "blank", "small");
+                black.appendChild(b.element);
+                setTimeout(() => {
+                    let c = new CustomGuiElement("div", "You can also reload the page I guess.", "introText", "ui", "blank", "small");
+                    black.appendChild(c.element);
+                }, 8000);
+            }, 8000);
+        }, 1000);
+    }, 1000);
 }

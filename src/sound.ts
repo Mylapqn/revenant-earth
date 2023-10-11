@@ -65,7 +65,7 @@ export class SoundEffect extends Sound {
 
 export class SoundManager {
     static volume = {
-        music: .8*0,
+        music: .8,
         fx: 1
     }
     static update(dt: number) {
@@ -82,5 +82,14 @@ export class SoundManager {
         forest: new Music("sound/music/dead_forest.ogg"),
         swamp: new Music("sound/music/dead_forest.ogg"),
         menu: new Music("sound/music/menu.ogg"),
+    }
+    static fx = {
+        hit: new SoundEffect("sound/fx/hit.wav",.8),
+        robotDeath:new SoundEffect("sound/fx/robot_explosion.wav",.3),
+        robotHit:new SoundEffect("sound/fx/robot_hit.wav",.15),
+        playerHit:new SoundEffect("sound/fx/player_hit.wav",.2),
+        gunfire:new SoundEffect("sound/fx/gunfire.wav",.2),
+        gunfire2:new SoundEffect("sound/fx/gunfire2.wav",.2),
+        gunfire3:new SoundEffect("sound/fx/gunfire3.wav",.2)
     }
 }

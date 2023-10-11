@@ -74,6 +74,6 @@ export class Color {
         return new Color(255,255,255);
     }
     static black(){
-        return new Color(255,255,255);
+        return new Color(0,0,0);
     }
 }

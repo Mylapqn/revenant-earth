@@ -13,7 +13,8 @@ interface ParticleSystemSettings {
     position: Vector,
     colorFrom?: Color,
     colorTo?: Color,
-    emitRate?: number;
+    emitRate?: number,
+    maxAge?:number
 }
 
 export class ParticleSystem {
@@ -35,6 +36,8 @@ export class ParticleSystem {
     alphaFrom = .3;
     alphaTo = .1;
     collision = false;
+    maxAge = 0;
+    age=  0;
     constructor(settings: ParticleSystemSettings) {
         this.emitRate = settings.emitRate ?? 1;
         this.maxParticles = 256 * this.emitRate;
@@ -44,6 +47,7 @@ export class ParticleSystem {
         this.wrapper.addChild(this.container);
         this.wrapper.filters = [new ParticleFilter(settings.colorFrom ?? new Color(255, 255, 200), settings.colorTo ?? new Color(255, 50, 0))];
         this.wrapper.filterArea = Camera.rect;
+        this.maxAge = settings.maxAge ?? 0;
         //this.container.blendMode = BLEND_MODES.ADD
         ParticleSystem.parentContainer.addChild(this.wrapper);
         ParticleSystem.list.push(this);
@@ -51,6 +55,10 @@ export class ParticleSystem {
 
     update(dt: number) {
         if (this.enabled) {
+            this.age+=dt;
+            if(this.maxAge > 0 && this.age >= this.maxAge){
+                this.enabled = false;
+            }
             this.emitBuildup += dt * 100 * this.emitRate;
             if (this.particles.length < this.maxParticles) {
                 while (this.emitBuildup > 0) {
@@ -63,6 +71,9 @@ export class ParticleSystem {
             const p = this.particles[i];
             i -= p.update(dt);
         }
+        if(!this.enabled &&this.particles.length == 0){
+            this.remove();
+        }
     }
 
     spawnParticle() {
@@ -72,6 +83,10 @@ export class ParticleSystem {
         p.system = this;
         p.maxAge = random(.8, 2) * this.particleLifeTime;
         this.particles.push(p);
+    }
+
+    remove(){
+        ParticleSystem.list.splice(ParticleSystem.list.indexOf(this),1);
     }
 
     static list: ParticleSystem[] = [];

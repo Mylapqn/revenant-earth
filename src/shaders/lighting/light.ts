@@ -1,5 +1,5 @@
 const fs = require("fs");
-import { BaseRenderTexture, Geometry, Mesh, RenderTexture, Shader, TYPES, Texture } from "pixi.js";
+import { BaseRenderTexture, Geometry, Mesh, RenderTexture, Shader, Sprite, TYPES, Texture } from "pixi.js";
 import { Color } from "../../color";
 import { Entity } from "../../entity";
 import { Vector } from "../../vector";
@@ -8,6 +8,33 @@ import { app, worldToRender } from "../../game";
 import { PixelDrawer } from "../../pixelDrawer";
 import { clamp } from "../../utils";
 import { Atmosphere } from "../../atmosphere";
+
+export class TempLight extends Entity {
+    light: Light;
+    intensity: number;
+    maxAge: number;
+    age = 0;
+    constructor(position: Vector, duration = 3, intensity = 1) {
+        super(Sprite.from("robot.png"), position);
+        this.light = new Light(this, new Vector(), 0, 8, new Color(255, 180, 30), 30*intensity, intensity)
+        this.intensity = intensity;
+        this.maxAge = duration;
+    }
+    update(dt: number): void {
+        this.age += dt;
+        this.light.intensity = this.intensity * (1-(this.age / this.maxAge));
+        if (this.age > this.maxAge) {
+            this.remove();
+        }
+        else {
+            this.queueUpdate();
+        }
+    }
+    remove() {
+        this.light.remove();
+        super.remove();
+    }
+}
 
 export class Light {
     static maxAmount = 16;
@@ -27,7 +54,7 @@ export class Light {
         this.color = color.copy();
         this.parent = parent;
         this._intensity = intensity;
-        console.log(this);
+        //console.log(this);
         Light.list.push(this);
     }
 
@@ -56,8 +83,8 @@ export class Light {
         return this._intensity * clamp(1 - ambientIntensity, .1, 1);
     }
 
-    remove(){
-        Light.list.splice(Light.list.indexOf(this),1);
+    remove() {
+        Light.list.splice(Light.list.indexOf(this), 1);
     }
 
     static list: Light[] = [];

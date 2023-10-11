@@ -1,4 +1,4 @@
-import { Container, Graphics, Point, Rectangle, Sprite } from "pixi.js";
+import { Container, EventBoundary, FederatedPointerEvent, Graphics, Point, Rectangle, Sprite } from "pixi.js";
 import { Camera } from "./camera";
 import { Terrain } from "./terrain";
 import { Vector } from "./vector";
@@ -84,6 +84,10 @@ export class Entity {
         Entity.toUpdate.delete(this);
     }
 
+    click(button = 1) {
+
+    }
+
     get hoverable() {
         return this.graphics.interactive;
     }
@@ -92,28 +96,34 @@ export class Entity {
         this.graphics.interactive = val;
         if (val) {
             this.graphics.filterArea = Camera.rect;
-            this.graphics.on("pointerenter", () => {
-                GUI.hover(true);
-                if (!this.hovered && mouse.gui == 0) {
-                    this.hovered = true;
-                    Entity.hoveredEntity = this;
-                    this.graphics.filters = [new HslAdjustmentFilter({ lightness: .3 }), new OutlineFilter(1, 0xFFFFFF, .1, 1)];
-                    this.tooltip = new GuiTooltip(this.name);
-                }
-            })
-            this.graphics.on("pointerleave", () => {
-                GUI.hover(false);
-                if (this.hovered) {
-                    Entity.hoveredEntity = null;
-                    this.hovered = false;
-                    this.graphics.filters = [];
-                    this.tooltip.remove();
-                }
-            })
+            this.graphics.on("pointerenter", this.pointerEnter.bind(this))
+            this.graphics.on("pointerleave", this.pointerLeave.bind(this))
         }
         else {
+            console.log(this, Entity.hoveredEntity, Entity.hoveredEntity == this);
+            if (Entity.hoveredEntity == this) this.pointerLeave();
             this.graphics.removeAllListeners("pointerenter");
             this.graphics.removeAllListeners("pointerleave");
+        }
+    }
+
+    pointerEnter() {
+        GUI.hover(true);
+        if (!this.hovered && mouse.gui == 0) {
+            this.hovered = true;
+            Entity.hoveredEntity = this;
+            this.graphics.filters = [new HslAdjustmentFilter({ lightness: .3 }), new OutlineFilter(1, 0xFFFFFF, .1, 1)];
+            this.tooltip = new GuiTooltip(this.name);
+        }
+    }
+
+    pointerLeave() {
+        GUI.hover(false);
+        if (this.hovered) {
+            Entity.hoveredEntity = null;
+            this.hovered = false;
+            this.graphics.filters = [];
+            this.tooltip.remove();
         }
     }
 
@@ -127,5 +137,5 @@ export class Entity {
         this.toUpdate = this.tempToUpdate;
         this.tempToUpdate = new Set();
     }
-    static hoveredEntity:Entity;
+    static hoveredEntity: Entity;
 }

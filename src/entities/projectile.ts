@@ -1,33 +1,79 @@
 import { Container, Graphics, Sprite } from "pixi.js";
 import { Color } from "../color";
 import { Entity } from "../entity";
-import { random } from "../utils";
+import { random, randomInt } from "../utils";
 import { Vector } from "../vector";
+import { ParticleSystem } from "../particles/particle";
+import { DamageableEntity } from "./damageableEntity";
+import { Terrain, TerrainManager } from "../terrain";
+import { SoundManager } from "../sound";
+import { TempLight } from "../shaders/lighting/light";
+import { GuiSpeechBubble } from "../gui/gui";
+import { DebugDraw } from "../debugDraw";
 
 export class Projectile extends Entity {
-    velocity = new Vector(1,0);
+    velocity = new Vector(1, 0);
     rotSpeed = 0;
-    source:Entity;
-    constructor(source: Entity,angle:number) {
+    source: Entity;
+    age = 0;
+    particles: ParticleSystem;
+    constructor(source: Entity, target: Vector, offset?: Vector) {
         //g.beginFill(Color.random().toPixi())
         //g.drawRect(0, 0, 2, 2);
         let graph = new Graphics;
-        graph.beginFill(0xffffff);
-        graph.drawRect(-1,-1,2,2);
-        super(graph, source.worldCoords(new Vector()), null, -angle);
-        this.velocity = Vector.fromAngle(angle).mult(2);
+        graph.beginFill(0x555555);
+        graph.drawRect(-3, -1, 6, 2);
+        let angle = target.sub(source.worldCoords(offset ?? new Vector())).toAngle()
+        super(graph, source.worldCoords(offset ?? new Vector()), null, -angle);
+        this.velocity = Vector.fromAngle(angle).mult(2.5);
         this.source = source;
         //source.position = new Vector();
         //source.graphics.position.set(0,0)
         //console.log(this.position);
         //this.angle = 0;
+        [SoundManager.fx.gunfire, SoundManager.fx.gunfire2, SoundManager.fx.gunfire3][randomInt(0, 2)].play();
+
+        this.particles = new ParticleSystem({ position: this.position.result(),colorTo:new Color(30,10,10),emitRate:.8,maxAge:.3})
     }
-    update() {
-        this.velocity.x *= .99;
-        this.velocity.y -= .01;
-        this.angle=this.velocity.toAngle();
-        this.position.add(this.velocity)
+    update(dt: number) {
+        this.age += dt;
+        //console.log(this.age);
+
+        if (this.age > .8) {
+            SoundManager.fx.hit.play();
+            this.remove();
+            return;
+        }
+        this.velocity.x *= .997;
+        this.velocity.y *= .997;
+        this.velocity.y -= .009;
+        let angV = this.velocity.result();
+        angV.y *= -1;
+        this.angle = angV.toAngle();
+        this.particles.position = this.position.result();
+        this.position.add(this.velocity);
+
+        for (const e of DamageableEntity.list) {
+            //DebugDraw.drawCircle(e.position.result().add(e.hitboxOffset), e.hitboxSize, "#FFFFFFFF")
+            if (this.position.result().sub(e.position.result().add(e.hitboxOffset)).lengthSquared() <= e.hitboxSize * e.hitboxSize && this.source != e) {
+                e.damage(2);
+                new GuiSpeechBubble(e, "Ouch!", 1);
+                this.remove();
+                return;
+            }
+        }
+        if (Terrain.getPixel(...this.position.result().round().xy()) != 0) {
+            SoundManager.fx.hit.play();
+            this.remove();
+        }
+
         this.updatePosition();
         this.queueUpdate();
+    }
+    remove(): void {
+        this.particles.enabled = false;
+        new ParticleSystem({ position: this.position.result(), maxAge: .1 })
+        new TempLight(this.position.result().add(new Vector(0, 2)), .15, 3);
+        super.remove();
     }
 }

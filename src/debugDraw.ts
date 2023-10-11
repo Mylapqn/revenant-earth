@@ -11,17 +11,20 @@ export class DebugDraw {
     }
 
     static drawCircle(position: Vector, radius: number, color: ColorSource) {
+        if(!this.graphics.visible) return;
         this.graphics.lineStyle({ color: color, width: 2 });
         this.graphics.drawCircle(...this.toLocal(position), radius);
     }
 
     static drawLine(from: Vector, to: Vector, color: ColorSource) {
+        if(!this.graphics.visible) return;
         this.graphics.lineStyle({ color: color, width: 2 });
         this.graphics.moveTo(...this.toLocal(from));
         this.graphics.lineTo(...this.toLocal(to));
     }
 
     static drawPx(at: Vector, color: ColorSource) {
+        if(!this.graphics.visible) return;
         this.graphics.lineStyle({ color: color, width: 1 });
         this.graphics.drawRect(...this.toLocal(at), 1, 1);
     }
