@@ -259,9 +259,9 @@ export async function initGame(skipIntro = false) {
             nextCityBuilding = x + randomInt(150, 250);
             if (biomeData.biomeId == 5) {
                 for (const backdrop of Backdrop.list) {
-                    if (randomBool(backdrop.depth <= 1 ? .9 : .3)) backdrop.placeSprite(x + randomInt(-60, 60), 0, Sprite.from(`BG/city/${randomBool() ? "ruined_" : ""}Skyscraper_${randomInt(0, 4)}.png`), true, 200);
+                    if (randomBool(backdrop.depth <= 1 ? .9 : .3)) backdrop.placeSprite(x + randomInt(-60, 60), 0, Sprite.from(`BG/city/${randomBool() ? "ruined_" : ""}skyscraper_${randomInt(0, 4)}.png`), true, 200);
                 }
-                if (randomBool(.9)) new BackdropProp(new Vector(x, 720 - ty), random(.68, .95), Sprite.from(`BG/city/${randomBool() ? "ruined_" : ""}Skyscraper_${randomInt(0, 4)}.png`), 1, true);
+                if (randomBool(.9)) new BackdropProp(new Vector(x, 720 - ty), random(.68, .95), Sprite.from(`BG/city/${randomBool() ? "ruined_" : ""}skyscraper_${randomInt(0, 4)}.png`), 1, true);
                 //console.log(ty);
             }
         }
@@ -283,7 +283,7 @@ export async function initGame(skipIntro = false) {
     backdrop0.placeSprite(3701, 0, Sprite.from("BG/pipes3.png"), false, 300);
     backdrop0.placeSprite(3200, 0, Sprite.from("BG/pipes4.png"), false, 300);
     backdrop1.placeSprite(1500, 0, Sprite.from("BG/highway1.png"), false, 200);
-    //backdrop1.placeSprite(2300, 0, (() => { const a = Sprite.from("BG/city/ruined_Skyscraper_0.png"); return a })(), true, 70);
+    //backdrop1.placeSprite(2300, 0, (() => { const a = Sprite.from("BG/city/ruined_skyscraper_0.png"); return a })(), true, 70);
     backdrop0.placeSprite(2300, 0, (() => { const a = Sprite.from("building2.png"); return a })(), false, 70);
     backdrop0.placeSprite(2600, 0, (() => { const a = Sprite.from("building3.png"); return a })(), false, 70);
     backdrop0.placeSprite(2900, 0, (() => { const a = Sprite.from("dump1.png"); return a })(), false, 120);
