@@ -14,7 +14,8 @@ interface ParticleSystemSettings {
     colorFrom?: Color,
     colorTo?: Color,
     emitRate?: number,
-    maxAge?:number
+    maxAge?: number,
+    keepAlive?: boolean,
 }
 
 export class ParticleSystem {
@@ -37,7 +38,8 @@ export class ParticleSystem {
     alphaTo = .1;
     collision = false;
     maxAge = 0;
-    age=  0;
+    age = 0;
+    keepAlive = false;
     constructor(settings: ParticleSystemSettings) {
         this.emitRate = settings.emitRate ?? 1;
         this.maxParticles = 256 * this.emitRate;
@@ -48,6 +50,7 @@ export class ParticleSystem {
         this.wrapper.filters = [new ParticleFilter(settings.colorFrom ?? new Color(255, 255, 200), settings.colorTo ?? new Color(255, 50, 0))];
         this.wrapper.filterArea = Camera.rect;
         this.maxAge = settings.maxAge ?? 0;
+        this.keepAlive = settings.keepAlive ?? false;
         //this.container.blendMode = BLEND_MODES.ADD
         ParticleSystem.parentContainer.addChild(this.wrapper);
         ParticleSystem.list.push(this);
@@ -55,8 +58,8 @@ export class ParticleSystem {
 
     update(dt: number) {
         if (this.enabled) {
-            this.age+=dt;
-            if(this.maxAge > 0 && this.age >= this.maxAge){
+            this.age += dt;
+            if (this.maxAge > 0 && this.age >= this.maxAge) {
                 this.enabled = false;
             }
             this.emitBuildup += dt * 100 * this.emitRate;
@@ -71,7 +74,7 @@ export class ParticleSystem {
             const p = this.particles[i];
             i -= p.update(dt);
         }
-        if(!this.enabled &&this.particles.length == 0){
+        if (!this.keepAlive && !this.enabled && this.particles.length == 0) {
             this.remove();
         }
     }
@@ -85,8 +88,8 @@ export class ParticleSystem {
         this.particles.push(p);
     }
 
-    remove(){
-        ParticleSystem.list.splice(ParticleSystem.list.indexOf(this),1);
+    remove() {
+        ParticleSystem.list.splice(ParticleSystem.list.indexOf(this), 1);
     }
 
     static list: ParticleSystem[] = [];

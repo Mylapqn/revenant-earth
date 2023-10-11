@@ -99,7 +99,8 @@ export class Player extends DamageableEntity {
 
         this.camTarget = this.position.result();
 
-        this.jetpackParticles = new ParticleSystem({ position: this.position, emitRate: 4, colorFrom: new Color(200, 255, 255), colorTo: new Color(200, 200, 200) })
+        this.jetpackParticles = new ParticleSystem({ keepAlive: true, position: this.position, emitRate: 4, colorFrom: new Color(200, 255, 255), colorTo: new Color(200, 200, 200) });
+        
         this.jetpackParticles.angle = -Math.PI / 2;
         this.jetpackParticles.emitSpeed = 300;
         this.jetpackParticles.angleSpread = 0.15;
@@ -147,7 +148,7 @@ export class Player extends DamageableEntity {
         }
 
         if (this.weaponArmed) {
-            console.log(this.weaponCooldown);
+            //console.log(this.weaponCooldown);
 
             this.weaponCooldown = Math.max(0, this.weaponCooldown - dt);
             if (this.weaponCooldown == 0 && this.energy > 0) {

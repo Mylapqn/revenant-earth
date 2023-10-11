@@ -541,8 +541,8 @@ export async function initGame(skipIntro = false) {
         }
 
 
-        if (key["e"]) {
-            key["e"] = false;
+        if (key["f9"]) {
+            key["f9"] = false;
             preferences.debugMode++;
             preferences.debugMode %= Object.keys(DebugMode).length / 2;
             if (preferences.debugMode != DebugMode.off) {
