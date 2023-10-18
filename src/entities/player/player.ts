@@ -14,6 +14,7 @@ import { SoundEffect, SoundManager } from "../../sound";
 import { ParticleSystem } from "../../particles/particle";
 import { GUI, GuiSplash } from "../../gui/gui";
 import { DamageableEntity } from "../damageableEntity";
+import { World } from "../../world";
 
 const playerSprites = {
     stand: AnimatedSprite.fromFrames(["player.png"]),
@@ -156,6 +157,13 @@ export class Player extends DamageableEntity {
             }
         }
 
+        let worldData = World.getDataFrom(this.position.x)
+        this.oxygen+=dt*.03*(50-worldData.pollution);
+        if(this.oxygen <= -1){
+            this.oxygen = 0;
+            this.damage(1);
+        }
+
         this.grounded = false;
         let highestDensity = 0;
         for (let j = -5; j <= -Math.min(this.velocity.y * dt, 0); j++) {
@@ -233,7 +241,7 @@ export class Player extends DamageableEntity {
                 this.energy = 0;
                 this.jetpack = false;
             }
-            GUI.energyBar.fill = this.energy / 10;
+
         }
         else {
             this.sounds.jetpackLoop.volume *= .9;
@@ -308,6 +316,9 @@ export class Player extends DamageableEntity {
         }
 
 
+        GUI.oxygenBar.fill = this.oxygen/10;
+        GUI.energyBar.fill = this.energy / 10;
+        GUI.healthBar.fill = this.health / 10;
 
         // this.camTarget = this.position.result().sub(new Vector(Math.floor(Camera.width / 4) * 4, Camera.height).mult(.5).sub(lastvel.mult(dt)));
         // this.camTarget = this.camTarget.add(new Vector(0,Camera.yOffset)).round();

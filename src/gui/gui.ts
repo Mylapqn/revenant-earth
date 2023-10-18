@@ -387,6 +387,7 @@ export class GuiPanel extends GuiElement {
 
 export class GuiProgressBar extends GuiElement {
     private fillElement: HTMLDivElement;
+    private smoothFillElement: HTMLDivElement;
     private barElement: HTMLDivElement;
     private labelElement: HTMLDivElement;
     private _fill: number;
@@ -415,10 +416,14 @@ export class GuiProgressBar extends GuiElement {
         this.fillElement = document.createElement("div");
         this.fillElement.classList.add("progressBarFill")
         this.barElement.appendChild(this.fillElement);
+        this.smoothFillElement = document.createElement("div");
+        this.smoothFillElement.classList.add("progressBarFill", "smoothFill")
+        this.barElement.appendChild(this.smoothFillElement);
         if (options.color instanceof Color)
             this.fillElement.style.backgroundColor = options.color.toCSS();
         else
             this.fillElement.style.backgroundColor = `var(--color-${options.color})`;
+        this.smoothFillElement.style.backgroundColor = this.fillElement.style.backgroundColor;
         this.fill = options.progress;
     }
     set fill(f: number) {
@@ -428,6 +433,7 @@ export class GuiProgressBar extends GuiElement {
             this.barElement.classList.remove("flashRed");
         this._fill = f;
         this.fillElement.style.width = `${f * 100}%`;
+        this.smoothFillElement.style.width = `${f * 100}%`;
     }
     get fill() {
         return this._fill;

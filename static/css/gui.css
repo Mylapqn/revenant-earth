@@ -508,6 +508,7 @@ kbd.pressed {
     width: 10em;
     border-radius: .3em;
     overflow: hidden;
+    position: relative;
 
 }
 
@@ -515,6 +516,14 @@ kbd.pressed {
     height: 100%;
     width: 50%;
     border-radius: .3em;
+    position: absolute;
+    top:0;
+}
+
+.smoothFill {
+    opacity: .2;
+    transition: width .5s;
+    z-index: 100;
 }
 
 .flashRed {
@@ -548,6 +557,7 @@ kbd.pressed {
         max-width: 0em;
         opacity: 0;
     }
+
     50% {
         opacity: 1;
     }
@@ -555,8 +565,9 @@ kbd.pressed {
     99% {
         text-wrap: nowrap;
     }
+
     to {
-        max-width:30em;
+        max-width: 30em;
         text-wrap: wrap;
     }
 }
