@@ -56,7 +56,7 @@
 
 #guiContainer.mainMenu {
     background-color: #ffd599;
-    --scale: calc(min(1.5px, 0.12vw));
+    --scale: calc(min(1.25px, 0.12vw));
 }
 
 .mainMenu .button {
@@ -72,7 +72,7 @@
 .gameTitle {
     font-weight: 400;
     text-transform: uppercase;
-    font-size: 6vw;
+    font-size: 5vw;
     letter-spacing: 0.2em;
     text-align: center;
     margin: 0;
@@ -418,7 +418,7 @@ kbd.pressed {
     align-items: center;
     justify-content: center;
     text-align: center;
-    font-size: 5em;
+    font-size: 4em;
     animation: none;
     animation: splash 7s;
     animation-fill-mode: both;

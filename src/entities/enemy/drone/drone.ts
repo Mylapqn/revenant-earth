@@ -74,13 +74,13 @@ export class Drone extends DamageableEntity implements IFlyingPatrolRobot {
         }
 
         if (this.attacking) {
-            this.light.intensity = (5 + this.aimTime * 20);
+            this.light.intensity = (2 + this.aimTime * 20);
             this.light.color = new Color(230, 30, 40);
             this.aimTime += dt;
-            this.light.width = clamp(1 - this.aimTime, .05, .6);
+            this.light.width = clamp(.8 - this.aimTime, .05, .6);
             let target = player.position.result().add(new Vector(0, this.distToTarget * .2).add(player.velocity.result().mult(this.distToTarget / 500)));
             DebugDraw.drawCircle(target,5,"#55111155");
-            if (this.aimTime > 1) {
+            if (this.aimTime > .8) {
                 new Projectile(this, target);
                 this.aimTime = 0;
                 this.randomOffset = new Vector(randomInt(-200, 200), randomInt(-50, 50));

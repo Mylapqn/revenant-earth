@@ -1,7 +1,7 @@
 :root {
     --outline-color-inactive: #ffffff1a;
     --outline-color-active: #ffffff81;
-    --scale: calc(min(1px, .06vw));
+    --scale: calc(min(1px, .06vw)*.9);
     --borderWidth: .2em;
     --uibg: #00000062;
     /* --cursor-normal: url("../cursors/cursor2.png") 0 0, auto;

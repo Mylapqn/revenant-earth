@@ -1,6 +1,6 @@
 
 import { AnimatedSprite, Sprite } from "pixi.js";
-import { debugPrint, gameOver, worldToScreen } from "../../game";
+import { debugPrint, gameOver, mouse, screenToWorld, worldToScreen } from "../../game";
 import { Camera } from "../../camera";
 import { Entity } from "../../entity";
 import { lookup, Terrain, terrainType } from "../../terrain";
@@ -12,12 +12,14 @@ import { Light } from "../../shaders/lighting/light";
 import { DebugDraw } from "../../debugDraw";
 import { SoundEffect, SoundManager } from "../../sound";
 import { ParticleSystem } from "../../particles/particle";
-import { GUI, GuiSplash } from "../../gui/gui";
+import { GUI, GuiSpeechBubble, GuiSplash } from "../../gui/gui";
 import { DamageableEntity } from "../damageableEntity";
 import { World } from "../../world";
+import { Progress } from "../../progress";
 
 const playerSprites = {
     stand: AnimatedSprite.fromFrames(["player.png"]),
+    standGun: AnimatedSprite.fromFrames(["animation/shoot/player-shoot.png"]),
     walk: AnimatedSprite.fromFrames([
         "animation/walk/walk1.png",
         "animation/walk/walk2.png",
@@ -72,6 +74,7 @@ export class Player extends DamageableEntity {
     weaponArmed = false;
     weaponCooldown = 0;
     weaponCooldownMax = .5;
+    handSprite: Sprite;
     stepSound = {
         dirt: [] as SoundEffect[],
         water: [] as SoundEffect[],
@@ -81,6 +84,8 @@ export class Player extends DamageableEntity {
         jetpackStart: new SoundEffect("sound/fx/jetpack_start.ogg", .2)
     }
     jetpackLight = new Light(this, new Vector(-5, 15), -Math.PI / 2 + .2, 1.8, new Color(255, 255, 255), 200, 0);
+    oxygenMovementCost = 1;
+    oxygenModifier = 1;
 
     constructor(position: Vector) {
         const graph = new AnimatedSprite(playerSprites.stand.textures);
@@ -88,6 +93,10 @@ export class Player extends DamageableEntity {
         graph.animationSpeed = .1;
         graph.anchor.set(.5, 1);
         super(graph, position, null, 0);
+        this.handSprite = Sprite.from("animation/shoot/hand.png");
+        this.handSprite.anchor.set(.5);
+        this.handSprite.position.set(3, -19);
+        graph.addChild(this.handSprite);
         for (let i = 1; i <= 6; i++) {
             this.stepSound.dirt.push(new SoundEffect(`sound/fx/steps/dirt${i}.ogg`, .27));
         }
@@ -101,7 +110,7 @@ export class Player extends DamageableEntity {
         this.camTarget = this.position.result();
 
         this.jetpackParticles = new ParticleSystem({ keepAlive: true, position: this.position, emitRate: 4, colorFrom: new Color(200, 255, 255), colorTo: new Color(200, 200, 200) });
-        
+
         this.jetpackParticles.angle = -Math.PI / 2;
         this.jetpackParticles.emitSpeed = 300;
         this.jetpackParticles.angleSpread = 0.15;
@@ -126,17 +135,23 @@ export class Player extends DamageableEntity {
                 this.graphics.play();
             }
             else if (this.animState != 0) {
+                this.oxygenMovementCost = .2;
                 this.animState = 0;
-                this.graphics.textures = playerSprites.stand.textures;
+                if (this.weaponArmed)
+                    this.graphics.textures = playerSprites.standGun.textures;
+                else
+                    this.graphics.textures = playerSprites.stand.textures;
                 this.graphics.play();
             }
         }
         else if (this.run && this.animState != 1) {
+            this.oxygenMovementCost = 3;
             this.animState = 1;
             this.graphics.textures = playerSprites.run.textures;
             this.graphics.play();
         }
         else if (!this.run && this.animState != 2) {
+            this.oxygenMovementCost = .4;
             this.animState = 2;
             this.graphics.textures = playerSprites.walk.textures;
             this.graphics.play();
@@ -150,18 +165,25 @@ export class Player extends DamageableEntity {
 
         if (this.weaponArmed) {
             //console.log(this.weaponCooldown);
-
+            this.handSprite.visible = true;
+            let hdf = this.position.result().add(new Vector(this.handSprite.position.x, -this.handSprite.position.y)).sub(screenToWorld(mouse));
+            if (this.graphics.scale.x > 0) hdf.x *= -1;
+            this.handSprite.rotation = hdf.toAngle();
             this.weaponCooldown = Math.max(0, this.weaponCooldown - dt);
             if (this.weaponCooldown == 0 && this.energy > 0) {
                 GUI.cursorElement.classList.remove("reloading");
             }
         }
+        else {
+            this.handSprite.visible = false;
+        }
 
         let worldData = World.getDataFrom(this.position.x)
-        this.oxygen+=dt*.03*(50-worldData.pollution);
-        if(this.oxygen <= -1){
+        this.oxygen += dt * .03 * (50 - worldData.pollution) * this.oxygenMovementCost * this.oxygenModifier;
+        if (this.oxygen <= -1) {
             this.oxygen = 0;
             this.damage(1);
+            new GuiSpeechBubble(this, "I'm suffocating!", 1)
         }
 
         this.grounded = false;
@@ -316,7 +338,7 @@ export class Player extends DamageableEntity {
         }
 
 
-        GUI.oxygenBar.fill = this.oxygen/10;
+        GUI.oxygenBar.fill = this.oxygen / 10;
         GUI.energyBar.fill = this.energy / 10;
         GUI.healthBar.fill = this.health / 10;
 
@@ -386,6 +408,7 @@ export class Player extends DamageableEntity {
         this.queueUpdate();
     }
     toggleWeapon() {
+        this.animState = 1;
         this.weaponArmed = !this.weaponArmed;
         if (this.weaponArmed) {
             GUI.cursorElement.classList.add("combat");

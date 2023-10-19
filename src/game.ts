@@ -141,6 +141,10 @@ function terrainUpdate() {
     tps++;
 }
 
+export let toxicGas: ParticleSystem;
+
+let smokeBuildup = 0;
+
 export async function initGame(skipIntro = false) {
     PIXI.Assets.addBundle("images", {
         landing: "entity/landing.png",
@@ -179,9 +183,9 @@ export async function initGame(skipIntro = false) {
     pixelContainer.addChild(ParallaxDrawer.container);
     Entity.graphic = new Container();
     pixelContainer.addChild(Entity.graphic);
+    pixelContainer.addChild(PixelDrawer.graphic);
     ParticleSystem.parentContainer = new Container();
     pixelContainer.addChild(ParticleSystem.parentContainer);
-    pixelContainer.addChild(PixelDrawer.graphic);
     Buildable.graphic = new Container();
     pixelContainer.addChild(Buildable.graphic);
     pixelContainer.addChild(ParallaxDrawer.fgContainer);
@@ -293,9 +297,21 @@ export async function initGame(skipIntro = false) {
 
     new Prop(new Vector(2150, -10), Sprite.from("entity/citySign.png"), "Rusted sign", "\"Welcome to...\" I can't make out the name of the city.");
 
+
     player = new Player(new Vector(2510, 600));
     Camera.position = player.position.result();
     //new Robot(new Vector(2500, 600), undefined, 0);
+
+    toxicGas = new ParticleSystem({ lit: true, emitRate: 4, keepAlive: true, position: new Vector(2510, 500), colorFrom: new Color(250, 250, 230), colorTo: new Color(200, 200, 200) });
+    toxicGas.enabled = false;
+    toxicGas.scaleFrom = 2;
+    toxicGas.particleLifeTime = 1.5;
+    toxicGas.scaleTo = .5;
+    toxicGas.alphaFrom = 0;
+    toxicGas.alphaTo = 1;
+    toxicGas.windSpeed = 0;
+    toxicGas.emitSpeed = 30;
+    toxicGas.angle = 1.6;
 
     cloudList = [];
 
@@ -341,8 +357,8 @@ export async function initGame(skipIntro = false) {
 
     new Drone(new Vector(4500, 460), undefined);
     new Drone(new Vector(4400, 530), undefined);
-    new Drone(new Vector(1700, 530), undefined);
-    new Drone(new Vector(2100, 530), undefined);
+    new Drone(new Vector(3200, 530), undefined);
+    new Drone(new Vector(2800, 530), undefined);
 
 
     DebugDraw.graphics.addChild(Shadowmap.graphic);
@@ -450,8 +466,8 @@ export async function initGame(skipIntro = false) {
             if (key["d"]) player.input.x += 1;
             if (key["w"] || key[" "]) player.input.y += 1;
             if (key["s"]) player.input.y -= 1;
-            if (key["shift"]) player.run = false;
-            else player.run = true;
+            if (key["shift"]) player.run = true;
+            else player.run = false;
         }
 
         const [wx, wy] = screenToWorld(mouse).xy();
@@ -477,6 +493,17 @@ export async function initGame(skipIntro = false) {
                 colorGradeNew = newBiome.colorGrade;
                 newBiome.music.play();
                 currentBiome = newBiome.biomeId;
+            }
+
+            smokeBuildup += dt;
+            while (smokeBuildup >= .01) {
+                smokeBuildup -= .01;
+                let smokeX = Math.round(Camera.position.x + random(-50, Camera.width + 50));
+                let toxicity = World.getDataFrom(smokeX).pollution / 100;
+                if (toxicity > random(.5, .9)) {
+                    let smokeY = Terrain.getHeight(smokeX);
+                    toxicGas.spawnParticle(new Vector(smokeX, smokeY));
+                }
             }
         }
         if (mouse.clicked == 1) {
@@ -752,10 +779,12 @@ export async function initGame(skipIntro = false) {
     }
 
     async function activateTutorial() {
+        player.oxygenModifier = 0;
         await introDialogue.execute();
         //await moveTutorial();
         Progress.controlsUnlocked = true;
         await uiTutorial();
+        player.oxygenModifier = 1;
     }
 
     async function uiTutorial() {

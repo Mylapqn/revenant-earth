@@ -25,7 +25,7 @@ export class Projectile extends Entity {
         graph.drawRect(-3, -1, 6, 2);
         let angle = target.sub(source.worldCoords(offset ?? new Vector())).toAngle()
         super(graph, source.worldCoords(offset ?? new Vector()), null, -angle);
-        this.velocity = Vector.fromAngle(angle).mult(2.5);
+        this.velocity = Vector.fromAngle(angle).mult(500);
         this.source = source;
         //source.position = new Vector();
         //source.graphics.position.set(0,0)
@@ -44,14 +44,13 @@ export class Projectile extends Entity {
             this.remove();
             return;
         }
-        this.velocity.x *= .997;
-        this.velocity.y *= .997;
-        this.velocity.y -= .009;
+        this.velocity.mult(1-dt*1);
+        this.velocity.y -= dt*400;
         let angV = this.velocity.result();
         angV.y *= -1;
         this.angle = angV.toAngle();
         this.particles.position = this.position.result();
-        this.position.add(this.velocity);
+        this.position.add(this.velocity.result().mult(dt));
 
         for (const e of DamageableEntity.list) {
             //DebugDraw.drawCircle(e.position.result().add(e.hitboxOffset), e.hitboxSize, "#FFFFFFFF")

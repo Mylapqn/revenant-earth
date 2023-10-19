@@ -16,6 +16,7 @@ interface ParticleSystemSettings {
     emitRate?: number,
     maxAge?: number,
     keepAlive?: boolean,
+    lit?: boolean
 }
 
 export class ParticleSystem {
@@ -40,14 +41,17 @@ export class ParticleSystem {
     maxAge = 0;
     age = 0;
     keepAlive = false;
+    windSpeed = 1;
+    lit = false;
     constructor(settings: ParticleSystemSettings) {
+        this.lit = settings.lit ?? false;
         this.emitRate = settings.emitRate ?? 1;
-        this.maxParticles = 256 * this.emitRate;
+        this.maxParticles = 256 * Math.max(1, this.emitRate);
         this.container = new ParticleContainer(this.maxParticles);
         this.wrapper = new Container();
         this.position = settings.position.result();
         this.wrapper.addChild(this.container);
-        this.wrapper.filters = [new ParticleFilter(settings.colorFrom ?? new Color(255, 255, 200), settings.colorTo ?? new Color(255, 50, 0))];
+        this.wrapper.filters = [new ParticleFilter(settings.colorFrom ?? new Color(255, 255, 200), settings.colorTo ?? new Color(255, 50, 0), this.lit)];
         this.wrapper.filterArea = Camera.rect;
         this.maxAge = settings.maxAge ?? 0;
         this.keepAlive = settings.keepAlive ?? false;
@@ -79,10 +83,10 @@ export class ParticleSystem {
         }
     }
 
-    spawnParticle() {
+    spawnParticle(pos = this.position) {
         let v = Vector.fromAngle(random(-1, 1) * this.angleSpread + this.angle).mult(this.emitSpeed)
         if (this.parent) v.add(this.parent.velocity)
-        const p = new Particle(this, this.position, v);
+        const p = new Particle(this, pos, v);
         p.system = this;
         p.maxAge = random(.8, 2) * this.particleLifeTime;
         this.particles.push(p);
@@ -130,8 +134,8 @@ class Particle {
             return 1;
         }
         const ageRatio = 1 - (this.age / this.maxAge);
-        this.velocity.y += dt * 200;
-        this.velocity.x += dt * 100;
+        this.velocity.y += dt * 200 * this.system.windSpeed;
+        this.velocity.x += dt * 100 * this.system.windSpeed;
         this.sprite.alpha = lerp(this.system.alphaFrom, this.system.alphaTo, 1 - ageRatio);
         this.sprite.scale.set(lerp(this.system.scaleFrom, this.system.scaleTo, 1 - ageRatio));
         this.sprite.tint = Color.fromHsl(0, 0, (ageRatio));

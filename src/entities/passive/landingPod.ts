@@ -20,7 +20,7 @@ export class CrashPod extends Entity {
         this.particleSystems.push(new ParticleSystem({ position: this.position.result().add(new Vector(110, 38)), emitRate: .8, colorFrom: new Color(150, 50, 20), colorTo: new Color }));
         this.particleSystems.push(new ParticleSystem({ position: this.position.result().add(new Vector(127, 52)), emitRate: 3 }));
         this.particleSystems.push(new ParticleSystem({ position: this.position.result().add(new Vector(185, 30)) }));
-        this.name = "Landing Pod"
+        this.name = "Landing Pod - Refill Health, Energy and Oxygen"
         this.hoverable = true;
     }
     update(dt: number): void {
@@ -34,7 +34,10 @@ export class CrashPod extends Entity {
         this.queueUpdate()
     }
     click(){
-        new GuiSpeechBubble(player,"I could salvage some important components from the crashed pod. I could, but I won't.")
+        new GuiSpeechBubble(player,"I refilled my suit oxygen from the pod's tanks.");
+        player.oxygen = 10;
+        player.energy = 10;
+        player.health = 10;
     }
     set hoverable(val: boolean) {
         this.graphics.hitArea = new Rectangle((this.graphics.width / 2)-20, -(this.graphics.height / 2)-20, 100, 40);
