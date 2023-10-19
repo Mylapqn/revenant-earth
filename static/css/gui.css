@@ -61,14 +61,46 @@
 
 .mainMenu .button {
     backdrop-filter: blur(0.5em);
-    background-color: #a218008d;
+    background-color: #900e00a7;
 }
 
+.mainMenu .bottomPanel {
+    position: absolute;
+    bottom: 10vh;
+}
+
+
+.mainMenu .link {
+    background-color: #B03B1C;
+    padding: .4em;
+    border-radius: var(--borderWidth);
+    color:#ffd0a1;
+    /* font-weight: bold; */
+    z-index: 10;
+}
+
+.mainMenu .link {
+    background-color: #ffffffc4;
+    padding: .4em;
+    border-radius: var(--borderWidth);
+    color:#000000;
+    /* font-weight: bold; */
+    z-index: 10;
+}
+
+.mainMenu .link em {
+    color:#000000;
+}
+
+
 .mainMenu .button:hover {
-    background-color: #e17542b4;
+    background-color: #de5a1db4;
     outline-color: #ffecd2ea;
 }
 
+.mainMenu .link:hover {
+    background-color: #fff;
+}
 .gameTitle {
     font-weight: 400;
     text-transform: uppercase;

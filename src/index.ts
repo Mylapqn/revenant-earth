@@ -48,12 +48,17 @@ function init() {
     new MenuBackground("7.gif", .2);
     mainMenuContainer.addChild(new CustomGuiElement("h1", "Revenant Earth", "gameTitle"));
     let buttonPanel = new GuiPanel({ blankStyle: true, parent: mainMenuContainer, flexDirection: "column" });
+    let bottomPanel = new GuiPanel({ blankStyle: true, parent: mainMenuContainer, flexDirection: "column",classes:["bottomPanel"] });
+    bottomPanel.addChild(
+        new GuiButton({ content:"*Learn more*", callback: () => { window.location.href = "https://linktr.ee/mylapqn"; } ,classes:["link"],flex:false}),
+        new GuiButton({ content: "Made by *Matouš Marek*", callback: () => { window.location.href = "https://linktr.ee/mylapqn"; } ,classes:["link"],flex:false}),
+    )
     buttonPanel.addChild(
-        new GuiButton({ content: "NEW GAME", callback: startGame,width:10 }),
+        new GuiButton({ content: "NEW GAME", callback: startGame, width: 10 }),
         //new GuiPanel({ blankStyle: true, flexDirection: "row" })
         //.addChild(
-        new GuiButton({ content: "CONTINUE", callback: continueGame ,width:10 }),
-        new GuiButton({ content: "EXIT", callback: () => { window.location.href = "index.html"; },width:10  })
+        new GuiButton({ content: "CONTINUE", callback: continueGame, width: 10 }),
+        new GuiButton({ content: "EXIT", callback: () => { window.location.href = "index.html"; }, width: 10 }),
         //)
     );
     menuActive = true;

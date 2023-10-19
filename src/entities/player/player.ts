@@ -179,7 +179,7 @@ export class Player extends DamageableEntity {
         }
 
         let worldData = World.getDataFrom(this.position.x)
-        this.oxygen += dt * .03 * (50 - worldData.pollution) * this.oxygenMovementCost * this.oxygenModifier * .2;
+        this.oxygen += dt * .03 * (50 - worldData.pollution) * this.oxygenMovementCost * this.oxygenModifier * .4;
         if (this.oxygen <= -1) {
             this.oxygen = 0;
             this.damage(1);
