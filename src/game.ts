@@ -101,7 +101,7 @@ let cloudList: BackdropProp[];
 
 let printText = "";
 export function debugPrint(s: string) { printText += s + "\n" };
-let lastTime = new Date();
+let lastTime = performance.now();
 let dtAvg = new Array(10).fill(60);
 let tpsMeter = 0;
 let showTps = 0;
@@ -359,6 +359,11 @@ export async function initGame(skipIntro = false) {
     new Drone(new Vector(4400, 530), undefined);
     new Drone(new Vector(3200, 530), undefined);
     new Drone(new Vector(2800, 530), undefined);
+    
+    new Drone(new Vector(1200, 530), undefined);
+    new Drone(new Vector(1800, 530), undefined);
+    new Drone(new Vector(2000, 530), undefined);
+    new Drone(new Vector(2200, 530), undefined);
 
 
     DebugDraw.graphics.addChild(Shadowmap.graphic);
@@ -400,9 +405,9 @@ export async function initGame(skipIntro = false) {
 
         debugPrint("terrainScore:" + terrainScore.toFixed(1));
         terrainScore *= 0.98;
-        let diff = new Date().valueOf() - lastTime.valueOf();
+        let diff = performance.now() - lastTime;
         const dt = Math.min(.1, diff / 2000);
-        lastTime = new Date();
+        lastTime = performance.now();
         dtAvg.shift();
         dtAvg.push(diff);
         tpsMeter += diff;

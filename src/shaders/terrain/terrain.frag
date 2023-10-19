@@ -30,7 +30,7 @@ vec2 hash2(vec2 p) {
     return fract(sin(p) * 18.5453);
 }
 
-float hash(vec2 p)  // replace this by something better
+float hash(vec2 p)  // TODO replace this by something better
 {
     p = 50.0 * fract(p * 0.3183099 + vec2(0.71, 0.113));
     return -1.0 + 2.0 * fract(p.x * p.y * (p.x + p.y));

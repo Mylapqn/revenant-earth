@@ -26,11 +26,11 @@ export class Seed extends Entity {
         graph.anchor.set(0.5);
         super(graph, position, parent, angle);
         this.settings = settings;
-        this.name = this.settings.name.charAt(0).toUpperCase()+this.settings.name.slice(1);
+        this.name = this.settings.name.charAt(0).toUpperCase() + this.settings.name.slice(1);
         //this.label = new GuiLabel(position.result().add(new Vector(0, 0)), this.name);
         //new GuiButton({ content: "remobe 💀", callback: () => { this.remove(); }, parent: this.label });
         this.culling = true;
-        this.hoverable = true;
+        this.hoverable = false;
     }
 
     update(dt: number) {
@@ -52,8 +52,8 @@ export class Seed extends Entity {
         if (this.settings.main.pollutionClean > 0) {
             let data = World.getDataFrom(this.position.x);
 
-            if (data.pollution > 0) data.pollution = 0.01*this.settings.main.pollutionClean;
-            if (data.co2 > 200) data.co2 = 0.1*this.settings.main.pollutionClean;
+            if (data.pollution > 0) data.pollution = 0.01 * this.settings.main.pollutionClean;
+            if (data.co2 > 200) data.co2 = 0.1 * this.settings.main.pollutionClean;
 
             World.takeAt(this.position.x, data);
         }
