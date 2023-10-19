@@ -11,6 +11,7 @@ import { Color } from "../../color";
 import { random, randomInt } from "../../utils";
 import { Stamps } from "../../stamp";
 import { Pole } from "./pole";
+import { GuiSpeechBubble } from "../../gui/gui";
 
 export class Turbine extends Buildable {
     graphics: AnimatedSprite;
@@ -65,5 +66,9 @@ export class Turbine extends Buildable {
     remove(): void {
         super.remove();
         this.cable?.remove();
+    }
+    click() {
+        new GuiSpeechBubble(player,"I refilled my energy from the turbine.");
+        player.energy = 10;
     }
 }
