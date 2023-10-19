@@ -359,11 +359,6 @@ export async function initGame(skipIntro = false) {
     new Drone(new Vector(4400, 530), undefined);
     new Drone(new Vector(3200, 530), undefined);
     new Drone(new Vector(2800, 530), undefined);
-    
-    new Drone(new Vector(1200, 530), undefined);
-    new Drone(new Vector(1800, 530), undefined);
-    new Drone(new Vector(2000, 530), undefined);
-    new Drone(new Vector(2200, 530), undefined);
 
 
     DebugDraw.graphics.addChild(Shadowmap.graphic);
@@ -504,10 +499,12 @@ export async function initGame(skipIntro = false) {
             while (smokeBuildup >= .01) {
                 smokeBuildup -= .01;
                 let smokeX = Math.round(Camera.position.x + random(-50, Camera.width + 50));
-                let toxicity = World.getDataFrom(smokeX).pollution / 100;
-                if (toxicity > random(.5, .9)) {
-                    let smokeY = Terrain.getHeight(smokeX);
-                    toxicGas.spawnParticle(new Vector(smokeX, smokeY));
+                if (smokeX > 20 && smokeX < Terrain.width - 20) {
+                    let toxicity = World.getDataFrom(smokeX).pollution / 100;
+                    if (toxicity > random(.5, .9)) {
+                        let smokeY = Terrain.getHeight(smokeX);
+                        toxicGas.spawnParticle(new Vector(smokeX, smokeY));
+                    }
                 }
             }
         }
