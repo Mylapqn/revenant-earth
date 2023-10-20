@@ -47,7 +47,7 @@ p {
 .aboutContainer {
     flex-direction: column;
     padding-top: 3em;
-    width: calc(min(60em, 50vw));
+    width: calc(min(50em, 80vw));
     display: flex;
     align-items: start;
     color: white;
