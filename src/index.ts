@@ -50,7 +50,7 @@ function init() {
     let buttonPanel = new GuiPanel({ blankStyle: true, parent: mainMenuContainer, flexDirection: "column" });
     let bottomPanel = new GuiPanel({ blankStyle: true, parent: mainMenuContainer, flexDirection: "column",classes:["bottomPanel"] });
     bottomPanel.addChild(
-        new GuiButton({ content:"*Learn more*", callback: () => { window.location.href = "https://linktr.ee/mylapqn"; } ,classes:["link"],flex:false}),
+        new GuiButton({ content:"*Learn more*", callback: () => { window.location.href = "about.html"; } ,classes:["link"],flex:false}),
         new GuiButton({ content: "Made by *Matouš Marek*", callback: () => { window.location.href = "https://linktr.ee/mylapqn"; } ,classes:["link"],flex:false}),
     )
     buttonPanel.addChild(

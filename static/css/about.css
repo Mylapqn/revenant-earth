@@ -1,0 +1,95 @@
+body {
+    background-color: #7B3422;
+    cursor: unset;
+    overflow-x: hidden;
+}
+
+p {
+    font-weight: 300;
+}
+
+.topImage {
+    width: 100vw;
+    image-rendering: pixelated;
+}
+
+.back {
+
+    margin: 1em;
+    padding: .5em;
+    background: #ffffff;
+    border-radius: .5em;
+    outline: .3em solid rgba(255, 255, 255, 0.235);
+    transition: scale .2s;
+    text-decoration: none;
+    color: black;
+
+}
+
+.back.absolute {
+    position: fixed;
+    top: 0;
+    left: 0;
+    font-size: 1.5em;
+}
+
+.back:hover {
+    scale: 120%;
+}
+
+.aboutFlex {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: -5px;
+}
+
+.aboutContainer {
+    flex-direction: column;
+    padding-top: 3em;
+    width: calc(min(60em, 50vw));
+    display: flex;
+    align-items: start;
+    color: white;
+    font-size: 1.5em;
+}
+
+.aboutContainer h1 {
+    text-transform: uppercase;
+    letter-spacing: .3em;
+}
+
+.right {
+    align-self: flex-end;
+}
+
+.center {
+    align-self: center;
+    text-align: center;
+}
+
+.large {
+    font-size: 2em;
+}
+
+.logo {
+    position: absolute;
+    left: 50%;
+    top: 20vw;
+    translate: -50%;
+    color: #ffffff;
+    font-size: 6em;
+    font-weight: 400;
+    text-transform: uppercase;
+    font-size: 5vw;
+    letter-spacing: 0.2em;
+    text-align: center;
+    margin: 0;
+    width: 100vw;
+    z-index: 0;
+}
+
+em {
+    color: #fff04a;
+    font-style: normal;
+}

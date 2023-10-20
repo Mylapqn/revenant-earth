@@ -5,6 +5,10 @@
     --color-oxygen: #89b1cd;
 }
 
+body {
+    overflow: hidden;
+}
+
 #guiContainer {
     position: absolute;
     width: 100vw;
