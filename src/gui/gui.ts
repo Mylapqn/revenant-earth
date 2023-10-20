@@ -12,6 +12,11 @@ export class GUI {
         GUI.cursorElement.id = "cursorElement";
         GUI.cursorElement.classList.add("cursorElement");
         GUI.container.appendChild(GUI.cursorElement);
+        TutorialPrompt.container = document.createElement("div");
+        TutorialPrompt.container.classList.add("fullscreen");
+        GUI.container.appendChild(TutorialPrompt.container);
+
+
         let elements = document.getElementsByClassName("ui");
         for (let i = 0; i < elements.length; i++) {
             const element = elements[i];
@@ -36,6 +41,7 @@ export class GUI {
 
     }
     static update(dt: number) {
+        console.log(mouse.gui)
         GuiTooltip.update();
         for (const el of GuiElement.list) {
             if (el.moving)
@@ -70,7 +76,7 @@ export class GUI {
     static healthBar: GuiProgressBar;
     static energyBar: GuiProgressBar;
     static oxygenBar: GuiProgressBar;
-    static weaponButton:GuiButton;
+    static weaponButton: GuiButton;
 
 }
 
@@ -128,6 +134,7 @@ interface GuiProgressBarOptions extends GuiElementOptions {
 
 export class BaseGuiElement {
     element: HTMLElement;
+    topLevel = false;
     constructor(type: keyof HTMLElementTagNameMap, ...classes: string[]) {
         this.element = document.createElement(type);
         for (const c of classes) {
@@ -135,6 +142,7 @@ export class BaseGuiElement {
         }
     }
     addMouseListeners() {
+        this.topLevel = true;
         this.element.addEventListener("mouseenter", (e) => { mouse.gui++; });
         this.element.addEventListener("mouseleave", (e) => { mouse.gui = 0; });
     }
@@ -180,6 +188,7 @@ class GuiElement extends BaseGuiElement {
     }
     remove() {
         if (this.removed) return;
+        if (this.topLevel) mouse.gui = 0; //TODO Not a clean fix for the mouse bug
         this.removed = true;
         this.element.remove();
         //GUI.container.removeChild(this.element);
@@ -322,10 +331,14 @@ export class CollapsibleGuiElement extends GuiElement {
     async toggleCollapse() {
         GUI.sounds.click.play();
         this.element.classList.toggle("collapsed");
+        if (this.element.classList.contains("collapsed")) mouse.gui = 0; //TODO Not a very clean fix for the mouse-blocking-by-hidden-gui bug, as this will trigger clickthrough even if the mouse wasn't hovering over this element
         await sleep(1000);
     }
     async setCollapse(collapsed: boolean) {
-        if (collapsed) this.element.classList.add("collapsed");
+        if (collapsed) {
+            this.element.classList.add("collapsed");
+            mouse.gui = 0; //same as above
+        }
         else this.element.classList.remove("collapsed");
         await sleep(1000);
     }
@@ -339,6 +352,7 @@ export class TutorialPrompt extends PositionableGuiElement {
         options.content = "";
         options.centerX = options.centerX ?? true;
         super(options);
+        TutorialPrompt.container.appendChild(this.element);
         this.element.classList.add("tutorialPrompt");
         this.fadeIn();
         options.parent = this;
@@ -348,8 +362,13 @@ export class TutorialPrompt extends PositionableGuiElement {
         this.panel = new GuiPanel(options);
         GUI.sounds.tutorial.play();
         TutorialPrompt.list.push(this);
+
         this.awaitDone = new Promise(async (resolve, reject) => {
             if (options.keys) {
+                if (options.keys[0] == "e") {
+                    let c = async () => { GUI.sounds.click.play(); await this.fadeOut(); resolve() };
+                    this.element.onclick = c;
+                }
                 let a = async (e: KeyboardEvent) => {
                     if (this.removed) return;
                     if (TutorialPrompt.list[TutorialPrompt.list.length - 1] == this) {
@@ -372,11 +391,13 @@ export class TutorialPrompt extends PositionableGuiElement {
             }
         })
     }
+
     remove(): void {
         TutorialPrompt.list.pop();
         super.remove();
     }
     static list: TutorialPrompt[] = [];
+    static container: HTMLDivElement;
 }
 
 export class GuiPanel extends GuiElement {
@@ -541,9 +562,9 @@ export class GuiSpeechBubble extends PositionableGuiElement {
     duration = 5;
     age = 0;
     constructor(entity: Entity, content = "none", duration = 3) {
-        super({ position: new Vector(0, 0), content: content,classes:["speechBubble"]});
+        super({ position: new Vector(0, 0), content: content, classes: ["speechBubble"] });
         this.parentEntity = entity;
-        this.duration = duration/2; //TODO Stupid fix because deltatime in the whole game is divided by half and I don't have time to fix it now
+        this.duration = duration / 2; //TODO Stupid fix because deltatime in the whole game is divided by half and I don't have time to fix it now
     }
     update(dt: number): void {
         this.position = worldToScreen(this.parentEntity.position.result()).add(new Vector(0, -250));

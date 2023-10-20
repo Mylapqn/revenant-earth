@@ -23,6 +23,15 @@ body {
     font-size: calc(var(--scale) * 20);
 }
 
+.fullscreen {
+    position: absolute;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    top:0;
+    left:0;
+}
+
 .menustation {
     animation: wave 8s infinite alternate ease-in-out;
 }
