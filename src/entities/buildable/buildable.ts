@@ -17,6 +17,7 @@ export class Buildable extends Entity {
     placing = true;
     graphics: Sprite;
     buildStatus: BuildStatus = { valid: false, message: "Cannot place" };
+    cost = 100;
     constructor(graphics: Sprite, position = player.position.result(), placeInstantly = false) {
         const graph = graphics;
         graph.anchor.set(0.5, 1);
@@ -67,6 +68,7 @@ export class Buildable extends Entity {
         Entity.graphic.addChild(this.graphics);
         this.graphics.tint = 0xffffff;
         this.graphics.alpha = 1;
+        player.material-=this.cost;
     }
     remove(): void {
         if (Buildable.currentBuildable == this) Buildable.currentBuildable = null;
@@ -77,6 +79,9 @@ export class Buildable extends Entity {
     checkValidPlace(adjust = 0): BuildStatus {
         //console.log(adjust);
         if (adjust == 0) this.checkOffset = 0;
+        if(player.material < this.cost){
+            return { valid: false, message: `Not enough material! You have ${player.material}/${this.cost}` };
+        }
         if (Buildable.placeCooldown != 0 || adjust > 20) {
             let buildStatus: string;
             if (this.checkOffset >= 20) buildStatus = "no free space";
@@ -100,7 +105,7 @@ export class Buildable extends Entity {
         }
         if (grounded > this.graphics.width) {
             this.position.y += this.checkOffset;
-            return { valid: true, message: "Ready to place" }
+            return { valid: true, message: `Ready to place! Cost: ${this.cost} material` }
         }
         this.checkOffset--;
         return this.checkValidPlace(adjust + 1);

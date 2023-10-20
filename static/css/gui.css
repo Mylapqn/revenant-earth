@@ -357,6 +357,7 @@ kbd.pressed {
     width: fit-content;
     outline: var(--borderWidth) solid var(--outline-color-inactive);
     will-change: scale;
+    text-align: center;
 }
 
 .button.disabled {

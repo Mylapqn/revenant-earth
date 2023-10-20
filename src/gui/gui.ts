@@ -41,7 +41,6 @@ export class GUI {
 
     }
     static update(dt: number) {
-        console.log(mouse.gui)
         GuiTooltip.update();
         for (const el of GuiElement.list) {
             if (el.moving)
@@ -577,6 +576,7 @@ export class GuiSpeechBubble extends PositionableGuiElement {
 }
 
 export class GuiTooltip extends GuiElement {
+    private _visible = true;
     constructor(content = "none") {
         super({ content: content, parent: GuiTooltip.container });
         this.element.classList.add("tooltip");
@@ -585,6 +585,17 @@ export class GuiTooltip extends GuiElement {
     static update() {
         this.container.position = new Vector(mouse.x + 10, mouse.y + 10);
     }
+
+    public get visible(): boolean {
+        return this._visible;
+    }
+    public set visible(e: boolean) {
+        if (e != this._visible) {
+            this._visible = e;
+            this.element.style.visibility = this._visible ? "visible" : "hidden";
+        }
+    }
+
 }
 
 export class GuiButton extends PositionableGuiElement {

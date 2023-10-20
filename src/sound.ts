@@ -90,6 +90,7 @@ export class SoundManager {
         playerHit:new SoundEffect("sound/fx/player_hit.wav",.2),
         gunfire:new SoundEffect("sound/fx/gunfire.wav",.2),
         gunfire2:new SoundEffect("sound/fx/gunfire2.wav",.2),
-        gunfire3:new SoundEffect("sound/fx/gunfire3.wav",.2)
+        gunfire3:new SoundEffect("sound/fx/gunfire3.wav",.2),
+        electric:new SoundEffect("sound/fx/electric.mp3",.3)
     }
 }

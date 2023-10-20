@@ -100,7 +100,7 @@ export class Entity {
             this.graphics.on("pointerleave", this.pointerLeave.bind(this))
         }
         else {
-            console.log(this, Entity.hoveredEntity, Entity.hoveredEntity == this);
+            //console.log(this, Entity.hoveredEntity, Entity.hoveredEntity == this);
             if (Entity.hoveredEntity == this) this.pointerLeave();
             this.graphics.removeAllListeners("pointerenter");
             this.graphics.removeAllListeners("pointerleave");

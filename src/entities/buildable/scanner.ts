@@ -21,6 +21,7 @@ export class Scanner extends Buildable {
     timer = 1;
     name = "";
     light: Light;
+    cost = 1000;
     constructor(position: Vector, placeInstantly = false) {
         const graph = new AnimatedSprite([Texture.from("buildable/scanner1.png"), Texture.from("buildable/scanner2.png")]);
         graph.play();

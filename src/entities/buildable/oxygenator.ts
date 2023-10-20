@@ -14,47 +14,52 @@ import { Pole } from "./pole";
 import { GuiSpeechBubble } from "../../gui/gui";
 import { NetworkBuildable, WiringNetwork } from "./network";
 
-export class Turbine extends NetworkBuildable {
+export class Oxygenator extends NetworkBuildable {
     network: WiringNetwork;
     connected: boolean;
-    providesEnergy = true;
+    providesOxygen = true;
+    running = false;
     graphics: AnimatedSprite;
     cable: Cable;
     light: Light;
-    cableOffset = new Vector(3, 55);
-    cost = 2000;
+    onGraph: AnimatedSprite;
+    cableOffset = new Vector(4, 29);
+    cost = 10000;
     constructor(position: Vector, cable = true, placeInstantly = false) {
         const graph = AnimatedSprite.fromFrames([
-            "buildable/turbine/turbine1.png",
-            "buildable/turbine/turbine2.png",
-            "buildable/turbine/turbine3.png",
-            "buildable/turbine/turbine4.png",
+            "buildable/oxygenator/oxygenator-off.png",
         ]);
 
-        graph.anchor.set(0.5, 1);
-        graph.animationSpeed = .2;
-        graph.currentFrame = randomInt(0, 3);
         super(graph, position, placeInstantly);
+        this.onGraph = AnimatedSprite.fromFrames([
+            "buildable/oxygenator/oxygenator1.png",
+            "buildable/oxygenator/oxygenator2.png",
+            "buildable/oxygenator/oxygenator3.png",
+            "buildable/oxygenator/oxygenator4.png",
+        ]);
+        this.onGraph.anchor.set(0.5, 1);
+        this.onGraph.animationSpeed = .2;
+        this.onGraph.currentFrame = randomInt(0, 3);
+
         this.culling = true;
         if (cable) {
-            this.cable = new Cable(position.result().add(this.cableOffset), position, 200);
+            this.cable = new Cable(position.result().add(new Vector(3, 20)), position, 200);
             this.cable.graphics.alpha = this.graphics.alpha;
         }
-        this.name = "Wind turbine";
+        this.name = "Oxygen extractor";
     }
     update(dt: number): void {
         super.update(dt);
         if (this.removed) return;
         if (this.placing) {
             if (this.cable) {
-                this.cable.setEndpoints(undefined, this.position.result().add(this.cableOffset));
+                this.cable.setEndpoints(undefined, this.position.result().add(new Vector(3, 55)));
                 this.cable.graphics.tint = this.graphics.tint;
             }
         }
     }
     checkValidPlace(adjust = 0): BuildStatus {
         if (this.cable?.targetLength > this.cable?.length) return { valid: false, message: "cable too long" };
-        if(this.position.y < 470)return { valid: false, message: "turbines need high ground!" }
         return super.checkValidPlace(adjust);
     }
     place() {
@@ -67,18 +72,32 @@ export class Turbine extends NetworkBuildable {
             this.cable.graphics.alpha = this.graphics.alpha;
         }
 
-        this.light = new Light(this, new Vector(0, this.graphics.height - 76), Math.PI / 2, .8, new Color(180, 200, 200), 100, 1.5);
+        this.light = new Light(this, new Vector(-4, this.graphics.height - 3), Math.PI / 2, 4, new Color(200, 30, 30), 20, 5);
         if (!this.network)
             new WiringNetwork(this);
-        let p = new Pole(this.position.result().add(this.cableOffset));
-        this.network.addElement(p);
+        //let p = new Pole(this.position.result().add(this.cableOffset));
+        //this.network.addElement(p);
     }
     remove(): void {
         super.remove();
         this.cable?.remove();
     }
     click() {
-        new GuiSpeechBubble(player, "I refilled my energy from the turbine.");
-        player.energy = 10;
+        if(this.running){
+            new GuiSpeechBubble(player, "I refilled my oxygen from the extractor.");
+            player.oxygen = 10;
+        }
+        else {
+            new GuiSpeechBubble(player, "The extractor has no energy!");
+        }
+    }
+    onConnect(): void {
+        if (this.network.energy) this.running = true;
+        if (!this.placing && this.running) {
+            this.graphics.textures = this.onGraph.textures;
+            this.graphics.play();
+            this.light.color = new Color(30, 200, 60);
+            this.graphics.animationSpeed = .2;
+        }
     }
 }

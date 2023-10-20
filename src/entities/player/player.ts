@@ -51,6 +51,7 @@ export class Player extends DamageableEntity {
     health = 10;
     energy = 10;
     oxygen = 10;
+    material = 100;
     jetpackParticles: ParticleSystem;
     velocity = new Vector();
     input = new Vector();
@@ -178,8 +179,13 @@ export class Player extends DamageableEntity {
             this.handSprite.visible = false;
         }
 
-        let worldData = World.getDataFrom(this.position.x)
+        let worldData = World.getDataFrom(this.position.x);
+        let oldOxygen = this.oxygen;
         this.oxygen += dt * .03 * (50 - worldData.pollution) * this.oxygenMovementCost * this.oxygenModifier * .4;
+        this.oxygen = clamp(this.oxygen,-1,10);
+        if(this.oxygen <= 5 && oldOxygen > 5){
+            new GuiSpeechBubble(this,"Half of my oxygen is gone, I should return to the pod soon.");
+        }
         if (this.oxygen <= -1) {
             this.oxygen = 0;
             this.damage(1);
@@ -258,7 +264,7 @@ export class Player extends DamageableEntity {
         }
         this.jetpackParticles.enabled = this.jetpack;
         if (this.jetpack) {
-            this.energy -= 5 * dt;
+            this.energy -= 2 * dt;
             if (this.energy < 0) {
                 this.energy = 0;
                 this.jetpack = false;

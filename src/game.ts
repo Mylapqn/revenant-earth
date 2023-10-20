@@ -18,7 +18,7 @@ import { Cloud } from "./entities/passive/cloud";
 import { LightingFilter } from "./shaders/lighting/lightingFilter";
 import { BiomeData, TerrainGenerator } from "./biome";
 import { SkyFilter } from "./shaders/atmosphere/skyFilter";
-import { GUI, GuiButton, PositionableGuiElement, GuiSplash, BaseGuiElement, CustomGuiElement, GuiPanel, TutorialPrompt, CollapsibleGuiElement, GuiProgressBar, GuiLabel, GuiSpeechBubble } from "./gui/gui";
+import { GUI, GuiButton, PositionableGuiElement, GuiSplash, BaseGuiElement, CustomGuiElement, GuiPanel, TutorialPrompt, CollapsibleGuiElement, GuiProgressBar, GuiLabel, GuiSpeechBubble, GuiTooltip } from "./gui/gui";
 import { Color } from "./color";
 import { clamp } from "./utils";
 import { Stamps } from "./stamp";
@@ -42,6 +42,7 @@ import { Turbine } from "./entities/buildable/turbine";
 import { Seed } from "./entities/plants/tree/seed";
 import { Prop } from "./entities/passive/prop";
 import { Projectile } from "./entities/projectile";
+import { Oxygenator } from "./entities/buildable/oxygenator";
 let seed = parseInt(window.location.toString().split('?')[1]);
 if (!seed) seed = Math.floor(Math.random() * 1000);
 Math.random = mulberry32(seed);
@@ -380,6 +381,8 @@ export async function initGame(skipIntro = false) {
     let colorGradeNew: colorGradeOptions = {};
     let biomeTime = 0;
 
+    let terrainTooltip = new GuiTooltip("Available material: " + 5);
+
     ticker.add((delta) => {
 
         if (terrainScore < 80 && tps / tpsMeter < 0.12 && (1000 / Math.max(...dtAvg)) > 50) {
@@ -516,39 +519,89 @@ export async function initGame(skipIntro = false) {
                 player.energy -= .2;
             }
             GUI.energyBar.fill = player.energy / 10;
-            if (Entity.hoveredEntity) {
+            if (Entity.hoveredEntity && !Buildable.currentBuildable) {
                 GUI.sounds.click.play();
                 Entity.hoveredEntity.click();
             }
         }
 
         if (Progress.terrainUnlocked) {
-            if (mouse.pressed == 1 && !Buildable.currentBuildable && !Entity.hoveredEntity && !player.weaponArmed) {
-                const type = preferences.selectedTerrainType;
-                const vol = preferences.penSize * preferences.penSize * 4;
-                Terrain.addSound(type, vol);
-                for (let x = 0; x < preferences.penSize; x++) {
-                    for (let y = 0; y < preferences.penSize; y++) {
-                        const xx = Math.floor(wx + x - preferences.penSize / 2)
-                        const yy = Math.floor(wy + y - preferences.penSize / 2)
-                        if (Terrain.testValid(xx, yy))
-                            Terrain.setAndUpdatePixel(xx, yy, preferences.selectedTerrainType != terrainType.dirt00 ? preferences.selectedTerrainType : generator.getLocalDirt(
-                                new Vector(Math.floor(wx + x - preferences.penSize / 2), Math.floor(wy + y - preferences.penSize / 2))
-                            ));
-                    }
-                }
-            } else if (mouse.pressed == 2 && !Buildable.currentBuildable) {
-                for (let x = 0; x < preferences.penSize; x++) {
-                    for (let y = 0; y < preferences.penSize; y++) {
-                        const coordX = Math.floor(wx + x - preferences.penSize / 2)
-                        const coordY = Math.floor(wy + y - preferences.penSize / 2)
-                        if (Terrain.testValid(coordX, coordY)) {
-                            const type = Terrain.getPixel(coordX, coordY);
-                            Terrain.addSound(type, 10);
-                            Terrain.setAndUpdatePixel(coordX, coordY, terrainType.void);
+            if (!Buildable.currentBuildable && !Entity.hoveredEntity && !player.weaponArmed && preferences.selectedTerrainType != terrainType.void) {
+                terrainTooltip.visible = true;
+                if (player.energy > 0) {
+                    terrainTooltip.text = "Available material: " + player.material;
+                    if (mouse.pressed == 1) {
+                        const type = preferences.selectedTerrainType;
+                        let added = 0;
+                        let actuallyAdded = 0;
+                        for (let x = 0; x < preferences.penSize; x++) {
+                            if (player.material <= 0) break;
+                            for (let y = 0; y < preferences.penSize; y++) {
+                                if (player.material <= 0) break;
+                                const xx = Math.floor(wx + x - preferences.penSize / 2)
+                                const yy = Math.floor(wy + y - preferences.penSize / 2)
+                                if (Terrain.testValid(xx, yy)) {
+                                    if (Terrain.getPixel(xx, yy) == terrainType.void) {
+                                        if (TerrainManager.isWater(preferences.selectedTerrainType)) {
+                                            actuallyAdded += .1;
+                                            player.material -= .1;
+                                        } else {
+                                            actuallyAdded += 1;
+                                            player.material -= 1;
+                                        }
+                                    }
+                                    added++;
+                                    Terrain.setAndUpdatePixel(xx, yy, preferences.selectedTerrainType != terrainType.dirt00 ? preferences.selectedTerrainType : generator.getLocalDirt(
+                                        new Vector(Math.floor(wx + x - preferences.penSize / 2), Math.floor(wy + y - preferences.penSize / 2))
+                                    ));
+                                }
+                            }
                         }
+                        const vol = added * 4;
+                        player.energy -= actuallyAdded * .0015;
+                        player.material = Math.max(0,Math.round(player.material));
+                        Terrain.addSound(type, vol);
+                    } else if (mouse.pressed == 2) {
+                        let actuallyRemoved = 0;
+                        for (let x = 0; x < preferences.penSize; x++) {
+                            for (let y = 0; y < preferences.penSize; y++) {
+                                const coordX = Math.floor(wx + x - preferences.penSize / 2)
+                                const coordY = Math.floor(wy + y - preferences.penSize / 2)
+                                if (Terrain.testValid(coordX, coordY)) {
+                                    const type = Terrain.getPixel(coordX, coordY);
+                                    Terrain.addSound(type, 10);
+                                    let px = Terrain.getPixel(coordX, coordY)
+                                    if (px != terrainType.void && randomBool()) {
+                                        actuallyRemoved++;
+                                        switch (px) {
+                                            case terrainType.stone:
+                                                player.material += 2;
+                                                break;
+                                            case terrainType.water1:
+                                            case terrainType.water2:
+                                            case terrainType.water3:
+                                                player.material += .5;
+                                                break;
+
+                                            default:
+                                                player.material += 1;
+                                                break;
+                                        }
+                                    }
+                                    Terrain.setAndUpdatePixel(coordX, coordY, terrainType.void);
+                                }
+                            }
+                        }
+                        player.energy -= actuallyRemoved * .0015;
+                        player.material = Math.round(player.material);
                     }
                 }
+                else {
+                    terrainTooltip.text = "No energy!";
+                }
+
+            } else {
+                terrainTooltip.visible = false;
             }
         }
         if (key["0"]) preferences.selectedTerrainType = terrainType.void;
@@ -733,6 +786,13 @@ export async function initGame(skipIntro = false) {
         }
     }
 
+    function placeOxygenator() {
+        if (!Buildable.currentBuildable && seedCooldown <= 0) {
+            seedCooldown = .2;
+            new Oxygenator(player.position.result(), false);
+        }
+    }
+
     function placeTurbine() {
         if (!Buildable.currentBuildable && seedCooldown <= 0) {
             seedCooldown = .2;
@@ -751,7 +811,8 @@ export async function initGame(skipIntro = false) {
     let buildingToolbar = new CollapsibleGuiElement({ position: 2, edge: "right", content: "Build menu", hidden: true });
 
     new GuiButton({ width: 5, content: "Seed", callback: () => { placeSeed() }, parent: buildingToolbar.container })
-    new GuiButton({ width: 5, content: "Pole", callback: () => { placePole() }, parent: buildingToolbar.container })
+    new GuiButton({ width: 5, content: "Cable", callback: () => { placePole() }, parent: buildingToolbar.container })
+    new GuiButton({ width: 5, content: "Oxygen Extractor", callback: () => { placeOxygenator() }, parent: buildingToolbar.container })
     new GuiButton({ width: 5, content: "Turbine", callback: () => { placeTurbine() }, parent: buildingToolbar.container })
     new GuiButton({ width: 5, content: "Scanner", callback: () => { placeScanner() }, parent: buildingToolbar.container })
 
@@ -761,16 +822,16 @@ export async function initGame(skipIntro = false) {
     new GuiButton({ width: 5, image: "ui/sand.png", content: "Sand", callback: () => { preferences.selectedTerrainType = terrainType.sand }, parent: terrainEditingToolbar.container })
     new GuiButton({ width: 5, image: "ui/water.png", content: "Water", callback: () => { preferences.selectedTerrainType = terrainType.water1 }, parent: terrainEditingToolbar.container })
     new GuiButton({ width: 5, image: "ui/grass.png", content: "Grass", callback: () => { preferences.selectedTerrainType = terrainType.grass0 }, parent: terrainEditingToolbar.container })
-    new GuiButton({ width: 5, image: "ui/delete.png", content: "Remove", callback: () => { preferences.selectedTerrainType = terrainType.void }, parent: terrainEditingToolbar.container })
+    new GuiButton({ width: 5, image: "ui/delete.png", content: "Cancel", callback: () => { preferences.selectedTerrainType = terrainType.void }, parent: terrainEditingToolbar.container })
 
     scannerData = new PositionableGuiElement({ position: new Vector(25, 25), invertHorizontalPosition: true, invertVerticalPosition: true, hidden: true })
     let characterToolbar = new PositionableGuiElement({ position: new Vector(25, 25), invertHorizontalPosition: false, invertVerticalPosition: true, hidden: false, flexDirection: "row" })
     let statsPanel = new GuiPanel({ blankStyle: true, parent: characterToolbar })
-    GUI.healthBar = new GuiProgressBar({ parent: statsPanel, progress: 1, label: "Health", labelWidth: 4, color: "health", warnThreshold: .5 });
+    GUI.healthBar = new GuiProgressBar({ parent: statsPanel, progress: 1, label: "Health", labelWidth: 4, color: "health", warnThreshold: .3 });
     GUI.energyBar = new GuiProgressBar({ parent: statsPanel, progress: 1, label: "Energy", labelWidth: 4, color: "energy", warnThreshold: .3 });
-    GUI.oxygenBar = new GuiProgressBar({ parent: statsPanel, progress: 1, label: "Oxygen", labelWidth: 4, color: "oxygen", warnThreshold: .3 });
+    GUI.oxygenBar = new GuiProgressBar({ parent: statsPanel, progress: 1, label: "Oxygen", labelWidth: 4, color: "oxygen", warnThreshold: .5 });
 
-    GUI.weaponButton = new GuiButton({ width: 5, content: "Arm weapon", callback: () => { player.toggleWeapon() }, parent: characterToolbar, classes: ["centered"] })
+    GUI.weaponButton = new GuiButton({ width: 5, content: "Arm weapon", callback: () => { player.toggleWeapon(); preferences.selectedTerrainType = terrainType.void; }, parent: characterToolbar, classes: ["centered"] })
 
     async function moveTutorial() {
         Progress.controlsUnlocked = true;
