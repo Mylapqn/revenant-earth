@@ -43,6 +43,7 @@ import { Seed } from "./entities/plants/tree/seed";
 import { Prop } from "./entities/passive/prop";
 import { Projectile } from "./entities/projectile";
 import { Oxygenator } from "./entities/buildable/oxygenator";
+import { Turret } from "./entities/buildable/turret";
 let seed = parseInt(window.location.toString().split('?')[1]);
 if (!seed) seed = Math.floor(Math.random() * 1000);
 Math.random = mulberry32(seed);
@@ -559,7 +560,7 @@ export async function initGame(skipIntro = false) {
                         }
                         const vol = added * 4;
                         player.energy -= actuallyAdded * .0015;
-                        player.material = Math.max(0,Math.round(player.material));
+                        player.material = Math.max(0, Math.round(player.material));
                         Terrain.addSound(type, vol);
                     } else if (mouse.pressed == 2) {
                         let actuallyRemoved = 0;
@@ -771,6 +772,13 @@ export async function initGame(skipIntro = false) {
     new GuiButton({ width: 8, flexDirection: "row", image: "ui/icon-night.png", content: "Night", callback: () => { Atmosphere.settings.sunAngle = 1; }, parent: devBar.container })
 
 
+    function placeTurret() {
+        if (!Buildable.currentBuildable && seedCooldown <= 0) {
+            seedCooldown = .2;
+            new Turret();
+        }
+    }
+
     function placeSeed() {
         if (!Buildable.currentBuildable && seedCooldown <= 0) {
             seedCooldown = .2;
@@ -810,6 +818,7 @@ export async function initGame(skipIntro = false) {
 
     let buildingToolbar = new CollapsibleGuiElement({ position: 2, edge: "right", content: "Build menu", hidden: true });
 
+    new GuiButton({ width: 5, content: "Turret", callback: () => { placeTurret() }, parent: buildingToolbar.container })
     new GuiButton({ width: 5, content: "Seed", callback: () => { placeSeed() }, parent: buildingToolbar.container })
     new GuiButton({ width: 5, content: "Cable", callback: () => { placePole() }, parent: buildingToolbar.container })
     new GuiButton({ width: 5, content: "Oxygen Extractor", callback: () => { placeOxygenator() }, parent: buildingToolbar.container })

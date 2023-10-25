@@ -85,3 +85,7 @@ function isObject(val: any): val is object {
 export function clamp(x: number, min: number = 0, max: number = 1) {
     return Math.min(max, Math.max(min, x ?? 1));
 }
+
+export function zigzag(x: number) {
+    return 4 * 1 / 1 * Math.abs((((x - 1 / 4) % 1) + 1) % 1 - 1 / 2) - 1
+}

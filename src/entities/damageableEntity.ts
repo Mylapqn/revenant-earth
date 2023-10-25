@@ -14,6 +14,7 @@ export class DamageableEntity extends Entity {
     deathSound: SoundEffect;
     hitboxOffset = new Vector();
     hitboxSize = 10;
+    velocity:Vector;
     damage(amount: number) {
         this.hitSound?.play();
         this.health -= amount;

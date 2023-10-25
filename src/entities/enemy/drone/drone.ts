@@ -40,6 +40,7 @@ export class Drone extends DamageableEntity implements IFlyingPatrolRobot {
 
         this.deathSound = SoundManager.fx.robotDeath;
         this.hitSound = SoundManager.fx.robotHit;
+        Drone.droneList.add(this);
         //this.label = new GuiLabel(this.position, "hi :)");
     }
 
@@ -101,12 +102,14 @@ export class Drone extends DamageableEntity implements IFlyingPatrolRobot {
     die() {
         new ParticleSystem({ position: this.position.result(), maxAge: .2, emitRate: 3 })
         new TempLight(this.position.result(), .5, 6);
+        Drone.droneList.delete(this);
         super.die();
     }
     remove(): void {
         this.light.remove();
         super.remove();
     }
+    static droneList = new Set<Drone>();
 }
 
 function droneTask(robot: IFlyingPatrolRobot, dt: number) {

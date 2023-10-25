@@ -23,7 +23,7 @@ export class Projectile extends Entity {
         let graph = new Graphics;
         graph.beginFill(0x555555);
         graph.drawRect(-3, -1, 6, 2);
-        let angle = target.sub(source.worldCoords(offset ?? new Vector())).toAngle()
+        let angle = target.result().sub(source.worldCoords(offset ?? new Vector())).toAngle()
         super(graph, source.worldCoords(offset ?? new Vector()), null, -angle);
         this.velocity = Vector.fromAngle(angle).mult(500);
         this.source = source;
@@ -33,7 +33,7 @@ export class Projectile extends Entity {
         //this.angle = 0;
         [SoundManager.fx.gunfire, SoundManager.fx.gunfire2, SoundManager.fx.gunfire3][randomInt(0, 2)].play();
 
-        this.particles = new ParticleSystem({ position: this.position.result(),colorTo:new Color(30,10,10),emitRate:.8,maxAge:.3})
+        this.particles = new ParticleSystem({ position: this.position.result(), colorTo: new Color(30, 10, 10), emitRate: .8, maxAge: .3 })
     }
     update(dt: number) {
         this.age += dt;
@@ -44,8 +44,8 @@ export class Projectile extends Entity {
             this.remove();
             return;
         }
-        this.velocity.mult(1-dt*1);
-        this.velocity.y -= dt*400;
+        this.velocity.mult(1 - dt * 1);
+        this.velocity.y -= dt * 400;
         let angV = this.velocity.result();
         angV.y *= -1;
         this.angle = angV.toAngle();
@@ -74,5 +74,11 @@ export class Projectile extends Entity {
         new ParticleSystem({ position: this.position.result(), maxAge: .1 })
         new TempLight(this.position.result().add(new Vector(0, 2)), .15, 3);
         super.remove();
+    }
+
+    static calcPreaim(shooterPos: Vector, target: DamageableEntity): Vector {
+        let dist = shooterPos.result().distance(target.position);
+        return target.position.result().add(new Vector(0, dist * .2).add(target.velocity.result().mult(dist / 350)));
+
     }
 }

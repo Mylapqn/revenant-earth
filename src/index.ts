@@ -112,6 +112,7 @@ function startGame() {
 }
 
 function continueGame() {
+    document.documentElement.requestFullscreen();
     SoundManager.music.menu.pause();
     menuActive = false;
     let black = document.createElement("div");
