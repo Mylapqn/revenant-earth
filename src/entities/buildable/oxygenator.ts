@@ -83,7 +83,7 @@ export class Oxygenator extends NetworkBuildable {
         this.cable?.remove();
     }
     click() {
-        if(this.running){
+        if (this.running) {
             new GuiSpeechBubble(player, "I refilled my oxygen from the extractor.");
             player.oxygen = 10;
         }
@@ -92,12 +92,12 @@ export class Oxygenator extends NetworkBuildable {
         }
     }
     onConnect(): void {
-        if (this.network.energy) this.running = true;
-        if (!this.placing && this.running) {
+        if (!this.placing && !this.running && this.network.energy) {
             this.graphics.textures = this.onGraph.textures;
             this.graphics.play();
             this.light.color = new Color(30, 200, 60);
             this.graphics.animationSpeed = .2;
+            this.running = true
         }
     }
 }

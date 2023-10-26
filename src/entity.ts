@@ -17,7 +17,7 @@ export class Entity {
     graphics: Container;
     tooltip: GuiTooltip;
     hovered = false;
-    culling = false;
+    culling = true;
     cullExtend = 100;
     removed = false;
     name = "Entity";

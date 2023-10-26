@@ -61,9 +61,11 @@ export class Projectile extends Entity {
                 return;
             }
         }
-        if (Terrain.getPixel(...this.position.result().round().xy()) != 0) {
-            SoundManager.fx.hit.play();
-            this.remove();
+        if (Terrain.testValid(...this.position.result().round().xy())) {
+            if (Terrain.getPixel(...this.position.result().round().xy()) != 0) {
+                SoundManager.fx.hit.play();
+                this.remove();
+            }
         }
 
         this.updatePosition();
@@ -78,7 +80,7 @@ export class Projectile extends Entity {
 
     static calcPreaim(shooterPos: Vector, target: DamageableEntity): Vector {
         let dist = shooterPos.result().distance(target.position);
-        return target.position.result().add(new Vector(0, dist * .2).add(target.velocity.result().mult(dist / 350)));
+        return target.position.result().add(new Vector(0, dist * .2).add(target.velocity.result().mult(dist / 380)));
 
     }
 }

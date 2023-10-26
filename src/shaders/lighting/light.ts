@@ -8,6 +8,8 @@ import { app, worldToRender } from "../../game";
 import { PixelDrawer } from "../../pixelDrawer";
 import { clamp } from "../../utils";
 import { Atmosphere } from "../../atmosphere";
+import { GuiLabel } from "../../gui/gui";
+import { DebugDraw } from "../../debugDraw";
 
 export class TempLight extends Entity {
     light: Light;
@@ -15,14 +17,18 @@ export class TempLight extends Entity {
     maxAge: number;
     age = 0;
     constructor(position: Vector, duration = 3, intensity = 1) {
-        super(Sprite.from("robot.png"), position);
-        this.light = new Light(this, new Vector(), 0, 8, new Color(255, 180, 30), 30*intensity, intensity)
+        super(Sprite.from("empty.png"), position);
+
+        this.light = new Light(this, new Vector(), 0, 8, new Color(255, 180, 30), 30 * intensity, intensity)
         this.intensity = intensity;
         this.maxAge = duration;
+        this.updatePosition();
     }
     update(dt: number): void {
+        console.log(this.graphics.position);
+
         this.age += dt;
-        this.light.intensity = this.intensity * (1-(this.age / this.maxAge));
+        this.light.intensity = this.intensity * (1 - (this.age / this.maxAge));
         if (this.age > this.maxAge) {
             this.remove();
         }
@@ -65,7 +71,7 @@ export class Light {
     }
     public get position(): Vector {
         if (!this.parent) return this._position;
-        return this._position.result().add(this.parent.position);
+        return this.parent.worldCoords(new Vector(this._position.x, -this._position.y));
     }
     public set angle(angle) {
         this._angle = angle;
@@ -141,6 +147,8 @@ export class Lightmap {
         for (let i = 0; i < Light.list.length; i++) {
             const light = Light.list[i];
             if (!light.parent.graphics.visible) continue;
+            DebugDraw.drawCircle(light.position, 10, 0xFFFF00);
+            DebugDraw.drawText(light.position, "light index " + index);
             let screenPos = worldToRender(light.position);
             //this.uniforms.uLights[i] = {position:[screenPos.x / window.innerWidth, screenPos.y / window.innerHeight]};
             (this.uniforms as any)[`uLights[${index}].position`] = [screenPos.x / window.innerWidth, screenPos.y / window.innerHeight];
