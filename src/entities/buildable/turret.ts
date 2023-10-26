@@ -9,6 +9,8 @@ import { Entity } from "../../entity";
 import { Color } from "../../color";
 import { Stamps } from "../../stamp";
 import { Terrain, TerrainManager } from "../../terrain";
+import { player } from "../../game";
+import { GuiSpeechBubble } from "../../gui/gui";
 
 export class Turret extends NetworkBuildable {
     gun: Entity;
@@ -21,6 +23,7 @@ export class Turret extends NetworkBuildable {
     cableOffset = new Vector(-6, 14);
     running = false;
     culling = true;
+    cost = 1000;
 
     cullExtend = 20;
     constructor() {
@@ -81,6 +84,14 @@ export class Turret extends NetworkBuildable {
         this.onConnect();
         //let p = new Pole(this.position.result().add(this.cableOffset));
         //this.network.addElement(p);
+    }
+    click() {
+        if (this.running) {
+            new GuiSpeechBubble(player, "The turret is running properly.");
+        }
+        else {
+            new GuiSpeechBubble(player, "The turret has no energy!");
+        }
     }
     onConnect(): void {
         if (!this.placing && this.network.energy && !this.running) {
