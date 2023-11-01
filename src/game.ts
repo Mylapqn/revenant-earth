@@ -147,6 +147,8 @@ export let toxicGas: ParticleSystem;
 
 let smokeBuildup = 0;
 
+export let terrainEditing = true;
+
 export async function initGame(skipIntro = false) {
     PIXI.Assets.addBundle("images", {
         landing: "entity/landing.png",
@@ -528,7 +530,13 @@ export async function initGame(skipIntro = false) {
 
         if (Progress.terrainUnlocked) {
             if (!Buildable.currentBuildable && !Entity.hoveredEntity && !player.weaponArmed && preferences.selectedTerrainType != terrainType.void) {
-                terrainTooltip.visible = true;
+                if (!terrainEditing) {
+                    terrainTooltip.visible = true;
+                    GUI.cursorElement.classList.add("square");
+                    terrainEditing = true;
+                }
+                GUI.cursorElement.style.width = preferences.penSize * 5 + "px";
+                GUI.cursorElement.style.height = preferences.penSize * 5 + "px";
                 if (player.energy > 0) {
                     terrainTooltip.text = "Available material: " + player.material;
                     if (mouse.pressed == 1) {
@@ -602,7 +610,13 @@ export async function initGame(skipIntro = false) {
                 }
 
             } else {
-                terrainTooltip.visible = false;
+                if (terrainEditing) {
+                    GUI.cursorElement.classList.remove("square");
+                    GUI.cursorElement.style.width = 10 + "px";
+                    GUI.cursorElement.style.height = 10 + "px";
+                    terrainTooltip.visible = false;
+                    terrainEditing = false;
+                }
             }
         }
         if (key["0"]) preferences.selectedTerrainType = terrainType.void;
