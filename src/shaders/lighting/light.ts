@@ -25,7 +25,7 @@ export class TempLight extends Entity {
         this.updatePosition();
     }
     update(dt: number): void {
-        console.log(this.graphics.position);
+        //console.log(this.graphics.position);
 
         this.age += dt;
         this.light.intensity = this.intensity * (1 - (this.age / this.maxAge));

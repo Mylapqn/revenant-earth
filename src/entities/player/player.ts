@@ -51,7 +51,7 @@ export class Player extends DamageableEntity {
     health = 10;
     energy = 10;
     oxygen = 10;
-    material = 100;
+    material = 10000;
     jetpackParticles: ParticleSystem;
     velocity = new Vector();
     input = new Vector();
@@ -435,6 +435,7 @@ export class Player extends DamageableEntity {
         GUI.healthBar.fill = this.health / 10;
     }
     die() {
+        console.log("Player died");
         gameOver();
         super.die();
     }

@@ -19,6 +19,10 @@ export class Falling extends Entity {
         //this.angle = 0;
     }
     update() {
+        if(!this.position){
+            console.log("AAA WHAT??");
+            console.log(this);
+        }
         this.velocity.x += .0005;
         this.velocity.y -= .001;
         this.graphics.alpha -=.003;

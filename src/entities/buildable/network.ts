@@ -5,8 +5,8 @@ import { Buildable } from "./buildable";
 export class NetworkBuildable extends Buildable {
     network: WiringNetwork;
     connected: boolean;
-    providesEnergy?: boolean;
-    providesOxygen?: boolean;
+    providesEnergy=false;
+    providesOxygen=false;
     cableOffset: Vector;
 
     remove(): void {
@@ -22,8 +22,8 @@ export class WiringNetwork {
     static nextId = 0;
     id: number;
     list: Set<NetworkBuildable>;
-    oxygen: boolean;
-    energy: boolean;
+    oxygen: boolean = false;
+    energy: boolean = false;
     constructor(...elements: NetworkBuildable[]) {
         this.id = WiringNetwork.nextId;
         WiringNetwork.nextId++;

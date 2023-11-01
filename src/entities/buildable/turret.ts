@@ -32,12 +32,12 @@ export class Turret extends NetworkBuildable {
         let gunSprite = Sprite.from("buildable/turret/turret-gun.png")
         gunSprite.anchor.set(.3, .5);
         this.gun = new Entity(gunSprite, this.gunPosition, this);
+        this.gun.culling = true;
 
 
         //this.gunSprite.scale.set(5,1);
     }
     update(dt: number): void {
-        console.log(this.gunLight);
 
         if (this?.network?.energy && !this.placing) {
             this.age += dt;
@@ -79,9 +79,6 @@ export class Turret extends NetworkBuildable {
         if (!this.network)
             new WiringNetwork(this);
 
-
-        this.network.energy = true;
-        this.onConnect();
         //let p = new Pole(this.position.result().add(this.cableOffset));
         //this.network.addElement(p);
     }
@@ -94,6 +91,8 @@ export class Turret extends NetworkBuildable {
         }
     }
     onConnect(): void {
+        console.log("connected to",this.network);
+        
         if (!this.placing && this.network.energy && !this.running) {
             this.graphics.texture = Texture.from("buildable/turret/turret-on.png");
             this.light.color = new Color(30, 200, 60);

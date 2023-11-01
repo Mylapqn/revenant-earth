@@ -17,7 +17,7 @@ export class Entity {
     graphics: Container;
     tooltip: GuiTooltip;
     hovered = false;
-    culling = true;
+    culling = false;
     cullExtend = 100;
     removed = false;
     name = "Entity";
@@ -40,7 +40,9 @@ export class Entity {
     }
 
     protected cullDisplay() {
-        if (this.position.x > Camera.position.x + Camera.width + this.cullExtend || this.position.x < Camera.position.x - this.cullExtend) this.graphics.visible = false;
+        if (this.removed) return;
+        let wp = this.worldCoords(new Vector());
+        if (wp.x > Camera.position.x + Camera.width + this.cullExtend || wp.x < Camera.position.x - this.cullExtend) this.graphics.visible = false;
         else this.graphics.visible = true;
     }
 
@@ -60,17 +62,18 @@ export class Entity {
     }
 
     worldCoords(localCoords: Vector) {
+        if(this.removed) return new Vector();
         let position = this.graphics.toGlobal(new Point(localCoords.x, localCoords.y));
         //return new Vector(position.x, position.y);
         return new Vector(Camera.position.x + position.x, Camera.height + Camera.position.y - position.y);
     }
-
     worldAngle(): number {
         if (this.parent) return this.parent.worldAngle() + this.angle;
         else return this.angle;
     }
 
     update(dt: number) {
+        if (this.removed) return;
         if (this.culling) this.cullDisplay();
         this.updatePosition();
     }
@@ -131,7 +134,8 @@ export class Entity {
         const cam = Camera.position.result();
         this.graphic.position.set(-cam.x, Camera.height + cam.y);
         for (const entity of this.toUpdate) {
-            entity.update(dt);
+            if (!entity.removed)
+                entity.update(dt);
         }
 
         this.toUpdate = this.tempToUpdate;
