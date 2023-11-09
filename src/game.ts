@@ -427,7 +427,7 @@ export async function initGame(skipIntro = false) {
 
         if (sunFac < 0 && !Progress.firstNight) {
             Progress.firstNight = true;
-            new TutorialPrompt({ content: "*The sun is setting.* At night, visibility is lowered and enemies are more dangerous. However, your *oxygen supply* depletes slower.<br>Press [e] to dismiss.", keys: ["e"] });
+            //new TutorialPrompt({ content: "*The sun is setting.* At night, visibility is lowered and enemies are more dangerous. However, your *oxygen supply* depletes slower.<br>Press [e] to dismiss.", keys: ["e"] });
         }
 
         let sunHor = 1 - Math.abs(Vector.fromAngle(Atmosphere.settings.sunAngle).y);
@@ -489,7 +489,7 @@ export async function initGame(skipIntro = false) {
                 }
                 else {
                     if (Progress.visitedBiomes.length == 1) {
-                        new TutorialPrompt({ content: "You have just visited a *new biome*. The game has multiple areas, or biomes, that you can explore. Each biome offers unique resources, challenges, and sights.<br>Press [e] to dismiss.", keys: ["e"] });
+                        //new TutorialPrompt({ content: "You have just visited a *new biome*. The game has multiple areas, or biomes, that you can explore. Each biome offers unique resources, challenges, and sights.<br>Press [e] to dismiss.", keys: ["e"] });
                     }
                     Progress.visitedBiomes.push(newBiome.biomeId);
                     new GuiSplash(newBiome.name, true)
@@ -832,12 +832,12 @@ export async function initGame(skipIntro = false) {
 
     let buildingToolbar = new CollapsibleGuiElement({ position: 2, edge: "right", content: "Build menu", hidden: true });
 
-    new GuiButton({ width: 5, content: "Turret", callback: () => { placeTurret() }, parent: buildingToolbar.container })
     new GuiButton({ width: 5, content: "Seed", callback: () => { placeSeed() }, parent: buildingToolbar.container })
     new GuiButton({ width: 5, content: "Cable", callback: () => { placePole() }, parent: buildingToolbar.container })
     new GuiButton({ width: 5, content: "Oxygen Extractor", callback: () => { placeOxygenator() }, parent: buildingToolbar.container })
     new GuiButton({ width: 5, content: "Turbine", callback: () => { placeTurbine() }, parent: buildingToolbar.container })
     new GuiButton({ width: 5, content: "Scanner", callback: () => { placeScanner() }, parent: buildingToolbar.container })
+    new GuiButton({ width: 5, content: "Turret", callback: () => { placeTurret() }, parent: buildingToolbar.container })
 
     let terrainEditingToolbar = new CollapsibleGuiElement({ position: 11, edge: "right", content: "Terrain Editing", hidden: true });
 
@@ -901,6 +901,8 @@ export async function initGame(skipIntro = false) {
 
     ticker.start();
     terrainUpdateCycle();
+
+    moveTutorial();
 
     //skipIntro = false;
 
