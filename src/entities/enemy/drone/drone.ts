@@ -31,7 +31,7 @@ export class Drone extends DamageableEntity implements IFlyingPatrolRobot {
     culling = true;
     randomOffset = new Vector(randomInt(-200, 200), randomInt(-50, 100))
     constructor(position: Vector, parent: Entity, angle = 0) {
-        const graph = Sprite.from("https://cdn.discordapp.com/attachments/767355244111331338/1107461643039936603/robo.png");
+        const graph = Sprite.from("robots/drone.png");
         graph.anchor.set(0.5);
         super(graph, position, parent, angle);
         this.light = new Light(this, new Vector(0, 0), Math.PI + .2, .2, new Color(230, 40, 60), 300, 5);
