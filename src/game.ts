@@ -385,6 +385,7 @@ export async function initGame(skipIntro = false) {
     let biomeTime = 0;
 
     let terrainTooltip = new GuiTooltip("Available material: " + 5);
+    terrainTooltip.visible = false;
 
     ticker.add((delta) => {
 
@@ -851,8 +852,8 @@ export async function initGame(skipIntro = false) {
     let characterToolbar = new PositionableGuiElement({ position: new Vector(25, 25), invertHorizontalPosition: false, invertVerticalPosition: true, hidden: false, flexDirection: "row" })
     let statsPanel = new GuiPanel({ blankStyle: true, parent: characterToolbar })
     GUI.healthBar = new GuiProgressBar({ parent: statsPanel, progress: 1, label: "Health", labelWidth: 4, color: "health", warnThreshold: .3 });
-    GUI.energyBar = new GuiProgressBar({ parent: statsPanel, progress: 1, label: "Energy", labelWidth: 4, color: "energy", warnThreshold: .3 });
     GUI.oxygenBar = new GuiProgressBar({ parent: statsPanel, progress: 1, label: "Oxygen", labelWidth: 4, color: "oxygen", warnThreshold: .5 });
+    GUI.energyBar = new GuiProgressBar({ parent: statsPanel, progress: 1, label: "Energy", labelWidth: 4, color: "energy", warnThreshold: .3 });
 
     GUI.weaponButton = new GuiButton({ width: 5, content: "Arm weapon", callback: () => { player.toggleWeapon(); preferences.selectedTerrainType = terrainType.void; }, parent: characterToolbar, classes: ["centered"] })
 
@@ -876,8 +877,11 @@ export async function initGame(skipIntro = false) {
             }, 8000);
         }
         else {
+            console.log(terrainTooltip);
+            player.oxygenModifier = 0;
             await moveTutorial();
             await uiTutorial();
+            player.oxygenModifier = 1;
             /* devBar.fadeIn();
             buildingToolbar.fadeIn();
             terrainEditingToolbar.fadeIn();
@@ -899,6 +903,7 @@ export async function initGame(skipIntro = false) {
         Progress.terrainUnlocked = true;
         await new TutorialPrompt({ content: "The *terrain editing toolbar* allows you to edit the terrain. Select a terrain type, then place it by clicking or holding the [Left mouse button] in the game world.<br>You can delete terrain with the [Right mouse button].<br>Press [e] to continue.", keys: ["e"], centerX: false, position: new Vector(25, 420), invertHorizontalPosition: true }).awaitDone;
         terrainEditingToolbar.setCollapse(true);
+        await new TutorialPrompt({ content: "This is your status. Your health, oxygen and energy are displayed here.<br>Don't let your *health* get to zero - your character can die. You can heal by clicking on the landing pod.<br>If you run out of *oxygen*, you start taking health damage. Walking and especially sprinting consumes a lot of oxygen.<br>You need *energy* to shape terrain or use the jetpack, but it's not necessary to survive.<br>Press [e] to continue.", keys: ["e"], centerX: false, position: new Vector(25, 200), invertVerticalPosition:true }).awaitDone;
         //await devBar.fadeIn();
         //await devBar.setCollapse(false);
         //await new TutorialPrompt({ content: "This is the *Development menu*. It allows you to access special functions to test features of the game.<br>It is recommended to *avoid using it* if you want to enjoy the game as intended.<br>Press [e] to continue.", keys: ["e"], centerX: false, position: new Vector(25, 420) }).awaitDone;

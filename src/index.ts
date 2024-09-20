@@ -54,11 +54,11 @@ function init() {
         new GuiButton({ content: "Made by *Matouš Marek*", callback: () => { window.location.href = "https://linktr.ee/mylapqn"; } ,classes:["link"],flex:false}),
     )
     buttonPanel.addChild(
-        //new GuiButton({ content: "NEW GAME", callback: startGame, width: 10 }),
+        new GuiButton({ content: "PLAY INTRO", callback: startGame, width: 10 }),
         //new GuiPanel({ blankStyle: true, flexDirection: "row" })
         //.addChild(
         new GuiButton({ content: "PLAY GAME", callback: continueGame, width: 10 }),
-        new GuiButton({ content: "EXIT", callback: () => { window.location.href = "index.html"; }, width: 10 }),
+        //new GuiButton({ content: "EXIT", callback: () => { window.location.href = "index.html"; }, width: 10 }),
         //)
     );
     menuActive = true;

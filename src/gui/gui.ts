@@ -278,6 +278,12 @@ export class PositionableGuiElement extends GuiElement {
             this.invertVerticalPosition = options.invertVerticalPosition;
             if (options.blockHover ?? true) this.addMouseListeners();
             this.element.classList.add("absolute");
+            if(options.position) {
+                this.element.style.top = "initial";
+                this.element.style.left = "initial";
+                this.element.style.bottom = "initial";
+                this.element.style.right = "initial";
+            }
             if (options.centerX) this.element.classList.add("centerX");
             else if (options.position) {
                 if (!options.invertHorizontalPosition) this.element.style.left = this.position.x + "px";
