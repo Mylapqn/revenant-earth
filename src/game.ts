@@ -877,18 +877,17 @@ export async function initGame(skipIntro = false) {
             }, 8000);
         }
         else {
-            console.log(terrainTooltip);
-            player.oxygenModifier = 0;
-            await moveTutorial();
-            await uiTutorial();
-            player.oxygenModifier = 1;
-            /* devBar.fadeIn();
+            devBar.fadeIn();
             buildingToolbar.fadeIn();
             terrainEditingToolbar.fadeIn();
             scannerData.fadeIn();
             Progress.controlsUnlocked = true;
             Progress.timeUnlocked = true;
-            Progress.terrainUnlocked = true; */
+            Progress.terrainUnlocked = true;
+            player.oxygenModifier = 0;
+            await moveTutorial();
+            player.oxygenModifier = 1;
+            uiTutorial();
         }
     }
 
@@ -978,6 +977,22 @@ export function gameOver() {
                     let c = new CustomGuiElement("div", "You can also reload the page I guess.", "introText", "ui", "blank", "small");
                     black.appendChild(c.element);
                 }, 8000);
+                setTimeout(() => {
+                    let c = new CustomGuiElement("div", "Why are you still here? Reload the page.", "introText", "ui", "blank", "small");
+                    black.appendChild(c.element);
+                }, 20000);
+                setTimeout(() => {
+                    let c = new CustomGuiElement("div", "Reload. The. Page.", "introText", "ui", "blank", "small");
+                    black.appendChild(c.element);
+                }, 30000);
+                setTimeout(() => {
+                    let c = new CustomGuiElement("div", "Okay, I give up. Do what you want.", "introText", "ui", "blank", "small");
+                    black.appendChild(c.element);
+                }, 40000);
+                setTimeout(() => {
+                    let c = new CustomGuiElement("div", "Did you know that this game has a nonbinary protagonist? Here, that's the secret text you've been waiting for. You can reload the page now.", "introText", "ui", "blank", "small");
+                    black.appendChild(c.element);
+                }, 60000);
             }, 8000);
         }, 1000);
     }, 1000);
