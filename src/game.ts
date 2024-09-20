@@ -765,7 +765,7 @@ export async function initGame(skipIntro = false) {
             .chain("Get to work.")
             .callback(() => sleep(3000))
             .finish()
-    )
+    );
 
 
     /* setTimeout(() => {
@@ -865,12 +865,27 @@ export async function initGame(skipIntro = false) {
     }
 
     async function activateTutorial() {
-        player.oxygenModifier = 0;
-        await introDialogue.execute();
-        //await moveTutorial();
-        Progress.controlsUnlocked = true;
-        await uiTutorial();
-        player.oxygenModifier = 1;
+        if (!skipIntro) {
+            setTimeout(async() => {
+                player.oxygenModifier = 0;
+                await introDialogue.execute();
+                //await moveTutorial();
+                Progress.controlsUnlocked = true;
+                await uiTutorial();
+                player.oxygenModifier = 1;
+            }, 8000);
+        }
+        else {
+            await moveTutorial();
+            await uiTutorial();
+            /* devBar.fadeIn();
+            buildingToolbar.fadeIn();
+            terrainEditingToolbar.fadeIn();
+            scannerData.fadeIn();
+            Progress.controlsUnlocked = true;
+            Progress.timeUnlocked = true;
+            Progress.terrainUnlocked = true; */
+        }
     }
 
     async function uiTutorial() {
@@ -884,10 +899,10 @@ export async function initGame(skipIntro = false) {
         Progress.terrainUnlocked = true;
         await new TutorialPrompt({ content: "The *terrain editing toolbar* allows you to edit the terrain. Select a terrain type, then place it by clicking or holding the [Left mouse button] in the game world.<br>You can delete terrain with the [Right mouse button].<br>Press [e] to continue.", keys: ["e"], centerX: false, position: new Vector(25, 420), invertHorizontalPosition: true }).awaitDone;
         terrainEditingToolbar.setCollapse(true);
-        await devBar.fadeIn();
-        await devBar.setCollapse(false);
-        await new TutorialPrompt({ content: "This is the *Development menu*. It allows you to access special functions to test features of the game.<br>It is recommended to *avoid using it* if you want to enjoy the game as intended.<br>Press [e] to continue.", keys: ["e"], centerX: false, position: new Vector(25, 420) }).awaitDone;
-        await devBar.setCollapse(true);
+        //await devBar.fadeIn();
+        //await devBar.setCollapse(false);
+        //await new TutorialPrompt({ content: "This is the *Development menu*. It allows you to access special functions to test features of the game.<br>It is recommended to *avoid using it* if you want to enjoy the game as intended.<br>Press [e] to continue.", keys: ["e"], centerX: false, position: new Vector(25, 420) }).awaitDone;
+        //await devBar.setCollapse(true);
         scannerData.fadeIn();
         Progress.timeUnlocked = true;
         await new TutorialPrompt({ content: "That's it! Explore the game world and try all the different options!", duration: 8 }).awaitDone;
@@ -902,26 +917,10 @@ export async function initGame(skipIntro = false) {
     ticker.start();
     terrainUpdateCycle();
 
-    moveTutorial();
 
     //skipIntro = false;
 
-    if (!skipIntro) {
-        setTimeout(() => {
-            activateTutorial();
-        }, 8000);
-    }
-    else {
-        //uiTutorial();
-        //moveTutorial();
-        devBar.fadeIn();
-        buildingToolbar.fadeIn();
-        terrainEditingToolbar.fadeIn();
-        scannerData.fadeIn();
-        Progress.controlsUnlocked = true;
-        Progress.timeUnlocked = true;
-        Progress.terrainUnlocked = true;
-    }
+    activateTutorial();
 
 }
 GUI.init();
