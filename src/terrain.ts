@@ -6,6 +6,7 @@ import { Vector } from "./vector";
 import { Rock } from "./entities/passive/rock";
 import { GrassPatch } from "./entities/passive/grassPatch";
 import { TerrainGenerator } from "./biome";
+import { GroundPlane } from "./groundPlane";
 
 
 enum Direction {
@@ -129,8 +130,8 @@ export class Terrain {
             const h = (camY + y) * this.width;
             buffers.unshift(Terrain.pixels.slice(camX + h, useWidth + camX + h));
         }
-        PixelDrawer.setPixels(Buffer.concat(buffers)
-        );
+        PixelDrawer.setPixels(Buffer.concat(buffers));
+        GroundPlane.setPixels(Buffer.concat(buffers));
     }
 
     static getPixel(x: number, y: number) {

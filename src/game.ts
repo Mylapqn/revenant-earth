@@ -44,6 +44,7 @@ import { Prop } from "./entities/passive/prop";
 import { Projectile } from "./entities/projectile";
 import { Oxygenator } from "./entities/buildable/oxygenator";
 import { Turret } from "./entities/buildable/turret";
+import { GroundPlane } from "./groundPlane";
 let seed = parseInt(window.location.toString().split('?')[1]);
 if (!seed) seed = Math.floor(Math.random() * 1000);
 Math.random = mulberry32(seed);
@@ -65,6 +66,7 @@ function resize() {
     Camera.width = Math.ceil(Camera.height * Camera.aspectRatio);
     Camera.rect = new Rectangle(0, 0, Camera.width, Camera.height);
     PixelDrawer.resize();
+    GroundPlane.resize();
     Entity.graphic.filterArea = Camera.rect;
     PixelDrawer.graphic.filterArea = Camera.rect;
     app.stage.filterArea = Camera.rect;
@@ -161,6 +163,7 @@ export async function initGame(skipIntro = false) {
 
     Lightmap.init();
     PixelDrawer.init();
+    GroundPlane.init();
 
     for (let y = 0; y < 256; y++) {
         const c = Math.floor(y / 2 + 128)
@@ -194,6 +197,7 @@ export async function initGame(skipIntro = false) {
     pixelContainer.addChild(Buildable.graphic);
     pixelContainer.addChild(ParallaxDrawer.fgContainer);
     onResize(ParallaxDrawer.fgContainer, () => ParallaxDrawer.fgContainer.filterArea = Camera.rect);
+    pixelContainer.addChild(GroundPlane.graphic);
 
 
     backdrop0 = new Backdrop(.65);
@@ -709,6 +713,7 @@ export async function initGame(skipIntro = false) {
         Lightmap.update();
         app.renderer.render(Lightmap.graphic, { renderTexture: Lightmap.texture, clear: true });
         PixelDrawer.update();
+        GroundPlane.update();
         //app.renderer.render(app.stage,{ renderTexture: mainRenderTexture, clear: true });
         app.render();
         DebugDraw.clear()

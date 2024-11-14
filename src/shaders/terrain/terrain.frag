@@ -14,10 +14,7 @@ uniform vec3 ambient;
 out vec4 color;
 
 float threshold(float x, float threshold) {
-    if(x >= threshold) {
-        return 1.;
-    }
-    return 0.;
+    return step(threshold, x);
 }
 
 vec3 hash3(vec2 p) {
@@ -186,4 +183,6 @@ void preMain(void) {
 void main() {
     preMain();
     color = vec4(tonemap(color.rgb), color.a);
+    //color = texture(terrain,vTextureCoord).aaaa;
+    //color.a = 1.;
 }
