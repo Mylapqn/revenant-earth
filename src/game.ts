@@ -34,7 +34,7 @@ import { Dialogue, NodeStack, TopNode, sleep } from "./dialogue";
 import { CrashPod } from "./entities/passive/landingPod";
 import { Scanner } from "./entities/buildable/scanner";
 import { colorGradeFilter, colorGradeOptions } from "./shaders/colorGrade/colorGrade";
-import { SoundManager } from "./sound";
+import { Music, SoundManager } from "./sound";
 import { ParticleSystem } from "./particles/particle";
 import { ParticleFilter } from "./shaders/particle/particleFilter";
 import { Progress } from "./progress";
@@ -222,6 +222,9 @@ export async function initGame(skipIntro = false) {
     window.addEventListener("resize", resize);
 
     document.body.appendChild(app.view);
+
+    Music.next = SoundManager.music.new;
+    Music.timeToNext = 2;
 
 
     Terrain.init();
@@ -498,7 +501,7 @@ export async function initGame(skipIntro = false) {
                 biomeTime = 0;
                 colorGradeOld = colorGradeBiome;
                 colorGradeNew = newBiome.colorGrade;
-                newBiome.music.play();
+                //newBiome.music.play();
                 currentBiome = newBiome.biomeId;
             }
 

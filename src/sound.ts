@@ -38,19 +38,27 @@ export class Music extends Sound {
     constructor(src: string) {
         super(src, "music");
         Music.list.push(this);
-        this.loop = true;
+        this.loop = false;
+        this.onended = this.onEnd.bind(this);
     }
 
     play() {
         Music.active = this;
         return super.play();
     }
+
+    onEnd() {
+        Music.next = SoundManager.music.new;
+        Music.timeToNext = 10;
+    }
+    static next: Music;
+    static timeToNext: number;
     static list: Music[] = [];
     static active: Music;
 }
 
 export class SoundEffect extends Sound {
-    constructor(src: string, volume=1) {
+    constructor(src: string, volume = 1) {
         super(src, "fx");
         this.loop = false;
         this.volume = volume;
@@ -74,6 +82,14 @@ export class SoundManager {
             music.volume *= 0.994;
             if (music.volume < .001) music.stop();
         }
+        if (Music.next) {
+            Music.timeToNext -= dt;
+            if (Music.timeToNext < 0) {
+                Music.next.play();
+                Music.active = Music.next;
+                Music.next = null;
+            }
+        }
     }
     static music = {
         mountains: new Music("sound/music/melted_mountains.ogg"),
@@ -82,15 +98,16 @@ export class SoundManager {
         forest: new Music("sound/music/dead_forest.ogg"),
         swamp: new Music("sound/music/dead_forest.ogg"),
         menu: new Music("sound/music/menu.ogg"),
+        new: new Music("sound/music/new.mp3"),
     }
     static fx = {
-        hit: new SoundEffect("sound/fx/hit.wav",.8),
-        robotDeath:new SoundEffect("sound/fx/robot_explosion.wav",.3),
-        robotHit:new SoundEffect("sound/fx/robot_hit.wav",.15),
-        playerHit:new SoundEffect("sound/fx/player_hit.wav",.2),
-        gunfire:new SoundEffect("sound/fx/gunfire.wav",.2),
-        gunfire2:new SoundEffect("sound/fx/gunfire2.wav",.2),
-        gunfire3:new SoundEffect("sound/fx/gunfire3.wav",.2),
-        electric:new SoundEffect("sound/fx/electric.mp3",.3)
+        hit: new SoundEffect("sound/fx/hit.wav", .8),
+        robotDeath: new SoundEffect("sound/fx/robot_explosion.wav", .3),
+        robotHit: new SoundEffect("sound/fx/robot_hit.wav", .15),
+        playerHit: new SoundEffect("sound/fx/player_hit.wav", .2),
+        gunfire: new SoundEffect("sound/fx/gunfire.wav", .2),
+        gunfire2: new SoundEffect("sound/fx/gunfire2.wav", .2),
+        gunfire3: new SoundEffect("sound/fx/gunfire3.wav", .2),
+        electric: new SoundEffect("sound/fx/electric.mp3", .3)
     }
 }
