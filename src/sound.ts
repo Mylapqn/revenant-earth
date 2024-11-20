@@ -1,3 +1,4 @@
+import { lerp } from "./utils";
 
 
 type SoundType = keyof typeof SoundManager.volume;
@@ -5,6 +6,7 @@ type SoundType = keyof typeof SoundManager.volume;
 export class Sound extends Audio {
     type: SoundType = "fx";
     private _volume = 1;
+    public playing = false;
     constructor(src: string, type: SoundType = "fx") {
         super(src);
         this.type = type;
@@ -24,17 +26,20 @@ export class Sound extends Audio {
     }
 
     public stop() {
+        this.playing = false;
         this.pause();
         this.currentTime = 0;
     }
 
     public play() {
+        this.playing = true;
         this.refreshVolume();
         return super.play();
     }
 }
 
 export class Music extends Sound {
+    targetVolume = .5;
     constructor(src: string) {
         super(src, "music");
         Music.list.push(this);
@@ -42,14 +47,25 @@ export class Music extends Sound {
         this.onended = this.onEnd.bind(this);
     }
 
-    play() {
-        Music.active = this;
+    play(active = true) {
+        if (active)
+            Music.active = this;
         return super.play();
     }
 
     onEnd() {
         Music.next = SoundManager.music.new;
         Music.timeToNext = 10;
+    }
+    fadeIn(startTime = 0) {
+        this.targetVolume = .5;
+        //this.currentTime = startTime;
+        //if (this.playing) return;
+        //this.volume = 0;
+        //this.play(false);
+    }
+    fadeOut() {
+        this.targetVolume = 0;
     }
     static next: Music;
     static timeToNext: number;
@@ -77,14 +93,23 @@ export class SoundManager {
         fx: 1
     }
     static update(dt: number) {
-        Music.active.volume = Math.min(0.5, Music.active.volume + 0.004);
         for (const music of Music.list) {
-            music.volume *= 0.994;
-            if (music.volume < .001) music.stop();
+            if (music.playing) {
+                //music.volume = lerp(music.volume, music.targetVolume, dt * 2);
+                let firstSign = Math.sign(music.targetVolume - music.volume);
+                music.volume = Math.max(0, music.volume + firstSign * dt * .5);
+                let secondSign = Math.sign(music.targetVolume - music.volume);
+                if (firstSign !== secondSign) {
+                    music.volume = music.targetVolume;
+                }
+                //if (music.volume < .001) music.stop();
+            }
         }
         if (Music.next) {
             Music.timeToNext -= dt;
             if (Music.timeToNext < 0) {
+                SoundManager.music.combat.play();
+                SoundManager.music.combat.volume = 0;
                 Music.next.play();
                 Music.active = Music.next;
                 Music.next = null;
@@ -99,6 +124,7 @@ export class SoundManager {
         swamp: new Music("sound/music/dead_forest.ogg"),
         menu: new Music("sound/music/menu.ogg"),
         new: new Music("sound/music/new.mp3"),
+        combat: new Music("sound/music/combat.mp3")
     }
     static fx = {
         hit: new SoundEffect("sound/fx/hit.wav", .8),

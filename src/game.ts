@@ -44,6 +44,7 @@ import { Prop } from "./entities/passive/prop";
 import { Projectile } from "./entities/projectile";
 import { Oxygenator } from "./entities/buildable/oxygenator";
 import { Turret } from "./entities/buildable/turret";
+import { GroundLayers } from "./groundLayers";
 import { GroundPlane } from "./groundPlane";
 let seed = parseInt(window.location.toString().split('?')[1]);
 if (!seed) seed = Math.floor(Math.random() * 1000);
@@ -57,6 +58,9 @@ export enum DebugMode {
 export const preferences = { debugMode: DebugMode.off, selectedTerrainType: terrainType.void, penSize: 4, showDebug: false }
 console.log(status);
 export const app = new PIXI.Application<HTMLCanvasElement>({ sharedTicker: false, autoStart: false });
+(window as any).__PIXI_DEVTOOLS__ = {
+    app: app,
+}
 //PIXI.settings.SCALE_MODE = SCALE_MODES.NEAREST;
 //PIXI.settings.ROUND_PIXELS = true;
 PIXI.BaseTexture.defaultOptions.scaleMode = SCALE_MODES.NEAREST;
@@ -66,6 +70,7 @@ function resize() {
     Camera.width = Math.ceil(Camera.height * Camera.aspectRatio);
     Camera.rect = new Rectangle(0, 0, Camera.width, Camera.height);
     PixelDrawer.resize();
+    GroundLayers.resize();
     GroundPlane.resize();
     Entity.graphic.filterArea = Camera.rect;
     PixelDrawer.graphic.filterArea = Camera.rect;
@@ -118,6 +123,8 @@ let seedCooldown = 0;
 let currentBiome = 0;
 let ticker = new Ticker();
 
+export let timeElapsed = 0;
+
 export let terrainTick = 0;
 let tps = 0;
 let terrainScore = 100;
@@ -152,6 +159,7 @@ let smokeBuildup = 0;
 export let terrainEditing = true;
 
 export async function initGame(skipIntro = false) {
+
     PIXI.Assets.addBundle("images", {
         landing: "entity/landing.png",
         seed: "seed.png",
@@ -163,6 +171,7 @@ export async function initGame(skipIntro = false) {
 
     Lightmap.init();
     PixelDrawer.init();
+    GroundLayers.init();
     GroundPlane.init();
 
     for (let y = 0; y < 256; y++) {
@@ -197,6 +206,7 @@ export async function initGame(skipIntro = false) {
     pixelContainer.addChild(Buildable.graphic);
     pixelContainer.addChild(ParallaxDrawer.fgContainer);
     onResize(ParallaxDrawer.fgContainer, () => ParallaxDrawer.fgContainer.filterArea = Camera.rect);
+    //pixelContainer.addChild(GroundLayers.graphic);
     pixelContainer.addChild(GroundPlane.graphic);
 
 
@@ -379,7 +389,7 @@ export async function initGame(skipIntro = false) {
     let scannerData: PositionableGuiElement;
     let currentMusic: HTMLAudioElement;
 
-    let timeElapsed = 0;
+    timeElapsed = 0;
 
     for (const name in Terrain.sound) {
         terrainNoises[name].play();
@@ -536,6 +546,29 @@ export async function initGame(skipIntro = false) {
             }
         }
 
+        if (player.weaponArmed) {
+            debugPrint("Normal time:" + SoundManager.music.new.currentTime);
+            debugPrint("Combat time:" + SoundManager.music.combat.currentTime);
+            if (!SoundManager.music.combat.playing || SoundManager.music.combat.targetVolume < .5) {
+                if (Music.active && Music.active.playing) {
+                    SoundManager.music.combat.fadeIn(Music.active.currentTime + dt * 2);
+                    SoundManager.music.new.fadeOut();
+                }
+                else {
+                    SoundManager.music.combat.fadeIn();
+                    SoundManager.music.new.fadeOut();
+                    //SoundManager.music.new.fadeIn();
+                    Music.next = null;
+                }
+            }
+        }
+        else {
+            if (SoundManager.music.combat.playing) {
+                SoundManager.music.combat.fadeOut();
+                SoundManager.music.new.fadeIn();
+            }
+        }
+
         if (Progress.terrainUnlocked) {
             if (!Buildable.currentBuildable && !Entity.hoveredEntity && !player.weaponArmed && preferences.selectedTerrainType != terrainType.void) {
                 if (!terrainEditing) {
@@ -644,6 +677,10 @@ export async function initGame(skipIntro = false) {
             preferences.penSize--;
             if (preferences.penSize < 1) preferences.penSize = 1;
         }
+        if (key["r"] && seedCooldown <= 0) {
+            seedCooldown = .2;
+            player.toggleWeapon();
+        }
 
 
         if (key["f9"]) {
@@ -713,6 +750,7 @@ export async function initGame(skipIntro = false) {
         Lightmap.update();
         app.renderer.render(Lightmap.graphic, { renderTexture: Lightmap.texture, clear: true });
         PixelDrawer.update();
+        GroundLayers.update();
         GroundPlane.update();
         //app.renderer.render(app.stage,{ renderTexture: mainRenderTexture, clear: true });
         app.render();
@@ -875,7 +913,7 @@ export async function initGame(skipIntro = false) {
 
     async function activateTutorial() {
         if (!skipIntro) {
-            setTimeout(async() => {
+            setTimeout(async () => {
                 player.oxygenModifier = 0;
                 await introDialogue.execute();
                 //await moveTutorial();
@@ -893,9 +931,11 @@ export async function initGame(skipIntro = false) {
             Progress.timeUnlocked = true;
             Progress.terrainUnlocked = true;
             player.oxygenModifier = 0;
-            await moveTutorial();
+            //DISABLED FOR DEV MODE
+            //await moveTutorial();
             player.oxygenModifier = 1;
-            uiTutorial();
+            //DISABLED FOR DEV MODE
+            //uiTutorial();
         }
     }
 
@@ -910,7 +950,7 @@ export async function initGame(skipIntro = false) {
         Progress.terrainUnlocked = true;
         await new TutorialPrompt({ content: "The *terrain editing toolbar* allows you to edit the terrain. Select a terrain type, then place it by clicking or holding the [Left mouse button] in the game world.<br>You can delete terrain with the [Right mouse button].<br>Press [e] to continue.", keys: ["e"], centerX: false, position: new Vector(25, 420), invertHorizontalPosition: true }).awaitDone;
         terrainEditingToolbar.setCollapse(true);
-        await new TutorialPrompt({ content: "This is your status. Your health, oxygen and energy are displayed here.<br>Don't let your *health* get to zero - your character can die. You can heal by clicking on the landing pod.<br>If you run out of *oxygen*, you start taking health damage. Walking and especially sprinting consumes a lot of oxygen.<br>You need *energy* to shape terrain or use the jetpack, but it's not necessary to survive.<br>Press [e] to continue.", keys: ["e"], centerX: false, position: new Vector(25, 200), invertVerticalPosition:true }).awaitDone;
+        await new TutorialPrompt({ content: "This is your status. Your health, oxygen and energy are displayed here.<br>Don't let your *health* get to zero - your character can die. You can heal by clicking on the landing pod.<br>If you run out of *oxygen*, you start taking health damage. Walking and especially sprinting consumes a lot of oxygen.<br>You need *energy* to shape terrain or use the jetpack, but it's not necessary to survive.<br>Press [e] to continue.", keys: ["e"], centerX: false, position: new Vector(25, 200), invertVerticalPosition: true }).awaitDone;
         //await devBar.fadeIn();
         //await devBar.setCollapse(false);
         //await new TutorialPrompt({ content: "This is the *Development menu*. It allows you to access special functions to test features of the game.<br>It is recommended to *avoid using it* if you want to enjoy the game as intended.<br>Press [e] to continue.", keys: ["e"], centerX: false, position: new Vector(25, 420) }).awaitDone;

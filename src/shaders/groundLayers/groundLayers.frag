@@ -7,8 +7,6 @@ uniform sampler2D terrain;
 uniform vec4 viewport;
 uniform float tick;
 out vec4 color;
-in vec3 vNormal;
-in vec2 vScreenTex;
 
 float hash(vec2 p)  // TODO replace this by something better
 {
@@ -39,8 +37,4 @@ void main() {
         alpha = step(.1f, alpha);
         color = mix(color, vec4(.5f - float(i) * .05f, .3f - float(i) * .01f, .3f - float(i) * .02f, 1.f), alpha);
     }
-    color = vec4(1.f, 0.f, .5f, 1.f);
-    color = vec4(vec3(dot(vNormal, vec3(0.f, 1.f, 0.f))+.2), 1.f);
-    color.rgb *= step(abs((step(mod(vTextureCoord.x * 2.f, 1.f), .5f) * .5f + .5f) * (step(mod(vTextureCoord.y * 2.f, 1.f), .5f) * .5f + .5f) - .5f), .1f);
-    //color = texture(background, vTextureCoord + vNormal.xy);
 }

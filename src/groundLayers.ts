@@ -1,22 +1,21 @@
 
 const fs = require("fs");
-import { DRAW_MODES, FORMATS, Filter, Geometry, Matrix, Mesh, RenderTexture, Shader, Sprite, TYPES, Texture } from "pixi.js";
+import { DRAW_MODES, FORMATS, Filter, Geometry, Mesh, RenderTexture, Shader, Sprite, TYPES, Texture } from "pixi.js";
 import { Camera } from "./camera";
-import { app, background, entityRender, mouse, terrainTick, timeElapsed } from "./game";
+import { background, entityRender, terrainTick } from "./game";
 import { Atmosphere } from "./atmosphere";
 import { Light, Lightmap } from "./shaders/lighting/light";
 import { Color } from "./color";
 import { Vector } from "./vector";
-import { mat4, quat } from "gl-matrix";
 
-let fragment: string = fs.readFileSync(__dirname + '/shaders/groundPlane/groundPlane.frag', 'utf8');
-let vertex: string = fs.readFileSync(__dirname + '/shaders/groundPlane/groundPlane.vert', 'utf8');
+let fragment: string = fs.readFileSync(__dirname + '/shaders/groundLayers/groundLayers.frag', 'utf8');
+let vertex: string = fs.readFileSync(__dirname + '/shaders/groundLayers/groundLayers.vert', 'utf8');
 
 
-export class GroundPlane {
+export class GroundLayers {
     static array: Uint8Array;
     static graphic: Mesh;
-    static uniforms: { terrain: Texture, viewport: [number, number, number, number], render: RenderTexture, customProjection: mat4, customView: mat4 };
+    static uniforms: { terrain: Texture, viewport: [number, number, number, number], render: RenderTexture, };
     static init() {
         this.array = new Uint8Array(Camera.width * Camera.height);
         this.array.fill(255);
@@ -25,35 +24,22 @@ export class GroundPlane {
             terrain: null,
             viewport: [0, 0, 0, 0],
             render: background,
-            customProjection: mat4.create(),
-            customView: mat4.create()
         }
         const material = Shader.from(vertex, fragment, this.uniforms)
         const geometry = new Geometry()
         geometry.addIndex([0, 1, 2, 0, 2, 3])
         geometry.addAttribute('aVertexPosition', // the attribute name
             [
-                -1, 0, 0,
-                100, 0, 0,
-                100, 100, 0,
-                0, 100, 0,
-            ], // x, y
-            2);
-        geometry.addAttribute('tVertexPosition', // the attribute name
-            [
                 -1, 0, 1,
                 1, 0, 1,
                 1, 1, 1,
-                -1, 1, 1,
+                0, 1, 1,
             ], // x, y
-            3);
+            2);
         geometry.addAttribute('aTextureCoord', // the attribute name
             [0, 0, 1, 0, 1, 1, 0, 1], // x, y 
             2)
         this.graphic = new Mesh(geometry, material) as any;
-        this.graphic.name = "GroundPlane";
-        this.graphic.position.x = 2200;
-        this.graphic.position.y = 280;
         this.resize();
     }
 
@@ -75,15 +61,7 @@ export class GroundPlane {
             2);
         geometry.addAttribute('aTextureCoord', // the attribute name
             [0, 0, 1, 0, 1, 1, 0, 1], // x, y 
-            2);
-        geometry.addAttribute('tVertexPosition', // the attribute name
-            [
-                -1, -.5, 0,
-                1, -.5, 0,
-                1, .5, 0,
-                -1, .5, 0,
-            ], // x, y
-            3);
+            2)
         this.graphic.geometry = geometry;
     }
 
@@ -92,21 +70,17 @@ export class GroundPlane {
         this.uniforms.terrain = Texture.fromBuffer(this.array, this.array.length / Camera.height, Camera.height, { format: FORMATS.ALPHA });
     }
 
-    /**
-     * Updates the rendering properties of the GroundPlane.
-     * Recalculates the `useWidth` based on the current Camera width,
-     * resizes the geometry, and updates the `render` and `viewport`
-     * uniforms with the current background and camera position.
-     */
+/**
+ * Updates the rendering properties of the GroundPlane.
+ * Recalculates the `useWidth` based on the current Camera width,
+ * resizes the geometry, and updates the `render` and `viewport`
+ * uniforms with the current background and camera position.
+ */
     static update() {
         this.uniforms.terrain.update();
         const useWidth = Math.ceil((Camera.width) / 4) * 4;
         this.resize();
         this.uniforms.render = background;
         this.uniforms.viewport = [...Camera.position.xy(), useWidth, Camera.height];
-        let fov = Math.PI * .5;
-        this.uniforms.customProjection = mat4.perspective(mat4.create(), fov, Camera.width / Camera.height, .01, 10);
-        this.uniforms.customView = mat4.fromRotationTranslationScale(mat4.create(), quat.fromEuler(quat.create(), timeElapsed * 400, mouse.x, 0), [(this.graphic.position.x - Camera.position.x) * .04, (this.graphic.position.y - Camera.position.y) * -.04, -5], [2, 2, 2]);
-        //console.log(this.uniforms.customProjection);
     }
 }

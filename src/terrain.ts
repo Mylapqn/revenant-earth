@@ -6,6 +6,7 @@ import { Vector } from "./vector";
 import { Rock } from "./entities/passive/rock";
 import { GrassPatch } from "./entities/passive/grassPatch";
 import { TerrainGenerator } from "./biome";
+import { GroundLayers } from "./groundLayers";
 import { GroundPlane } from "./groundPlane";
 
 
@@ -131,6 +132,7 @@ export class Terrain {
             buffers.unshift(Terrain.pixels.slice(camX + h, useWidth + camX + h));
         }
         PixelDrawer.setPixels(Buffer.concat(buffers));
+        GroundLayers.setPixels(Buffer.concat(buffers));
         GroundPlane.setPixels(Buffer.concat(buffers));
     }
 
