@@ -37,7 +37,7 @@ void main() {
         coord.y += noise(vec2(float(i) * .3f, 0)) * 0.012f;
         float alpha = texture(terrain, coord).a;
         float stepAlpha = step(.1f, alpha);
-        color = mix(color, vec4(.7f - float(i) * .008f, .3f - float(i) * .002f, .3f - float(i) * .006f, 1.f), stepAlpha);
+        color = mix(color, vec4(.7f - float(i) * .008f, .3f - float(i) * .0019f, .3f - float(i) * .006f, 1.f), stepAlpha);
         if(texture(terrain, coord + vec2(0.01f, 0)).a < alpha) {
             color.rgb *= .8f;
         }
