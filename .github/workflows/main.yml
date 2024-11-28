@@ -2,7 +2,7 @@ name: Revenant build pages
 on:
   push:
     branches:
-      - main
+      - 3d-test
 jobs:
   build:
     runs-on: ubuntu-latest
