@@ -30,11 +30,19 @@ vec2 globPos(vec2 p) {
 void main() {
     vec2 globalPos = (viewport.xy + vec2(vTextureCoord.x * viewport.z, -vTextureCoord.y * viewport.w));
     vec2 coord = vTextureCoord;
-    for(int i = 1; i < 9; i++) {
+    for(int i = 1; i < 50; i++) {
         //coord -= (vTextureCoord - .5f) * (.1f + noise(globPos((vTextureCoord - (vTextureCoord - .5f) * .001f * float(i))*.02*float(i))) * .01f);
-        coord -= (vTextureCoord - .5f) * (.1f);
+        coord -= (vTextureCoord - .5f) * (.01f);
+        coord.y -= 0.001f;
+        coord.y += noise(vec2(float(i) * .3f, 0)) * 0.012f;
         float alpha = texture(terrain, coord).a;
-        alpha = step(.1f, alpha);
-        color = mix(color, vec4(.5f - float(i) * .05f, .3f - float(i) * .01f, .3f - float(i) * .02f, 1.f), alpha);
+        float stepAlpha = step(.1f, alpha);
+        color = mix(color, vec4(.7f - float(i) * .008f, .3f - float(i) * .002f, .3f - float(i) * .006f, 1.f), stepAlpha);
+        if(texture(terrain, coord + vec2(0.01f, 0)).a < alpha) {
+            color.rgb *= .8f;
+        }
+        if(texture(terrain, coord + vec2(-0.01f, -.01f)).a > alpha) {
+            color.rgb *= .8f;
+        }
     }
 }

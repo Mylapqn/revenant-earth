@@ -206,8 +206,8 @@ export async function initGame(skipIntro = false) {
     pixelContainer.addChild(Buildable.graphic);
     pixelContainer.addChild(ParallaxDrawer.fgContainer);
     onResize(ParallaxDrawer.fgContainer, () => ParallaxDrawer.fgContainer.filterArea = Camera.rect);
-    //pixelContainer.addChild(GroundLayers.graphic);
-    pixelContainer.addChild(GroundPlane.graphic);
+    pixelContainer.addChild(GroundLayers.graphic);
+    //pixelContainer.addChild(GroundPlane.graphic);
 
 
     backdrop0 = new Backdrop(.65);
